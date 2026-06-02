@@ -1,39 +1,36 @@
 package fr.opensettlers.model;
 
-import lombok.Getter;
+import lombok.*;
 import fr.opensettlers.utils.Coordinates;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Base class for all buildings in the game.
  * Each building has a position (x, y) and belongs to a player (playerId).
  * Specific types of buildings will extend this class and add their own properties and behaviors.
  */
-@Getter
+@Data
+@AllArgsConstructor
 public abstract class Building {
     /**
-     * The x-coordinate of the building's position on the game map.
+     * Unique identifier for the building.
      */
-    private final int x;
+    private final UUID id;
 
     /**
-     * The y-coordinate of the building's position on the game map.
-     */
-    private final int y;
-
-    /**
-     * The ID of the player who owns this building.
+     * Identifier of the player who owns the building.
      */
     private final int playerId;
+    /**
+     * Coordinates of the building on the game map. The coordinates are represented as a pair of integers (x, y).
+     */
+    private final Coordinates position;
 
     /**
-     * Constructs a new Building with the specified coordinates and player ID.
-     *
-     * @param coordinates The coordinates of the building's position on the game map.
-     * @param playerId    The ID of the player who owns this building.
+     * Cost of building the building, represented as a list of pairs (resource type, amount).
      */
-    public Building(Coordinates coordinates, int playerId) {
-        this.x = coordinates.getX();
-        this.y = coordinates.getY();
-        this.playerId = playerId;
-    }
+    private Map<ResourceType, Integer> costs;
 }
