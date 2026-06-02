@@ -1,12 +1,19 @@
-package main.java.fr.opensettlers.utils;
+package fr.opensettlers.utils;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+/**
+ * Double heighted double widthed coordinates for hexagonal grid.
+ * <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">More here</a>
+ */
 @Data
 @AllArgsConstructor
 public class Coordinates {
-    private final int x;
-    private final int y;
+    private int x;
+    private int y;
 
-    public void add(int dx, int dy) {
+    public void move(int dx, int dy) {
         this.x += dx;
         this.y += dy;
     }
@@ -18,6 +25,13 @@ public class Coordinates {
     }
 
     public Coordinates neighbor(Direction direction) {
-        return new Coordinates(this.x + direction.getDx(), this.y + direction.getDy());
+        return switch (direction) {
+            case NORTH -> new Coordinates(this.x, this.y - 2);
+            case NORTHEAST -> new Coordinates(this.x + 1, this.y - 1);
+            case SOUTHEAST -> new Coordinates(this.x + 1, this.y + 1);
+            case SOUTH -> new Coordinates(this.x, this.y + 2);
+            case SOUTHWEST -> new Coordinates(this.x - 1, this.y + 1);
+            case NORTHWEST -> new Coordinates(this.x - 1, this.y - 1);
+        };
     }
 }
