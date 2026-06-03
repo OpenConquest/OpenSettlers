@@ -10,10 +10,10 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Coordinates {
-    private int x;
-    private int y;
+    private double x;
+    private double y;
 
-    public void move(int dx, int dy) {
+    public void move(double dx, double dy) {
         this.x += dx;
         this.y += dy;
     }

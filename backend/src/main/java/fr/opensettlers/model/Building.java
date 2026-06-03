@@ -13,12 +13,12 @@ public abstract class Building {
     /**
      * The x-coordinate of the building's position on the game map.
      */
-    private final int x;
+    private final double x;
 
     /**
      * The y-coordinate of the building's position on the game map.
      */
-    private final int y;
+    private final double y;
 
     /**
      * The ID of the player who owns this building.
