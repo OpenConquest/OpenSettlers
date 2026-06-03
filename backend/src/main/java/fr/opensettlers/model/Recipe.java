@@ -9,6 +9,14 @@ import java.util.Map;
  */
 @Value
 public class Recipe {
+    public static final Map<ResourceType, Map<ResourceType, Integer>> RECIPES = Map.ofEntries(
+            Map.entry(ResourceType.PLANK, Map.of(ResourceType.LOG, 1)),
+            Map.entry(ResourceType.FLOUR, Map.of(ResourceType.WHEAT, 1)),
+            Map.entry(ResourceType.BREAD, Map.of(ResourceType.FLOUR, 1, ResourceType.WATER, 1)),
+            Map.entry(ResourceType.BEER, Map.of(ResourceType.WHEAT, 1, ResourceType.WATER, 1)),
+            Map.entry(ResourceType.STEEL, Map.of(ResourceType.IRON, 1, ResourceType.COAL, 1)),
+            Map.entry(ResourceType.SWORD, Map.of(ResourceType.STEEL, 1, ResourceType.COAL, 1))
+    );
     /**
      * The input resources required to produce the output resource. This is a map where the key is the type of resource and the value is the amount of that resource required.
      */
