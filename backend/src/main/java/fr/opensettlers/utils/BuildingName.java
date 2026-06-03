@@ -1,106 +1,70 @@
 package fr.opensettlers.utils;
 
-
+/**
+ * Enumeration of all building types available in the game.
+ */
 public enum BuildingName {
-    /**
-     * The Headquarters is the main building of a player. It is where the player starts the game and where they can store their resources.
-     */
+    /** Main building; starting point and resource storage hub. */
     HEADQUARTERS,
 
-    /**
-     * A Warehouse is a building that can store resources. It has no production capabilities and is used solely for storage.
-     */
+    /** Storage-only building with no production capability. */
     WAREHOUSE,
 
-    /**
-     * A Woodcutter is a building that produces wood logs. It takes in no resources and produces log as output.
-     */
+    /** Produces wood logs from nearby trees. */
     WOODCUTTER,
 
-    /**
-     * A Forester
-     */
+    /** Plants new trees to replenish forests. */
     FORESTER,
 
-    /**
-     * A Quarry is a building that produces stone. It takes in no resources and produces stone as output.
-     */
+    /** Produces stone without requiring input resources. */
     QUARRY,
 
-    /**
-     * A Mine is a building that produces ore. It takes in no resources and produces ore as output.
-     */
+    /** Produces ore without requiring input resources. */
     MINE,
 
-    /**
-     * A Farm is a building that produces food. It takes in no resources and produces wheat as output.
-     */
+    /** Produces wheat without requiring input resources. */
     FARM,
 
-    /**
-     * A Fishing Hut is a building that produces fish. It takes in no resources and produces fish as output.
-     */
+    /** Produces fish without requiring input resources. */
     FISHING_HUT,
 
-    /**
-     * A Water Well is a building that produces water. It takes in no resources and produces water as output.
-     */
+    /** Produces water without requiring input resources. */
     WATER_WELL,
 
-    /**
-     * A Sawmill is a building that produces planks. It takes in logs as input and produces planks as output.
-     */
+    /** Produces planks from logs. */
     SAWMILL,
 
-    /**
-     * A Mill is a building that produces flour. It takes in wheat as input and produces flour as output.
-     */
+    /** Produces flour from wheat. */
     MILL,
 
-    /**
-     * A Bakery is a building that produces bread. It takes in flour and water as inputs and produces bread as output.
-     */
+    /** Produces bread from flour and water. */
     BAKERY,
 
-    /**
-     * A Foundry is a building that produces steel. It takes in iron and coal as input and produces steel as output.
-     */
+    /** Produces steel from iron and coal. */
     FOUNDRY,
 
-    /**
-     * An Armory is a building that produces swords. It takes in steel and coal as input and produces swords as output.
-     */
+    /** Produces swords from steel and coal. */
     ARMORY,
 
-    /**
-     * A Brewery is a building that produces beer. It takes in wheat and water as input and produces beer as output.
-     */
+    /** Produces beer from wheat and water. */
     BREWERY,
 
-    /**
-     * A Guard House is a military building to extend the territory of a player.
-     */
+    /** Military building that extends territory. */
     GUARD_HOUSE,
 
-    /**
-     * A Watch Tower is a military building to extend the territory of a player.
-     */
+    /** Military building that extends territory. */
     WATCH_TOWER,
 
-    /**
-     * A Castle is a military building to extend the territory of a player.
-     */
+    /** Military building that extends territory. */
     CASTLE,
 
-    /**
-     * A Barracks is a military building to extend the territory of a player.
-     */
+    /** Military building that extends territory. */
     BARRACKS;
 
     /**
-     * Returns the string representation of the building name. This is used for display purposes and should return a user-friendly name for each building type.
+     * Returns a user-friendly display name for this building.
      *
-     * @return the string representation of the building name
+     * @return the display name
      */
     @Override
     public String toString() {

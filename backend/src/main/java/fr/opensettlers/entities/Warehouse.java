@@ -5,15 +5,11 @@ import fr.opensettlers.utils.Coordinates;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * A Warehouse is a building that can store resources. It has no production capabilities and is used solely for storage.
- */
+/** Storage-only building with no production capabilities. */
 public class Warehouse extends StorageBuilding {
     /**
-     * Creates a new Warehouse for the given player at the given position. The Warehouse starts with no resources.
-     *
-     * @param playerId the ID of the player who owns this Warehouse
-     * @param position the position of the Warehouse on the map
+     * @param playerId owning player ID
+     * @param position map position
      */
     public Warehouse(int playerId, Coordinates position) {
         super(UUID.randomUUID(), playerId, position, Map.of());

@@ -1,18 +1,15 @@
 package fr.opensettlers.utils;
 
+/**
+ * Enumeration of mineable ore types.
+ */
 public enum OreType {
-    /**
-     * Coal ore. Naturally available raw resource.
-     */
+    /** Coal ore. */
     COAL,
 
-    /**
-     * Iron ore. Naturally available raw resource.
-     */
+    /** Iron ore. */
     IRON,
 
-    /**
-     * Stone ore. Naturally available raw resource.
-     */
+    /** Stone ore. */
     STONE
 }

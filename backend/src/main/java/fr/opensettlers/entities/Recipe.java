@@ -5,11 +5,10 @@ import lombok.Value;
 
 import java.util.Map;
 
-/**
- * The Recipe class represents a recipe for processing resources. It contains the input resources required to produce an output resource.
- */
+/** Defines a resource conversion: required inputs and the produced output. */
 @Value
 public class Recipe {
+    /** All known recipes, keyed by output resource type mapping to required inputs and quantities. */
     public static final Map<ResourceType, Map<ResourceType, Integer>> RECIPES = Map.ofEntries(
             Map.entry(ResourceType.PLANK, Map.of(ResourceType.LOG, 1)),
             Map.entry(ResourceType.FLOUR, Map.of(ResourceType.WHEAT, 1)),
@@ -18,29 +17,21 @@ public class Recipe {
             Map.entry(ResourceType.STEEL, Map.of(ResourceType.IRON, 1, ResourceType.COAL, 1)),
             Map.entry(ResourceType.SWORD, Map.of(ResourceType.STEEL, 1, ResourceType.COAL, 1))
     );
-    /**
-     * The input resources required to produce the output resource. This is a map where the key is the type of resource and the value is the amount of that resource required.
-     */
+    /** Required input resources and their quantities. */
     Map<ResourceType, Integer> input;
 
-    /**
-     * The output resource produced by this recipe. This is the type of resource that will be produced when the input resources are processed.
-     */
+    /** Output resource type produced. */
     ResourceType output;
 
     /**
-     * Checks if the recipe can be processed with the current input resources. This method should check if the required input resources are available in the building's input slots.
-     *
-     * @return true if the recipe can be processed, false otherwise
+     * @return {@code true} if all required inputs are available
      */
     public boolean canProcess() {
         // TODO
         return true;
     }
 
-    /**
-     * Consumes the input resources according to the recipe. This method should be called when the building is ready to process resources and should update the quantities of the input resources in the building's input slots.
-     */
+    /** Consumes the required input resources. */
     public void consume() {
         // TODO
     }

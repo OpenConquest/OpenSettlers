@@ -6,45 +6,31 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * The ProductionBuilding is a building that can produce resources or goods. It has input slots for resources and output slots for the produced goods. It also has a production time that determines how long it takes to produce the goods.
- */
+/** Building that produces goods from input resources with a defined production time. */
 @Getter
-public class ProductionBuilding extends Building {
-    /**
-     * The production time in seconds. This is the time it takes for the building to produce the goods after it has received the required input resources.
-     */
-    public static final int productionTime = 5;
+public abstract class ProductionBuilding extends Building {
+    /** Production time in seconds. */
+    private static final int productionTime = 5;
 
-    /**
-     * The production cooldown. Allows production when it reaches 0.
-     */
+    /** The production cooldown. Allows production when it reaches 0. */
     private int productionCooldown = 0;
 
-    /**
-     * The input slots for the resources required to produce the goods. Each slot can hold a certain amount of a specific resource type.
-     */
+    /** Input resource slots. */
     private List<ResourceSlot> inputSlots;
 
-    /**
-     * The output slots for the produced goods. Each slot can hold a certain amount of a specific resource type.
-     */
+    /** Output resource slot. */
     private ResourceSlot outputSlots;
 
     /**
-     * Creates a new ProductionBuilding.
-     *
-     * @param id       the unique identifier of the building
-     * @param playerId the ID of the player who owns the building
-     * @param position the coordinates of the building on the map
+     * @param id       unique identifier
+     * @param playerId owning player ID
+     * @param position map coordinates
      */
     public ProductionBuilding(UUID id, int playerId, Coordinates position) {
         super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
     }
 
-    /**
-     * Produces the goods according to the input resources and the production time. This method should be called when the building is ready to produce goods.
-     */
+    /** Produces goods from available input resources. */
     public void produce() {
         // TODO
     }

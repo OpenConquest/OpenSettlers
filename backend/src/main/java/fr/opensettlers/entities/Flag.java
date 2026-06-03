@@ -7,41 +7,30 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-/**
- * Represents a flag in the game, which can hold resources and is associated with a player.
- */
+
+/** A flag that holds resources for transport between buildings. */
 @Data
 public class Flag {
-    /**
-     * Unique identifier for the flag.
-     */
+    /** Unique identifier. */
     private final UUID id;
 
-    /**
-     * Identifier of the player who owns the flag.
-     */
+    /** Owning player ID. */
     private final int playerId;
 
-    /**
-     * Coordinates of the flag on the game map. The coordinates are represented as a pair of integers (x, y).
-     */
+    /** Position on the game map. */
     private final Coordinates coordinates;
 
-    /**
-     * Map to store the resources currently held by the flag. The key is the resource type and the value is the amount of that resource.
-     */
+    /** Resources currently held, keyed by type. */
     private final Map<ResourceType, Integer> resources = new HashMap<>();
 
-    /**
-     * Maximum capacity of the flag, which limits the total amount of resources it can hold.
-     */
+    /** Maximum total resource capacity. */
     private final int maxCapacity = 5;
 
     /**
-     * Adds a resource to the flag. If the flag is already at full capacity, an exception is thrown.
+     * Adds one unit of the given resource.
      *
-     * @param resourceType The type of resource to add to the flag.
-     * @throws IllegalStateException if the flag is at full capacity.
+     * @param resourceType the resource type to add
+     * @throws IllegalStateException if the flag is full
      */
     public void addResource(ResourceType resourceType) {
         if (resources.values().stream().mapToInt(Integer::intValue).sum() >= maxCapacity) {
@@ -51,10 +40,10 @@ public class Flag {
     }
 
     /**
-     * Removes a resource from the flag. If there are no resources of the specified type to remove, an exception is thrown.
+     * Removes one unit of the given resource.
      *
-     * @param resourceType The type of resource to remove from the flag.
-     * @throws IllegalArgumentException if there are no resources of the specified type to remove.
+     * @param resourceType the resource type to remove
+     * @throws IllegalArgumentException if none available
      */
     public void popResource(ResourceType resourceType) {
         int currentAmount = resources.getOrDefault(resourceType, 0);
@@ -65,18 +54,14 @@ public class Flag {
     }
 
     /**
-     * Checks if the flag is at full capacity by summing the total amount of resources it currently holds and comparing it to the maximum capacity.
-     *
-     * @return true if the flag is at full capacity, false otherwise.
+     * @return {@code true} if the flag is at full capacity
      */
     public boolean isFull() {
         return resources.values().stream().mapToInt(Integer::intValue).sum() >= maxCapacity;
     }
 
     /**
-     * Checks if the flag is empty by summing the total amount of resources it currently holds and checking if it is zero.
-     *
-     * @return true if the flag is empty, false otherwise.
+     * @return {@code true} if the flag holds no resources
      */
     public boolean isEmpty() {
         return resources.values().stream().mapToInt(Integer::intValue).sum() == 0;

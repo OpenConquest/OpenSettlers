@@ -5,32 +5,24 @@ import lombok.Getter;
 
 import java.util.UUID;
 
-/**
- * A ProcessingBuilding is a building that can process resources. It takes in resources as input and produces a different resource as output.
- */
+/** Building that transforms input resources into output resources via a recipe. */
 @Getter
 public abstract class ProcessingBuilding extends ProductionBuilding {
-    /**
-     * The recipe that defines the input and output resources for this building.
-     */
+    /** Recipe defining the input/output resource conversion. */
     private final Recipe recipe;
 
     /**
-     * Creates a new ProcessingBuilding.
-     *
-     * @param id       the unique identifier of the building
-     * @param playerId the ID of the player who owns the building
-     * @param position the coordinates of the building on the map
-     * @param recipe   the recipe that defines the input and output resources for this building
+     * @param id       unique identifier
+     * @param playerId owning player ID
+     * @param position map coordinates
+     * @param recipe   conversion recipe
      */
     public ProcessingBuilding(UUID id, int playerId, Coordinates position, Recipe recipe) {
         super(id, playerId, position);
         this.recipe = recipe;
     }
 
-    /**
-     * Processes the input resources according to the recipe and produces the output resource. This method should be called when the building is ready to process resources.
-     */
+    /** Processes input resources and produces the output according to the recipe. */
     public void process() {
         // TODO
     }

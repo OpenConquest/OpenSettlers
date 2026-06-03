@@ -4,30 +4,22 @@ import fr.opensettlers.utils.ResourceType;
 import lombok.Data;
 import lombok.NonNull;
 
-/**
- * The ResourceSlot class represents a slot for storing a specific type of resource. It contains the type of resource, the quantity of that resource currently stored in the slot, and the maximum quantity that can be stored in the slot.
- */
+/** A slot holding a specific resource type with a capped quantity. */
 @Data
 public class ResourceSlot {
-    /**
-     * The type of resource stored in this slot. This is an enum that represents the different types of resources available in the game (e.g., wood, stone, food).
-     */
+    /** Resource type held by this slot. */
     private final ResourceType type;
 
-    /**
-     * The quantity of the resource currently stored in this slot. This is an integer that represents how much of the resource is currently in the slot.
-     */
+    /** Current quantity stored. */
     private @NonNull int quantity;
 
-    /**
-     * The maximum quantity of the resource that can be stored in this slot. This is an integer that represents the maximum capacity of the slot for the specific resource type.
-     */
+    /** Maximum quantity per slot. */
     private final int MAX_PER_SLOT = 5;
 
     /**
-     * Adds one unit of the resource to the slot. This method should check if adding the resource would exceed the maximum capacity of the slot and only add the resource if it does not exceed the capacity.
+     * Adds one unit if the slot is not full.
      *
-     * @return true if the resource was added successfully, false if adding the resource would exceed the maximum capacity of the slot
+     * @return {@code true} if the resource was added
      */
     public boolean addResource() {
         if (quantity < MAX_PER_SLOT) {

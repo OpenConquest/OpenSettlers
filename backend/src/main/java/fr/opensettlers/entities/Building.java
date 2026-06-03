@@ -9,34 +9,22 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Base class for all buildings in the game.
- * Each building has a position (x, y) and belongs to a player (playerId).
- * Specific types of buildings will extend this class and add their own properties and behaviors.
- */
+ * Abstract base class for all buildings, defined by a position and an owning player.
+ * */
 @Data
 public abstract class Building {
-    /**
-     * Unique identifier for the building.
-     */
+    /** Unique identifier. */
     private final UUID id;
 
-    /**
-     * Identifier of the player who owns the building.
-     */
+    /** Owning player ID. */
     private final int playerId;
-    /**
-     * Coordinates of the building on the game map. The coordinates are represented as a pair of integers (x, y).
-     */
+    /** Position on the game map. */
     private final Coordinates position;
 
-    /**
-     * Flag currently attached to the building, if any. A building can have at most one flag attached at a time.
-     */
+    /** Flag attached to this building, or {@code null}. */
     private final Flag attachedFlag;
 
-    /**
-     * A static map that defines the resource costs for constructing each type of building. The key is the BuildingName enum value, and the value is another map that specifies the required resources and their quantities for that building.
-     */
+    /** Resource costs for constructing each building type. */
     public static final Map<BuildingName, Map<ResourceType, Integer>> buildingCosts = Map.ofEntries(
             Map.entry(BuildingName.WOODCUTTER, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.FORESTER, Map.of(ResourceType.PLANK, 2)),

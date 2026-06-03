@@ -1,37 +1,25 @@
 package fr.opensettlers.utils;
 
 /**
- * Hexagonal directions for double heighted double widthed coordinates. Refer to
- * <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">this article</a> for more information.
+ * Hexagonal directions for doubled hex coordinates.
+ * See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>.
  */
 public enum Direction {
-    /**
-     * North direction. (0, -2) unit vector.
-     */
+    /** North (0, -2). */
     NORTH,
 
-    /**
-     * North-east direction. (1, -1) unit vector.
-     */
+    /** North-east (1, -1). */
     NORTHEAST,
 
-    /**
-     * South-east direction. (1, 1) unit vector.
-     */
+    /** South-east (1, 1). */
     SOUTHEAST,
 
-    /**
-     * South direction. (0, 2) unit vector.
-     */
+    /** South (0, 2). */
     SOUTH,
 
-    /**
-     * South-west direction. (-1, 1) unit vector.
-     */
+    /** South-west (-1, 1). */
     SOUTHWEST,
 
-    /**
-     * North-west direction. (-1, -1) unit vector.
-     */
+    /** North-west (-1, -1). */
     NORTHWEST,
 }

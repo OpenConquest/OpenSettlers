@@ -6,20 +6,13 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * The MilitaryBuilding is a building that can recruit soldiers and expand the player's territory.
- */
+/** Building that recruits soldiers and expands territory. */
 @Getter
-public class
-MilitaryBuilding extends Building {
-    /**
-     * List of soldiers currently recruited by this building. The soldiers are represented as a list of Soldier objects, which contain information about the soldier's type, health, attack power, etc.
-     */
+public class MilitaryBuilding extends Building{
+    /** Soldiers currently garrisoned in this building. */
     private List<Soldier> soldiers;
 
-    /**
-     * The maximum number of soldiers that can be recruited by this building. This is determined by the type of the building and can be increased by upgrading the building.
-     */
+    /** Maximum number of soldiers this building can hold. */
     private int maxCapacity;
 
 

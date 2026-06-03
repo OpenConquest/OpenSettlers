@@ -4,28 +4,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * Double heighted double widthed coordinates for hexagonal grid. Refer to
- * <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">this article</a> for more information.
+ * Double-heighted, double-widthed hexagonal grid coordinates.
+ * See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>.
  */
 @Data
 @AllArgsConstructor
 public class Coordinates {
-    /**
-     * The X horizontal axis coordinate. Refer to
-     * <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">this article</a> for more information.
-     */
+    /** Horizontal axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>. */
     private int x;
 
-    /**
-     * The Y vertical axis coordinate. Refer to
-     * <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">this article</a> for more information.
-     */
+    /** Vertical axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>. */
     private int y;
 
     /**
-     * Shifts the coordinates.
-     * @param dx X-axis difference
-     * @param dy Y-axis difference
+     * Shifts coordinates by the given deltas.
+     *
+     * @param dx horizontal offset
+     * @param dy vertical offset
      */
     public void move(int dx, int dy) {
         this.x += dx;
@@ -33,8 +28,9 @@ public class Coordinates {
     }
 
     /**
-     * Shifts the coordinates
-     * @param vector Another Coordinates object that will be added.
+     * Shifts coordinates by adding the given vector.
+     *
+     * @param vector offset to apply
      */
     public void move(Coordinates vector) {
         this.x += vector.x;
@@ -42,19 +38,20 @@ public class Coordinates {
     }
 
     /**
-     * Shifts the coordinates by a distance of 1 towards the specified direction.
-     * @param vector - A unit vector indicating the direction to apply.
+     * Shifts coordinates one step in the given direction.
+     *
+     * @param vector direction to move toward
      */
     public void move(Direction vector) {
         this.move(this.neighbor(vector));
     }
 
     /**
-     * This function converts Direction enum values into unit vectors according to the double heighted double widthed
-     * hexagonal coordinates system. Refer to
-     * <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">this article</a> for more information.
-     * @param direction The direction enum.
-     * @return A unit vector in the specified direction.
+     * Converts a {@link Direction} to the neighboring coordinates in the doubled hex grid.
+     * See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>.
+     *
+     * @param direction the direction
+     * @return neighbor coordinates in that direction
      */
     public Coordinates neighbor(Direction direction) {
         return switch (direction) {

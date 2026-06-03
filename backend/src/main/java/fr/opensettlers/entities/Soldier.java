@@ -7,31 +7,25 @@ import lombok.NonNull;
 
 import java.util.UUID;
 
+/** A military unit that can move, attack, and be killed. */
 @Data
 public class Soldier {
-    /**
-     * Unique identifier for the soldier.
-     */
+    /** Unique identifier. */
     private final UUID id;
 
-    /**
-     * Identifier of the player who owns the soldier.
-     */
+    /** Owning player ID. */
     private final int playerId;
 
-    /**
-     * Health of the soldier.
-     */
+    /** Current health points. */
     private int health = 3;
 
-    /**
-     * Position of the soldier.
-     */
+    /** Current position on the map. */
     private @NonNull Coordinates position;
 
     /**
-     * Attacks another soldier. 50% chance to deal 1 damage to the target if it's in the same position.
-     * @param target The enemy to attack
+     * Attacks the target (50% hit chance, 1 damage) if on the same tile.
+     *
+     * @param target the enemy soldier
      */
     public void attack(Soldier target) {
         if (this.isSamePosition(target)) {
@@ -42,7 +36,9 @@ public class Soldier {
     }
 
     /**
-     * Changes the position of the unit by 1 unit in the specified direction.
+     * Moves one tile in the given direction.
+     *
+     * @param direction movement direction
      */
     public void move(Direction direction) {
         this.position.move(direction);
@@ -57,10 +53,10 @@ public class Soldier {
     }
 
     /**
-     * Checks if another Soldier shares the same position. There can be only one soldier per tile, two soldiers sharing
-     * the same tile means they've engaged combat.
-     * @param other Another soldier.
-     * @return boolean
+     * Checks if another soldier occupies the same tile (implies combat).
+     *
+     * @param other the other soldier
+     * @return {@code true} if positions match
      */
     public boolean isSamePosition(Soldier other) {
         return this.position.equals(other.position);
