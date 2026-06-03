@@ -1,9 +1,11 @@
 package fr.opensettlers.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import fr.opensettlers.utils.Coordinates;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,8 +14,10 @@ import java.util.UUID;
  * Each building has a position (x, y) and belongs to a player (playerId).
  * Specific types of buildings will extend this class and add their own properties and behaviors.
  */
-@Data
+@Getter
 @AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public abstract class Building {
     /**
      * Unique identifier for the building.
