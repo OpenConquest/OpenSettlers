@@ -1,11 +1,11 @@
-package fr.opensettlers.services;
+package fr.opensettlers.engine.mapgen;
 
-import fr.opensettlers.model.Tile;
-import fr.opensettlers.model.MapTile;
-import fr.opensettlers.model.Ressource;
-import fr.opensettlers.model.Terrain;
+import fr.opensettlers.entities.MapTile;
+import fr.opensettlers.entities.NaturalResourceNode;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.PerlinNoise;
+import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.TileType;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,31 +37,35 @@ public class MapGenerator {
                 double mNoise = (moistureNoise.noise(mx, my) + 0.5 * moistureNoise.noise(mx * 2, my * 2)) / 1.5;
                 double moisture = (mNoise + 1.0) / 2.0;
 
-                Tile type;
+                TileType type;
                 if (elevation < 0.20) {
-                    type = Tile.WATER;
+                    type = TileType.WATER;
                 } else if (elevation >= 0.85) {
-                    type = Tile.MOUNTAIN;
+                    type = TileType.MOUNTAIN;
                 } else if (elevation >= 0.70) {
-                    type = Tile.HILLS;
+                    type = TileType.HILLS;
                 } else {
                     if (moisture < 0.25) {
-                        type = Tile.DESSERT;
+                        type = TileType.DESERT;
                     } else if (moisture > 0.65) {
-                        type = Tile.FOREST;
+                        type = TileType.FOREST;
                     } else {
-                        type = Tile.PLAINS;
+                        type = TileType.GRASS;
                     }
                 }
 
-                Ressource resource = Ressource.NONE;
+                ResourceType resource = null;
                 double roll = rand.nextDouble();
-                if (type == Tile.WATER && roll < 0.08) resource = Ressource.FISH;
-                else if (type == Tile.PLAINS && roll < 0.05) resource = Ressource.WHEAT;
-                else if (type == Tile.HILLS && roll < 0.12) resource = Ressource.ORE;
-                else if (type == Tile.MOUNTAIN && roll < 0.30) resource = Ressource.ORE;
+                if (type == TileType.WATER && roll < 0.08) resource = ResourceType.FISH;
+                else if (type == TileType.GRASS && roll < 0.05) resource = ResourceType.WHEAT;
+                else if (type == TileType.HILLS && roll < 0.12) resource = ResourceType.STONE; // Mapping ORE to STONE in hills
+                else if (type == TileType.MOUNTAIN && roll < 0.30) resource = ResourceType.IRON; // Mapping ORE to IRON in mountains
 
-                gridMap[x][y] = new MapTile(type, resource);
+                MapTile tile = new MapTile(new Coordinates(x, y), type, (int)(elevation * 100));
+                if (resource != null) {
+                    tile.setNaturalResource(new NaturalResourceNode(resource, 5)); // Dummy node with 5 quantity
+                }
+                gridMap[x][y] = tile;
             }
         }
 
@@ -79,7 +83,7 @@ public class MapGenerator {
         // 1. Group individual water clusters using a Hexagonal BFS Flood Fill
         for (int x = 0; x < gridSize; x++) {
             for (int y = 0; y < gridSize; y++) {
-                if (gridMap[x][y].getType() == Tile.WATER && labels[x][y] == 0) {
+                if (gridMap[x][y].getType() == TileType.WATER && labels[x][y] == 0) {
                     Queue<int[]> queue = new LinkedList<>();
                     queue.add(new int[]{x, y});
                     labels[x][y] = currentLabel;
@@ -89,7 +93,7 @@ public class MapGenerator {
                         for (int[] neighbor : getHexNeighbors(curr[0], curr[1], gridSize)) {
                             int nx = neighbor[0];
                             int ny = neighbor[1];
-                            if (gridMap[nx][ny].getType() == Tile.WATER && labels[nx][ny] == 0) {
+                            if (gridMap[nx][ny].getType() == TileType.WATER && labels[nx][ny] == 0) {
                                 labels[nx][ny] = currentLabel;
                                 queue.add(new int[]{nx, ny});
                             }
@@ -104,7 +108,7 @@ public class MapGenerator {
         List<int[]> tilesToVaporize = new ArrayList<>();
         for (int x = 0; x < gridSize; x++) {
             for (int y = 0; y < gridSize; y++) {
-                if (gridMap[x][y].getType() != Tile.WATER) {
+                if (gridMap[x][y].getType() != TileType.WATER) {
                     
                     // Track the absolute shortest distance to any unique lake ID found
                     Map<Integer, Integer> lakeDistances = new HashMap<>();
@@ -167,8 +171,12 @@ public class MapGenerator {
         for (int[] coord : tilesToVaporize) {
             int x = coord[0];
             int y = coord[1];
-            Ressource res = (rand.nextDouble() < 0.08) ? Ressource.FISH : Ressource.NONE;
-            gridMap[x][y] = new MapTile(Tile.WATER, res);
+            ResourceType res = (rand.nextDouble() < 0.08) ? ResourceType.FISH : null;
+            MapTile tile = new MapTile(new Coordinates(x, y), TileType.WATER, 0);
+            if (res != null) {
+                tile.setNaturalResource(new NaturalResourceNode(res, 5));
+            }
+            gridMap[x][y] = tile;
         }
     }
 
@@ -177,7 +185,7 @@ public class MapGenerator {
 
         for (int x = 0; x < gridSize; x++) {
             for (int y = 0; y < gridSize; y++) {
-                if (gridMap[x][y].getType() == Tile.WATER && !visited[x][y]) {
+                if (gridMap[x][y].getType() == TileType.WATER && !visited[x][y]) {
                     List<int[]> lakeTiles = new ArrayList<>();
                     Queue<int[]> queue = new LinkedList<>();
                     
@@ -191,7 +199,7 @@ public class MapGenerator {
                         for (int[] neighbor : getHexNeighbors(curr[0], curr[1], gridSize)) {
                             int nx = neighbor[0];
                             int ny = neighbor[1];
-                            if (gridMap[nx][ny].getType() == Tile.WATER && !visited[nx][ny]) {
+                            if (gridMap[nx][ny].getType() == TileType.WATER && !visited[nx][ny]) {
                                 visited[nx][ny] = true;
                                 queue.add(new int[]{nx, ny});
                             }
@@ -200,7 +208,9 @@ public class MapGenerator {
 
                     if (lakeTiles.size() < 20) {
                         for (int[] coord : lakeTiles) {
-                            gridMap[coord[0]][coord[1]] = new MapTile(Tile.PLAINS, Ressource.NONE);
+                            MapTile t = gridMap[coord[0]][coord[1]];
+                            t.setType(TileType.GRASS);
+                            t.setNaturalResource(null);
                         }
                     }
                 }

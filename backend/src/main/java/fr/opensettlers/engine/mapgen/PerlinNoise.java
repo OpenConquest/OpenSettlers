@@ -1,4 +1,4 @@
-package fr.opensettlers.utils;
+package fr.opensettlers.engine.mapgen;
 
 import java.util.Random;
 

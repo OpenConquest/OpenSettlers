@@ -1,4 +1,4 @@
-package fr.opensettlers.services;
+package fr.opensettlers.engine.mapgen;
 
 import java.util.ArrayList;
 import java.util.List;

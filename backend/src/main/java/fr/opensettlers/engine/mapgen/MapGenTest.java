@@ -1,12 +1,9 @@
-package fr.opensettlers.utils;
+package fr.opensettlers.engine.mapgen;
 
-import fr.opensettlers.model.MapTile;
-import fr.opensettlers.model.Tile;
-import fr.opensettlers.services.MapGenerator;
-import fr.opensettlers.services.MapVisualizer;
-import fr.opensettlers.services.PoisonDisk;
+import fr.opensettlers.entities.MapTile;
 import java.util.List;
-public class Main {
+
+public class MapGenTest {
     public static void main(String[] args) {
         try {
             int gridSize = 104; 

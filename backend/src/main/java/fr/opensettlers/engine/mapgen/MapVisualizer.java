@@ -1,8 +1,9 @@
-package fr.opensettlers.services;
+package fr.opensettlers.engine.mapgen;
 
-import fr.opensettlers.model.MapTile;
-import fr.opensettlers.model.Ressource;
-import fr.opensettlers.model.Tile;
+import fr.opensettlers.entities.MapTile;
+import fr.opensettlers.entities.NaturalResourceNode;
+import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.TileType;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -31,11 +32,13 @@ public class MapVisualizer {
                 
                 switch (tile.getType()) {
                     case WATER -> g.setColor(new Color(30, 144, 255));
-                    case PLAINS -> g.setColor(new Color(34, 139, 34));
+                    case GRASS -> g.setColor(new Color(34, 139, 34));
                     case HILLS -> g.setColor(new Color(139, 137, 137));
                     case MOUNTAIN -> g.setColor(Color.WHITE);
-                    case DESSERT -> g.setColor(new Color(238, 214, 175));
+                    case DESERT -> g.setColor(new Color(238, 214, 175));
                     case FOREST -> g.setColor(new Color(0, 90, 50));
+                    case STONE -> g.setColor(new Color(139, 137, 137));
+                    case FIELD -> g.setColor(new Color(200, 180, 50));
                 }
 
                 // Apply the offsets to the starting coordinates
@@ -54,19 +57,21 @@ public class MapVisualizer {
                 int cX = xL + 8; 
                 int cY = yT + 8; 
 
-                if (tile.getResource() == Ressource.WHEAT) {
+                ResourceType res = tile.getNaturalResource() != null ? tile.getNaturalResource().getType() : null;
+
+                if (res == ResourceType.WHEAT) {
                     g.setColor(new Color(255, 215, 0)); 
                     g.fillOval(cX - 4, cY - 2, 8, 4);
                     g.setColor(new Color(218, 165, 32));
                     g.drawLine(cX - 5, cY, cX + 5, cY);
 
-                } else if (tile.getResource() == Ressource.ORE) {
+                } else if (res == ResourceType.IRON || res == ResourceType.STONE || res == ResourceType.COAL) {
                     g.setColor(new Color(186, 85, 211));
                     int[] ox = { cX, cX + 4, cX, cX - 4 };
                     int[] oy = { cY - 4, cY, cY + 4, cY };
                     g.fillPolygon(ox, oy, 4);
 
-                } else if (tile.getResource() == Ressource.FISH) {
+                } else if (res == ResourceType.FISH) {
                     g.setColor(new Color(255, 99, 71));
                     g.fillOval(cX - 2, cY - 2, 5, 4);
                     
@@ -85,18 +90,20 @@ public class MapVisualizer {
         StringBuilder sb = new StringBuilder();
         for (MapTile[] row : gridMap) {
             for (MapTile tile : row) {
-                if (tile.getResource() == Ressource.WHEAT) {
+                ResourceType res = tile.getNaturalResource() != null ? tile.getNaturalResource().getType() : null;
+                if (res == ResourceType.WHEAT) {
                     sb.append("w ");
-                } else if (tile.getResource() == Ressource.ORE) {
+                } else if (res == ResourceType.IRON || res == ResourceType.STONE || res == ResourceType.COAL) {
                     sb.append("o ");
                 } else {
                     switch (tile.getType()) {
                         case WATER -> sb.append("~ ");
-                        case PLAINS -> sb.append(". ");
+                        case GRASS -> sb.append(". ");
                         case HILLS -> sb.append("m ");
                         case MOUNTAIN -> sb.append("▲ ");
-                        case DESSERT -> sb.append("d ");
+                        case DESERT -> sb.append("d ");
                         case FOREST -> sb.append("F ");
+                        default -> sb.append("? ");
                     }
                 }
             }

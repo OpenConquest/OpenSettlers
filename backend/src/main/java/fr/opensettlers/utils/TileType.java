@@ -20,5 +20,11 @@ public enum TileType {
     STONE,
 
     /** Cultivated field terrain, used for farming. */
-    FIELD
+    FIELD,
+
+    /** Desert terrain, dry and unbuildable. */
+    DESERT,
+
+    /** Hilly terrain, uneven. */
+    HILLS
 }
