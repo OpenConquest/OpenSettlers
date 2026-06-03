@@ -1,9 +1,6 @@
 package fr.opensettlers.model;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import fr.opensettlers.utils.Coordinates;
 
 import java.util.Map;
@@ -14,10 +11,7 @@ import java.util.UUID;
  * Each building has a position (x, y) and belongs to a player (playerId).
  * Specific types of buildings will extend this class and add their own properties and behaviors.
  */
-@Getter
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@Data
 public abstract class Building {
     /**
      * Unique identifier for the building.
@@ -36,10 +30,10 @@ public abstract class Building {
     /**
      * Cost of building the building, represented as a list of pairs (resource type, amount).
      */
-    private Map<ResourceType, Integer> costs;
+    private final Map<ResourceType, Integer> costs;
 
     /**
      * Flag currently attached to the building, if any. A building can have at most one flag attached at a time.
      */
-    private Flag attachedFlag;
+    private final Flag attachedFlag;
 }
