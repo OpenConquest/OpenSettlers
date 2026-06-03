@@ -1,13 +1,14 @@
 package fr.opensettlers.model;
 
 import fr.opensettlers.utils.Coordinates;
+import lombok.Getter;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
  * A RawExtractor is a building that can extract raw resources from the map. It can be built on specific resource nodes and will produce resources over time.
  */
+@Getter
 public abstract class RawExtractor extends ProductionBuilding {
 
     /**
@@ -16,10 +17,9 @@ public abstract class RawExtractor extends ProductionBuilding {
      * @param id       the unique identifier of the building
      * @param playerId the ID of the player who owns the building
      * @param position the coordinates of the building on the map
-     * @param costs    the resources required to build this building
      */
-    public RawExtractor(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> costs) {
-        super(id, playerId, position, costs);
+    public RawExtractor(UUID id, int playerId, Coordinates position) {
+        super(id, playerId, position);
     }
 
     /**

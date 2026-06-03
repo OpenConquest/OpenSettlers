@@ -24,8 +24,8 @@ public class Coordinates {
 
     /**
      * Shifts the coordinates.
-     * @param dx X axis difference
-     * @param dy Y axis difference
+     * @param dx X-axis difference
+     * @param dy Y-axis difference
      */
     public void move(int dx, int dy) {
         this.x += dx;

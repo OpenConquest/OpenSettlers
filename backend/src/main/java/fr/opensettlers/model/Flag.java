@@ -1,10 +1,7 @@
 package fr.opensettlers.model;
 
 import fr.opensettlers.utils.Coordinates;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,10 +9,7 @@ import java.util.UUID;
 /**
  * Represents a flag in the game, which can hold resources and is associated with a player.
  */
-@Getter
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
+@Data
 public class Flag {
     /**
      * Unique identifier for the flag.
