@@ -9,9 +9,24 @@ import java.util.UUID;
 
 @Data
 public class Soldier {
+    /**
+     * Unique identifier for the soldier.
+     */
     private final UUID id;
+
+    /**
+     * Identifier of the player who owns the soldier.
+     */
     private final int playerId;
+
+    /**
+     * Health of the soldier.
+     */
     private int health = 3;
+
+    /**
+     * Position of the soldier.
+     */
     private @NonNull Coordinates position;
 
     /**
