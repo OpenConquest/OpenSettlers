@@ -33,4 +33,9 @@ public abstract class Building {
      * Cost of building the building, represented as a list of pairs (resource type, amount).
      */
     private Map<ResourceType, Integer> costs;
+
+    /**
+     * Flag currently attached to the building, if any. A building can have at most one flag attached at a time.
+     */
+    private Flag attachedFlag;
 }
