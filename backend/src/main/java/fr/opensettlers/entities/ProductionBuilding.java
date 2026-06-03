@@ -16,10 +16,10 @@ public abstract class ProductionBuilding extends Building {
     protected int productionCooldown = 0;
 
     /** Input resource slots. */
-    private List<ResourceSlot> inputSlots;
+    protected List<ResourceSlot> inputSlots;
 
     /** Output resource slot. */
-    private ResourceSlot outputSlots;
+    protected ResourceSlot outputSlot;
 
     /**
      * @param id       unique identifier

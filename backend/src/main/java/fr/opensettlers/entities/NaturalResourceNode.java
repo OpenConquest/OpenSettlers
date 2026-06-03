@@ -12,7 +12,7 @@ public class NaturalResourceNode {
     private final ResourceType type;
 
     /** Current harvestable quantity. */
-    private @NonNull int quantity;
+    private int quantity;
 
     /** Maximum capacity (set to the initial quantity at creation). */
     private final int maxCapacity;

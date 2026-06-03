@@ -23,14 +23,44 @@ public class Recipe {
     /** Output resource type produced. */
     ResourceType output;
 
-    /** @return {@code true} if all required inputs are available. */
-    public boolean canProcess() {
-        // TODO
+    /** 
+     * @param availableSlots the slots to check
+     * @return {@code true} if all required inputs are available. 
+     */
+    public boolean canProcess(java.util.List<ResourceSlot> availableSlots) {
+        if (input == null) return true; // No inputs required
+        for (Map.Entry<ResourceType, Integer> requirement : input.entrySet()) {
+            ResourceType requiredType = requirement.getKey();
+            int requiredQuantity = requirement.getValue();
+            
+            ResourceSlot slot = availableSlots.stream()
+                .filter(s -> s.getType() == requiredType)
+                .findFirst()
+                .orElse(null);
+                
+            if (slot == null || slot.getQuantity() < requiredQuantity) {
+                return false;
+            }
+        }
         return true;
     }
 
-    /** Consumes the required input resources. */
-    public void consume() {
-        // TODO
+    /** 
+     * Consumes the required input resources from the provided slots.
+     * @param availableSlots the slots to consume from 
+     */
+    public void consume(java.util.List<ResourceSlot> availableSlots) {
+        if (input == null) return;
+        for (Map.Entry<ResourceType, Integer> requirement : input.entrySet()) {
+            ResourceType requiredType = requirement.getKey();
+            int requiredQuantity = requirement.getValue();
+            
+            ResourceSlot slot = availableSlots.stream()
+                .filter(s -> s.getType() == requiredType)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing required resource slot for " + requiredType));
+                
+            slot.setQuantity(slot.getQuantity() - requiredQuantity);
+        }
     }
 }

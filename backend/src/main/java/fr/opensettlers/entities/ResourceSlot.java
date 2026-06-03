@@ -11,7 +11,7 @@ public class ResourceSlot {
     private final ResourceType type;
 
     /** Current quantity stored. */
-    private @NonNull int quantity;
+    private int quantity;
 
     /** Maximum quantity per slot. */
     private final int MAX_PER_SLOT = 5;
