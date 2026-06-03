@@ -92,7 +92,7 @@ public class MapTile {
      * @return {@code true} if the tile supports building construction (grass or field)
      */
     public boolean isBuildable() {
-        return this.type == TileType.GRASS || this.type == TileType.FIELD;
+        return this.type == TileType.GRASS;
     }
 
     /** @return {@code true} if units can traverse this tile (not water or mountain) */

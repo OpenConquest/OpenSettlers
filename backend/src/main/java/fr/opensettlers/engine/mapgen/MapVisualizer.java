@@ -38,7 +38,6 @@ public class MapVisualizer {
                     case DESERT -> g.setColor(new Color(238, 214, 175));
                     case FOREST -> g.setColor(new Color(0, 90, 50));
                     case STONE -> g.setColor(new Color(139, 137, 137));
-                    case FIELD -> g.setColor(new Color(200, 180, 50));
                 }
 
                 // Apply the offsets to the starting coordinates
