@@ -1,5 +1,6 @@
-package fr.opensettlers.model;
+package fr.opensettlers.entities;
 
+import fr.opensettlers.utils.ResourceType;
 import lombok.Data;
 import lombok.NonNull;
 

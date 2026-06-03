@@ -1,6 +1,7 @@
-package fr.opensettlers.model;
+package fr.opensettlers.entities;
 
 import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.utils.ResourceType;
 
 import java.util.Map;
 import java.util.UUID;

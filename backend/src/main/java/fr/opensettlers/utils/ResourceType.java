@@ -1,4 +1,4 @@
-package fr.opensettlers.model;
+package fr.opensettlers.utils;
 
 public enum ResourceType {
     /**

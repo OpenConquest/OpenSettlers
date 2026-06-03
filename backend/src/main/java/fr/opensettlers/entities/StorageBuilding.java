@@ -1,10 +1,9 @@
-package fr.opensettlers.model;
+package fr.opensettlers.entities;
 
 import fr.opensettlers.utils.Coordinates;
-import lombok.Builder;
+import fr.opensettlers.utils.ResourceType;
 import lombok.Getter;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 

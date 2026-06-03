@@ -1,5 +1,7 @@
-package fr.opensettlers.model;
+package fr.opensettlers.entities;
 
+import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.ResourceType;
 import lombok.*;
 import fr.opensettlers.utils.Coordinates;
 

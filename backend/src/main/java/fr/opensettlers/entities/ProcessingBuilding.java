@@ -1,10 +1,8 @@
-package fr.opensettlers.model;
+package fr.opensettlers.entities;
 
 import fr.opensettlers.utils.Coordinates;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -23,7 +21,6 @@ public abstract class ProcessingBuilding extends ProductionBuilding {
      * @param id       the unique identifier of the building
      * @param playerId the ID of the player who owns the building
      * @param position the coordinates of the building on the map
-     * @param costs    the resources required to build this building
      * @param recipe   the recipe that defines the input and output resources for this building
      */
     public ProcessingBuilding(UUID id, int playerId, Coordinates position, Recipe recipe) {
