@@ -33,10 +33,9 @@ public class ProductionBuilding extends Building {
      * @param id       the unique identifier of the building
      * @param playerId the ID of the player who owns the building
      * @param position the coordinates of the building on the map
-     * @param costs    the resources required to build this building
      */
-    public ProductionBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> costs) {
-        super(id, playerId, position, costs, new Flag(UUID.randomUUID(), playerId, position));
+    public ProductionBuilding(UUID id, int playerId, Coordinates position) {
+        super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
     }
 
     /**

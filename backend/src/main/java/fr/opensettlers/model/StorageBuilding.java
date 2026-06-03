@@ -24,11 +24,10 @@ public class StorageBuilding extends Building{
      * @param id the unique identifier for this building
      * @param playerId the ID of the player who owns this building
      * @param position the coordinates of this building on the game map
-     * @param costs the cost of building this building, represented as a map of resource types and their quantities
      * @param storedResources the initial resources stored in this building, represented as a map of resource types and their quantities. Any resource types not included in this map will be initialized to 0.
      */
-    public StorageBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> costs, Map<ResourceType, Integer> storedResources) {
-        super(id, playerId, position, costs, new Flag(UUID.randomUUID(), playerId, position));
+    public StorageBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> storedResources) {
+        super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
         this.storedResources = storedResources;
         for (ResourceType resourceType : storedResources.keySet()) {
             storedResources.put(resourceType, storedResources.getOrDefault(resourceType, 0));

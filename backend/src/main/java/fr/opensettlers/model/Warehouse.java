@@ -17,9 +17,6 @@ public class Warehouse extends StorageBuilding {
      * @param position the position of the Warehouse on the map
      */
     public Warehouse(int playerId, Coordinates position) {
-        Map<ResourceType, Integer> buildingCost = new HashMap<ResourceType, Integer>();
-        buildingCost.put(ResourceType.PLANK, 4);
-        buildingCost.put(ResourceType.STONE, 3);
-        super(UUID.randomUUID(), playerId, position, buildingCost, Map.of());
+        super(UUID.randomUUID(), playerId, position, Map.of());
     }
 }

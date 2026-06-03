@@ -35,7 +35,7 @@ public class Flag {
     /**
      * Map to store the resources currently held by the flag. The key is the resource type and the value is the amount of that resource.
      */
-    private Map<ResourceType, Integer> resources = new HashMap<>();
+    private final Map<ResourceType, Integer> resources = new HashMap<>();
 
     /**
      * Maximum capacity of the flag, which limits the total amount of resources it can hold.

@@ -26,8 +26,8 @@ public abstract class ProcessingBuilding extends ProductionBuilding {
      * @param costs    the resources required to build this building
      * @param recipe   the recipe that defines the input and output resources for this building
      */
-    public ProcessingBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> costs, Recipe recipe) {
-        super(id, playerId, position, costs);
+    public ProcessingBuilding(UUID id, int playerId, Coordinates position, Recipe recipe) {
+        super(id, playerId, position);
         this.recipe = recipe;
     }
 

@@ -17,6 +17,6 @@ public class Headquarters extends StorageBuilding {
      * @param startingResources the resources that the player starts with, which will be stored in the Headquarters
      */
     public Headquarters(int playerId, Coordinates position, Map<ResourceType, Integer> startingResources) {
-        super(UUID.randomUUID(), playerId, position, Map.of(), startingResources);
+        super(UUID.randomUUID(), playerId, position, startingResources);
     }
 }

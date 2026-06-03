@@ -4,7 +4,6 @@ import fr.opensettlers.utils.Coordinates;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -23,8 +22,8 @@ public class MilitaryBuilding extends Building{
     private int maxCapacity;
 
 
-    public MilitaryBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> costs) {
-        super(id, playerId, position, costs, new Flag(UUID.randomUUID(), playerId, position));
+    public MilitaryBuilding(UUID id, int playerId, Coordinates position) {
+        super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
     }
 
     /**
