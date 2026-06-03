@@ -53,9 +53,7 @@ public class NaturalResourceNode {
         return false;
     }
 
-    /**
-     * @return {@code true} if no resources remain
-     */
+    /** @return {@code true} if no resources remain. */
     public boolean isDepleted() {
         return this.quantity <= 0;
     }

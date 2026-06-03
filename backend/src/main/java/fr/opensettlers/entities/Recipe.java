@@ -23,9 +23,7 @@ public class Recipe {
     /** Output resource type produced. */
     ResourceType output;
 
-    /**
-     * @return {@code true} if all required inputs are available
-     */
+    /** @return {@code true} if all required inputs are available. */
     public boolean canProcess() {
         // TODO
         return true;

@@ -9,6 +9,8 @@ import java.util.UUID;
 /** Main building of a player; stores starting resources. */
 public class Headquarters extends StorageBuilding {
     /**
+     * Constructor of the Headquarters class.
+     *
      * @param playerId          owning player ID
      * @param position          map position
      * @param startingResources initial resources to store

@@ -14,31 +14,19 @@ import java.util.UUID;
  */
 @Data
 public class GameState {
-    /**
-     * Unique identifier of the game session.
-     */
+    /** Unique identifier of the game session. */
     private final UUID gameId;
 
-    /**
-     * Unique identifiers of the players in the game. Should not contain duplicates.
-     */
+    /** Unique identifiers of the players in the game. Should not contain duplicates. */
     private final List<UUID> playerIds;
-    /**
-     * All building instances in the map.
-     */
+    /** All building instances in the map. */
     private final List<Building> buildings = new ArrayList<>();
-    /**
-     * All flag instances in the map.
-     */
+    /** All flag instances in the map. */
     private final List<Flag> flags = new ArrayList<>();
-    /**
-     * All soldier instances in the map.
-     */
+    /** All soldier instances in the map. */
     private final List<Soldier> soldiers = new ArrayList<>();
 
-    /**
-     * Current tick since the start of the game.
-     */
+    /** Current tick since the start of the game. */
     private long currentTick = 0;
 
     /**
@@ -53,9 +41,7 @@ public class GameState {
         playerIds.remove(playerId);
     }
 
-    /**
-     * Makes the game loop go forward one tick.
-     */
+    /** Makes the game loop go forward one tick. */
     public void tick() {
         currentTick++;
 

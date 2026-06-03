@@ -46,9 +46,7 @@ public enum ResourceType {
     /** Associated ore type, or {@code null} if not an ore. */
     private final OreType oreType;
 
-    /**
-     * @param oreType associated ore type, or {@code null}
-     */
+    /** @param oreType associated ore type, or {@code null} */
     ResourceType(OreType oreType) {
         this.oreType = oreType;
     }

@@ -10,10 +10,10 @@ import java.util.UUID;
 @Getter
 public abstract class ProductionBuilding extends Building {
     /** Production time in seconds. */
-    private static final int productionTime = 5;
+    protected static final int PRODUCTION_TIME = 5;
 
     /** The production cooldown. Allows production when it reaches 0. */
-    private int productionCooldown = 0;
+    protected int productionCooldown = 0;
 
     /** Input resource slots. */
     private List<ResourceSlot> inputSlots;
@@ -31,20 +31,5 @@ public abstract class ProductionBuilding extends Building {
     }
 
     /** Produces goods from available input resources. */
-    public void produce() {
-        // TODO
-    }
-
-    /**
-     * Calls the production method according to the production frequency.
-     */
-    @Override
-    public void tick() {
-        if (this.productionCooldown <= 0) {
-            this.produce();
-            this.productionCooldown = ProductionBuilding.productionTime;
-        } else {
-            this.productionCooldown--;
-        }
-    }
+    public abstract void produce();
 }

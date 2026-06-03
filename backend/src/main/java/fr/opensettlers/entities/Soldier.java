@@ -62,14 +62,8 @@ public class Soldier {
         return this.position.equals(other.position);
     }
 
-    /**
-     * The function that is triggered every tick by the game loop.
-     */
+    /** The function that is triggered every tick by the game loop. */
     public void tick() {
-        if (!isDead()) {
-            return;
-        }
-
         // TODO soldier behaviour
     }
 }

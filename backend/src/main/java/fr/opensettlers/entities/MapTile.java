@@ -95,9 +95,7 @@ public class MapTile {
         return this.type == TileType.GRASS || this.type == TileType.FIELD;
     }
 
-    /**
-     * @return {@code true} if units can traverse this tile (not water or mountain)
-     */
+    /** @return {@code true} if units can traverse this tile (not water or mountain) */
     public boolean isWalkable() {
         return this.type != TileType.WATER && this.type != TileType.MOUNTAIN;
     }

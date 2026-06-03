@@ -20,6 +20,7 @@ public class MilitaryBuilding extends Building{
         super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
     }
 
+    /** The function that is triggered every tick by the game loop. */
     @Override
     public void tick() {
         // TODO military building tick behaviour

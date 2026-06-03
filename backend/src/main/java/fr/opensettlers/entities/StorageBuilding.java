@@ -50,6 +50,7 @@ public class StorageBuilding extends Building{
         storedResources.put(resourceType, currentAmount - 1);
     }
 
+    /** The function that is triggered every tick by the game loop. */
     @Override
     public void tick() {
         // TODO storage building tick behaviour

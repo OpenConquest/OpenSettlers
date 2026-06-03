@@ -23,7 +23,27 @@ public abstract class ProcessingBuilding extends ProductionBuilding {
     }
 
     /** Processes input resources and produces the output according to the recipe. */
-    public void process() {
+    @Override
+    public void produce() {
         // TODO
+    }
+
+    /** @return {@code true} if processing conditions are met. */
+    public boolean canProcess() {
+        // TODO check recipe
+        return true;
+    }
+
+    /** Calls the production method according to the production frequency. */
+    @Override
+    public void tick() {
+        if (this.productionCooldown <= 0) {
+            if (this.canProcess()) {
+                this.produce();
+                this.productionCooldown = PRODUCTION_TIME;
+            }
+        } else {
+            this.productionCooldown--;
+        }
     }
 }

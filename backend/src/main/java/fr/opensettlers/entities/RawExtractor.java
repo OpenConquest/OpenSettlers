@@ -19,15 +19,29 @@ public abstract class RawExtractor extends ProductionBuilding {
     }
 
     /** Extracts resources from the underlying resource node. */
-    public void extract() {
+    @Override
+    public void produce() {
         // TODO
     }
 
-    /**
-     * @return {@code true} if extraction conditions are met
-     */
+    /** @return {@code true} if extraction conditions are met. */
     public boolean canExtract() {
         // TODO
         return true;
+    }
+
+    /**
+     * Calls the production method according to the production frequency.
+     */
+    @Override
+    public void tick() {
+        if (this.productionCooldown <= 0) {
+            if (this.canExtract()) {
+                this.produce();
+                this.productionCooldown = PRODUCTION_TIME;
+            }
+        } else {
+            this.productionCooldown--;
+        }
     }
 }

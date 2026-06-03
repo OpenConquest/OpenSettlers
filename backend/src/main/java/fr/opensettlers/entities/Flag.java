@@ -20,11 +20,14 @@ public class Flag {
     /** Position on the game map. */
     private final Coordinates coordinates;
 
+    /** Boolean defining if the building is destroyed. False means it is active. */
+    private boolean destroyed = false;
+
     /** Resources currently held, keyed by type. */
     private final Map<ResourceType, Integer> resources = new HashMap<>();
 
     /** Maximum total resource capacity. */
-    private final int maxCapacity = 5;
+    private static final int MAX_CAPACITY = 5;
 
     /**
      * Adds one unit of the given resource.
@@ -33,7 +36,7 @@ public class Flag {
      * @throws IllegalStateException if the flag is full
      */
     public void addResource(ResourceType resourceType) {
-        if (resources.values().stream().mapToInt(Integer::intValue).sum() >= maxCapacity) {
+        if (resources.values().stream().mapToInt(Integer::intValue).sum() >= MAX_CAPACITY) {
             throw new IllegalStateException("Flag is at full capacity");
         }
         resources.put(resourceType, resources.getOrDefault(resourceType, 0) + 1);
@@ -53,28 +56,17 @@ public class Flag {
         resources.put(resourceType, currentAmount - 1);
     }
 
-    /**
-     * @return {@code true} if the flag is at full capacity
-     */
+    /** @return {@code true} if the flag is at full capacity */
     public boolean isFull() {
-        return resources.values().stream().mapToInt(Integer::intValue).sum() >= maxCapacity;
+        return resources.values().stream().mapToInt(Integer::intValue).sum() >= MAX_CAPACITY;
     }
 
-    /**
-     * @return {@code true} if the flag holds no resources
-     */
+    /** @return {@code true} if the flag holds no resources */
     public boolean isEmpty() {
         return resources.values().stream().mapToInt(Integer::intValue).sum() == 0;
     }
 
-    /**
-     * Boolean defining if the building is destroyed. False means it is active.
-     */
-    private boolean destroyed = false;
-
-    /**
-     * Destroys the building, rendering it inactive.
-     */
+    /** Destroys the building, rendering it inactive. */
     public void destroy() {
         this.destroyed = true;
     }
@@ -87,9 +79,7 @@ public class Flag {
         return this.destroyed;
     }
 
-    /**
-     * The function that is triggered every tick by the game loop.
-     */
+    /** The function that is triggered every tick by the game loop. */
     public void tick() {
         // TODO flag behaviour
     }

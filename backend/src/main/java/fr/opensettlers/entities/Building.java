@@ -18,8 +18,12 @@ public abstract class Building {
 
     /** Owning player ID. */
     private final int playerId;
+
     /** Position on the game map. */
     private final Coordinates position;
+
+    /** Boolean defining if the building is destroyed. False means it is active. */
+    private boolean destroyed = false;
 
     /** Flag attached to this building, or {@code null}. */
     private final Flag attachedFlag;
@@ -51,14 +55,7 @@ public abstract class Building {
             Map.entry(BuildingName.CASTLE, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 7))
     );
 
-    /**
-     * Boolean defining if the building is destroyed. False means it is active.
-     */
-    private boolean destroyed = false;
-
-    /**
-     * Destroys the building, rendering it inactive.
-     */
+    /** Destroys the building, rendering it inactive. */
     public void destroy() {
         this.destroyed = true;
     }
@@ -71,8 +68,6 @@ public abstract class Building {
         return this.destroyed;
     }
 
-    /**
-     * The function that is triggered every tick by the game loop.
-     */
+    /** The function that is triggered every tick by the game loop. */
     public abstract void tick();
 }
