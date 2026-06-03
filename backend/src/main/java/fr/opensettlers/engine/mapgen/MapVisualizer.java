@@ -31,13 +31,13 @@ public class MapVisualizer {
                 MapTile tile = gridMap[x][y];
                 
                 switch (tile.getType()) {
-                    case WATER -> g.setColor(new Color(30, 144, 255));
-                    case GRASS -> g.setColor(new Color(34, 139, 34));
-                    case HILLS -> g.setColor(new Color(139, 137, 137));
-                    case MOUNTAIN -> g.setColor(Color.WHITE);
-                    case DESERT -> g.setColor(new Color(238, 214, 175));
-                    case FOREST -> g.setColor(new Color(0, 90, 50));
-                    case STONE -> g.setColor(new Color(139, 137, 137));
+                    case WATER -> g.setColor(new Color(40, 100, 200));   // Deep blue water
+                    case GRASS -> g.setColor(new Color(70, 160, 60));    // Lush meadow green
+                    case FOREST -> g.setColor(new Color(30, 100, 40));   // Dark forest green
+                    case DESERT -> g.setColor(new Color(240, 220, 150)); // Bright sand beach
+                    case HILLS -> g.setColor(new Color(120, 140, 120));  // Greenish rock
+                    case MOUNTAIN -> g.setColor(new Color(180, 180, 180)); // Grey peaks
+                    case STONE -> g.setColor(new Color(150, 150, 150));  // Surface boulders
                 }
 
                 // Apply the offsets to the starting coordinates
@@ -58,14 +58,14 @@ public class MapVisualizer {
 
                 ResourceType res = tile.getNaturalResource() != null ? tile.getNaturalResource().getType() : null;
 
-                if (res == ResourceType.WHEAT) {
-                    g.setColor(new Color(255, 215, 0)); 
-                    g.fillOval(cX - 4, cY - 2, 8, 4);
-                    g.setColor(new Color(218, 165, 32));
-                    g.drawLine(cX - 5, cY, cX + 5, cY);
-
-                } else if (res == ResourceType.IRON || res == ResourceType.STONE || res == ResourceType.COAL) {
-                    g.setColor(new Color(186, 85, 211));
+                if (res == ResourceType.IRON || res == ResourceType.COAL || res == ResourceType.STONE) {
+                    if (res == ResourceType.IRON) {
+                        g.setColor(new Color(200, 80, 80)); // Rust red
+                    } else if (res == ResourceType.COAL) {
+                        g.setColor(new Color(40, 40, 40));  // Dark black
+                    } else {
+                        g.setColor(new Color(100, 100, 100)); // Dark grey stone
+                    }
                     int[] ox = { cX, cX + 4, cX, cX - 4 };
                     int[] oy = { cY - 4, cY, cY + 4, cY };
                     g.fillPolygon(ox, oy, 4);
@@ -90,10 +90,12 @@ public class MapVisualizer {
         for (MapTile[] row : gridMap) {
             for (MapTile tile : row) {
                 ResourceType res = tile.getNaturalResource() != null ? tile.getNaturalResource().getType() : null;
-                if (res == ResourceType.WHEAT) {
-                    sb.append("w ");
-                } else if (res == ResourceType.IRON || res == ResourceType.STONE || res == ResourceType.COAL) {
-                    sb.append("o ");
+                if (res == ResourceType.IRON) {
+                    sb.append("i ");
+                } else if (res == ResourceType.COAL) {
+                    sb.append("c ");
+                } else if (res == ResourceType.STONE && tile.getType() == TileType.MOUNTAIN) {
+                    sb.append("s ");
                 } else {
                     switch (tile.getType()) {
                         case WATER -> sb.append("~ ");
