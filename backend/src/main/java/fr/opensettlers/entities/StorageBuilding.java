@@ -12,7 +12,7 @@ import java.util.UUID;
  * It provides methods to store and retrieve resources.
  */
 @Getter
-public class StorageBuilding extends Building{
+public class StorageBuilding extends Building {
     /**
      * A map of the resources stored in this building and their quantities. The key is the type of resource and the value is the quantity of that resource.
      */
@@ -54,5 +54,10 @@ public class StorageBuilding extends Building{
             throw new IllegalArgumentException("Not enough resources in storage");
         }
         storedResources.put(resourceType, currentAmount - 1);
+    }
+
+    @Override
+    public void tick() {
+        // TODO storage building tick behaviour
     }
 }

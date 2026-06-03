@@ -62,4 +62,29 @@ public abstract class Building {
             Map.entry(BuildingName.FARM, Map.of(ResourceType.PLANK, 3, ResourceType.STONE,3)),
             Map.entry(BuildingName.CASTLE, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 7))
     );
+
+    /**
+     * Boolean defining if the building is destroyed. False means it is active.
+     */
+    private boolean destroyed = false;
+
+    /**
+     * Destroys the building, rendering it inactive.
+     */
+    public void destroy() {
+        this.destroyed = true;
+    }
+
+    /**
+     * Checks if the building has been destroyed.
+     * @return boolean
+     */
+    public boolean isDestroyed() {
+        return this.destroyed;
+    }
+
+    /**
+     * The function that is triggered every tick by the game loop.
+     */
+    public abstract void tick();
 }

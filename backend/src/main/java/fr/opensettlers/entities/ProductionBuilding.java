@@ -14,7 +14,12 @@ public class ProductionBuilding extends Building {
     /**
      * The production time in seconds. This is the time it takes for the building to produce the goods after it has received the required input resources.
      */
-    private final int productionTime = 5;
+    public static final int productionTime = 5;
+
+    /**
+     * The production cooldown. Allows production when it reaches 0.
+     */
+    private int productionCooldown = 0;
 
     /**
      * The input slots for the resources required to produce the goods. Each slot can hold a certain amount of a specific resource type.
@@ -44,4 +49,16 @@ public class ProductionBuilding extends Building {
         // TODO
     }
 
+    /**
+     * Calls the production method according to the production frequency.
+     */
+    @Override
+    public void tick() {
+        if (this.productionCooldown <= 0) {
+            this.produce();
+            this.productionCooldown = ProductionBuilding.productionTime;
+        } else {
+            this.productionCooldown--;
+        }
+    }
 }

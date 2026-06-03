@@ -10,7 +10,8 @@ import java.util.UUID;
  * The MilitaryBuilding is a building that can recruit soldiers and expand the player's territory.
  */
 @Getter
-public class MilitaryBuilding extends Building{
+public class
+MilitaryBuilding extends Building {
     /**
      * List of soldiers currently recruited by this building. The soldiers are represented as a list of Soldier objects, which contain information about the soldier's type, health, attack power, etc.
      */
@@ -26,17 +27,8 @@ public class MilitaryBuilding extends Building{
         super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
     }
 
-    /**
-     * Recruits a new soldier and adds it to the list of soldiers. The soldier will be created with the player's ID and the position of the building.
-     */
-    public void recruit() {
-        // TODO
-    }
-
-    /**
-     * Expands the player's territory
-     */
-    public void expandTerritory() {
-        // TODO
+    @Override
+    public void tick() {
+        // TODO military building tick behaviour
     }
 }

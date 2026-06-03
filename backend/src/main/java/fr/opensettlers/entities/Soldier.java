@@ -31,7 +31,7 @@ public class Soldier {
 
     /**
      * Attacks another soldier. 50% chance to deal 1 damage to the target if it's in the same position.
-     * @param target - The enemy to attack
+     * @param target The enemy to attack
      */
     public void attack(Soldier target) {
         if (this.isSamePosition(target)) {
@@ -49,20 +49,31 @@ public class Soldier {
     }
 
     /**
-     * Checks if this unit is alive.
-     * @return boolean - True if health > 0.
+     * Checks if this unit is dead.
+     * @return boolean
      */
-    public boolean isAlive() {
-        return health > 0;
+    public boolean isDead() {
+        return this.health <= 0;
     }
 
     /**
      * Checks if another Soldier shares the same position. There can be only one soldier per tile, two soldiers sharing
      * the same tile means they've engaged combat.
-     * @param other - Another soldier.
+     * @param other Another soldier.
      * @return boolean
      */
     public boolean isSamePosition(Soldier other) {
         return this.position.equals(other.position);
+    }
+
+    /**
+     * The function that is triggered every tick by the game loop.
+     */
+    public void tick() {
+        if (!isDead()) {
+            return;
+        }
+
+        // TODO soldier behaviour
     }
 }

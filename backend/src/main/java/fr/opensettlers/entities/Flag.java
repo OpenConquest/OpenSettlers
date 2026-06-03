@@ -82,4 +82,30 @@ public class Flag {
         return resources.values().stream().mapToInt(Integer::intValue).sum() == 0;
     }
 
+    /**
+     * Boolean defining if the building is destroyed. False means it is active.
+     */
+    private boolean destroyed = false;
+
+    /**
+     * Destroys the building, rendering it inactive.
+     */
+    public void destroy() {
+        this.destroyed = true;
+    }
+
+    /**
+     * Checks if the building has been destroyed.
+     * @return boolean
+     */
+    public boolean isDestroyed() {
+        return this.destroyed;
+    }
+
+    /**
+     * The function that is triggered every tick by the game loop.
+     */
+    public void tick() {
+        // TODO flag behaviour
+    }
 }
