@@ -11,10 +11,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class Coordinates {
     /** Horizontal axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>. */
-    private int x;
+    private double x;
 
     /** Vertical axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>. */
-    private int y;
+    private double y;
 
     /**
      * Shifts coordinates by the given deltas.
@@ -22,7 +22,7 @@ public class Coordinates {
      * @param dx horizontal offset
      * @param dy vertical offset
      */
-    public void move(int dx, int dy) {
+    public void move(double dx, double dy) {
         this.x += dx;
         this.y += dy;
     }
