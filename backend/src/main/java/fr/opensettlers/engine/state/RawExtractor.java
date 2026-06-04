@@ -4,6 +4,7 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 /** Building that extracts raw resources from a map resource node. */
@@ -22,7 +23,7 @@ public class RawExtractor extends ProductionBuilding {
     public RawExtractor(UUID id, int playerId, Coordinates position, ResourceType extractedResource) {
         super(id, playerId, position);
         this.extractedResource = extractedResource;
-        this.inputSlots = new java.util.ArrayList<>();
+        this.inputSlots = new ArrayList<>();
         if (extractedResource != null) {
             this.outputSlot = new ResourceSlot(extractedResource);
         }
@@ -37,7 +38,8 @@ public class RawExtractor extends ProductionBuilding {
     }
 
     /** @return {@code true} if extraction conditions are met. */
-    public boolean canExtract() {
+    @Override
+    public boolean canProduce() {
         // Forester (no output slot) can always "extract" (plant) if map allows
         if (this.outputSlot == null) {
             return true; // TODO: check map if there's space to plant a tree

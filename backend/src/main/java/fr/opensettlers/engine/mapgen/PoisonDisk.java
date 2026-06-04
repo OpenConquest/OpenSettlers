@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.Coordinates;
 
 public class PoisonDisk{
 

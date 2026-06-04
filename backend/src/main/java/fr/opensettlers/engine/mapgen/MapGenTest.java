@@ -1,7 +1,6 @@
 package fr.opensettlers.engine.mapgen;
 
-import fr.opensettlers.entities.MapTile;
-import java.util.List;
+import fr.opensettlers.engine.state.MapTile;
 
 public class MapGenTest {
     public static void main(String[] args) {

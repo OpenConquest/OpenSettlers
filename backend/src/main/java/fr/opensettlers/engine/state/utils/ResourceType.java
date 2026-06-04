@@ -52,15 +52,6 @@ public enum ResourceType {
     }
 
     /**
-     * Returns the associated ore type.
-     *
-     * @return the ore type, or {@code null} if not an ore
-     */
-    public OreType getOreType() {
-        return this.oreType;
-    }
-
-    /**
      * Checks whether this resource is an ore.
      *
      * @return {@code true} if this resource has an associated ore type

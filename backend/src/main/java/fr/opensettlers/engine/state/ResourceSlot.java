@@ -27,4 +27,17 @@ public class ResourceSlot {
         }
         return false;
     }
+
+    /**
+     * Removes one unit if the slot is not empty.
+     *
+     * @return {@code true} if the resource was removed
+     */
+    public boolean removeResource() {
+        if (quantity > 0) {
+            quantity--;
+            return true;
+        }
+        return false;
+    }
 }
