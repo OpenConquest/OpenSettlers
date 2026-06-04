@@ -16,9 +16,6 @@ public class GameEngine implements Runnable {
     /**  The logger. */
     private static final Logger LOG = Logger.getLogger(GameWebSocket.class);
 
-    /** Time interval in milliseconds separating each tick. */
-    private static final int TICK_PERIOD_MS = 100;
-
     /** The current game session. */
     private final GameSession session;
 
@@ -56,7 +53,7 @@ public class GameEngine implements Runnable {
     public synchronized void start() {
         if (running) return;
         running = true;
-        scheduledTask = executor.scheduleAtFixedRate(this, 0, TICK_PERIOD_MS, TimeUnit.MILLISECONDS);
+        scheduledTask = executor.scheduleAtFixedRate(this, 0, GameConfig.TICK_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     /** Stops the game loop. */
