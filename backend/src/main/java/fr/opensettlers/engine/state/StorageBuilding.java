@@ -5,7 +5,6 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Building that stores resources by type and quantity.
@@ -18,17 +17,13 @@ public class StorageBuilding extends Building{
     /**
      * Initializes a new StorageBuilding.
      *
-     * @param id              unique identifier
      * @param playerId        owning player ID
      * @param position        map coordinates
      * @param storedResources initial resource stock
      */
-    public StorageBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> storedResources) {
-        super(id, playerId, position);
+    public StorageBuilding(int playerId, Coordinates position, Map<ResourceType, Integer> storedResources) {
+        super(playerId, position);
         this.storedResources = storedResources;
-        for (ResourceType resourceType : storedResources.keySet()) {
-            storedResources.put(resourceType, storedResources.getOrDefault(resourceType, 0));
-        }
     }
 
     /**

@@ -5,7 +5,6 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 /**
  * Building that transforms input resources into output resources via a recipe.
@@ -20,13 +19,12 @@ public class ProcessingBuilding extends ProductionBuilding {
     /**
      * Initializes a new ProcessingBuilding.
      *
-     * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
      * @param recipe   conversion recipe
      */
-    public ProcessingBuilding(UUID id, int playerId, Coordinates position, Recipe recipe) {
-        super(id, playerId, position);
+    public ProcessingBuilding(int playerId, Coordinates position, Recipe recipe) {
+        super(playerId, position);
         this.recipe = recipe;
 
         this.inputSlots = new ArrayList<>();

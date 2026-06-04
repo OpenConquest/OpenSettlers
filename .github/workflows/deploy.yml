@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    # Optional: Only trigger if files in the frontend directory change
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Set the default working directory for all run steps in this job
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Setup pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          # Explicitly point to the lockfile since it's not in the repository root
+          cache-dependency-path: frontend/pnpm-lock.yaml
+          
+      # Install dependencies using pnpm (runs in ./frontend)
+      - run: pnpm install
+      
+      # Build the Nuxt application (runs in ./frontend)
+      - run: pnpm nuxt build --preset github_pages
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Point the artifact uploader to the nested output directory
+          path: ./frontend/.output/public
+          
+  # Deployment job
+  deploy:
+    needs: build
+    permissions:
+      pages: write      
+      id-token: write   
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

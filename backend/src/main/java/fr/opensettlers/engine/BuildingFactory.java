@@ -1,14 +1,12 @@
 package fr.opensettlers.engine;
 
-import fr.opensettlers.engine.state.Building;
-import fr.opensettlers.engine.state.ProcessingBuilding;
-import fr.opensettlers.engine.state.RawExtractor;
-import fr.opensettlers.engine.state.Recipe;
+import fr.opensettlers.engine.state.*;
 import fr.opensettlers.engine.state.utils.BuildingName;
 import fr.opensettlers.engine.state.utils.Coordinates;
 import fr.opensettlers.engine.state.utils.ResourceType;
 
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Factory class to instantiate buildings without creating 13 different subclasses.
@@ -16,28 +14,33 @@ import java.util.UUID;
 public class BuildingFactory {
 
     public static Building createBuilding(BuildingName type, int playerId, Coordinates position) {
-        UUID id = UUID.randomUUID();
-        
         return switch (type) {
+            case HEADQUARTERS -> new StorageBuilding(playerId, position, new HashMap<>(Map.ofEntries(
+                    Map.entry(ResourceType.PLANK, 40),
+                    Map.entry(ResourceType.STONE, 30),
+                    Map.entry(ResourceType.LOG, 10),
+                    Map.entry(ResourceType.WHEAT, 5))));
+            case WAREHOUSE -> new StorageBuilding(playerId, position, new HashMap<>());
+
             // --- RAW EXTRACTORS ---
-            case WOODCUTTER -> new RawExtractor(id, playerId, position, ResourceType.LOG);
-            case FORESTER -> new RawExtractor(id, playerId, position, null); // No output inventory
-            case QUARRY -> new RawExtractor(id, playerId, position, ResourceType.STONE);
-            case MINE -> new RawExtractor(id, playerId, position, ResourceType.IRON); // TODO: Determine ore dynamically based on map tile
-            case FISHING_HUT -> new RawExtractor(id, playerId, position, ResourceType.FISH);
-            case FARM -> new RawExtractor(id, playerId, position, ResourceType.WHEAT);
-            case WATER_WELL -> new RawExtractor(id, playerId, position, ResourceType.WATER);
+            case WOODCUTTER -> new RawExtractor(playerId, position, ResourceType.LOG);
+            case FORESTER -> new RawExtractor(playerId, position, null); // No output inventory
+            case QUARRY -> new RawExtractor(playerId, position, ResourceType.STONE);
+            case MINE -> new RawExtractor(playerId, position, ResourceType.IRON); // TODO: Determine ore dynamically based on map tile
+            case FISHING_HUT -> new RawExtractor(playerId, position, ResourceType.FISH);
+            case FARM -> new RawExtractor(playerId, position, ResourceType.WHEAT);
+            case WATER_WELL -> new RawExtractor(playerId, position, ResourceType.WATER);
             
             // --- PROCESSING BUILDINGS ---
-            case SAWMILL -> new ProcessingBuilding(id, playerId, position, getRecipe(ResourceType.PLANK));
-            case MILL -> new ProcessingBuilding(id, playerId, position, getRecipe(ResourceType.FLOUR));
-            case BAKERY -> new ProcessingBuilding(id, playerId, position, getRecipe(ResourceType.BREAD));
-            case FOUNDRY -> new ProcessingBuilding(id, playerId, position, getRecipe(ResourceType.STEEL));
-            case ARMORY -> new ProcessingBuilding(id, playerId, position, getRecipe(ResourceType.SWORD));
-            case BREWERY -> new ProcessingBuilding(id, playerId, position, getRecipe(ResourceType.BEER));
+            case SAWMILL -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.PLANK));
+            case MILL -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.FLOUR));
+            case BAKERY -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.BREAD));
+            case FOUNDRY -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.STEEL));
+            case ARMORY -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.SWORD));
+            case BREWERY -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.BEER));
             
             // Storage & Others
-            case HEADQUARTERS, WAREHOUSE, GUARD_HOUSE, WATCH_TOWER, CASTLE, BARRACKS -> 
+            case GUARD_HOUSE, WATCH_TOWER, CASTLE, BARRACKS ->
                 throw new UnsupportedOperationException("Factory for " + type + " not fully implemented yet.");
         };
     }

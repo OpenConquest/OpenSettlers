@@ -5,7 +5,6 @@ import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 /**
  * Building that extracts raw resources from a map resource node.
@@ -21,13 +20,12 @@ public class RawExtractor extends ProductionBuilding {
     /**
      * Initializes a new RawExtractor.
      *
-     * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
      * @param extractedResource the resource it produces
      */
-    public RawExtractor(UUID id, int playerId, Coordinates position, ResourceType extractedResource) {
-        super(id, playerId, position);
+    public RawExtractor(int playerId, Coordinates position, ResourceType extractedResource) {
+        super(playerId, position);
         this.extractedResource = extractedResource;
         this.inputSlots = new ArrayList<>();
         if (extractedResource != null) {

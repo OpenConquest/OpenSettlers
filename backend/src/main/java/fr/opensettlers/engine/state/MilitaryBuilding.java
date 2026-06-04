@@ -5,7 +5,6 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Building that recruits soldiers and expands territory.
@@ -25,11 +24,10 @@ public class MilitaryBuilding extends Building{
     /**
      * Initializes a new MilitaryBuilding.
      *
-     * @param id Unique identifier of the building.
      * @param playerId Unique identifier of the owning player.
      * @param position Coordinates of the building.
      */
-    public MilitaryBuilding(UUID id, int playerId, Coordinates position) {
-        super(id, playerId, position);
+    public MilitaryBuilding(int playerId, Coordinates position) {
+        super(playerId, position);
     }
 }

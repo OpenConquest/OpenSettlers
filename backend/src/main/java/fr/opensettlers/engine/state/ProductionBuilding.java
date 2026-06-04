@@ -37,12 +37,11 @@ public abstract class ProductionBuilding extends Building implements IProducer {
     /**
      * Initializes a new ProductionBuilding.
      *
-     * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
      */
-    public ProductionBuilding(UUID id, int playerId, Coordinates position) {
-        super(id, playerId, position);
+    public ProductionBuilding(int playerId, Coordinates position) {
+        super(playerId, position);
     }
 
     /**
