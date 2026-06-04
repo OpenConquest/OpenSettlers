@@ -27,41 +27,85 @@ public class MapGenerator {
 
         for (int x = 0; x < gridSize; x++) {
             for (int y = 0; y < gridSize; y++) {
-                double ex = x * 0.12;
-                double ey = y * 0.12;
+                // Lower frequencies for larger, smoother landmasses like Settlers
+                double ex = x * 0.05;
+                double ey = y * 0.05;
                 double eNoise = (elevationNoise.noise(ex, ey) + 0.5 * elevationNoise.noise(ex * 2, ey * 2)) / 1.5;
-                double elevation = (eNoise + 1.0) / 2.0;
+                
+                // Radial mask to make it an island (surrounded by water)
+                double cx = gridSize / 2.0;
+                double cy = gridSize / 2.0;
+                double distanceToCenter = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+                double maxDistance = gridSize / 2.0;
+                double distanceNormalized = distanceToCenter / maxDistance; // 0 at center, ~1.4 at corners
+                
+                // Use an even higher power (6.0) so the island extends almost to the edges,
+                // significantly reducing the surrounding ocean.
+                double dropOff = Math.pow(distanceNormalized, 6.0) * 1.5;
+                
+                // No artificial bump: let the noise naturally dip to create inland lakes
+                double baseElevation = (eNoise + 1.0) / 2.0; 
+                double elevation = baseElevation - dropOff;
 
-                double mx = x * 0.10;
-                double my = y * 0.10;
+                double mx = x * 0.05;
+                double my = y * 0.05;
                 double mNoise = (moistureNoise.noise(mx, my) + 0.5 * moistureNoise.noise(mx * 2, my * 2)) / 1.5;
                 double moisture = (mNoise + 1.0) / 2.0;
 
+                // Settlers 2 style: discrete elevation steps with controlled thresholds
+                int discreteElevation;
+                if (elevation < 0.28) {
+                    discreteElevation = 0; // Water (Ocean & Inland Lakes)
+                } else if (elevation < 0.40) {
+                    discreteElevation = 1; // Beaches / Low Grass
+                } else if (elevation < 0.63) {
+                    discreteElevation = 2; // High Grass / Forests
+                } else if (elevation < 0.74) {
+                    discreteElevation = 3; // Hills
+                } else if (elevation < 0.85) {
+                    discreteElevation = 4; // Mountains
+                } else {
+                    discreteElevation = 5; // High Mountains
+                }
+
                 TileType type;
-                if (elevation < 0.20) {
+                if (discreteElevation == 0) {
                     type = TileType.WATER;
-                } else if (elevation >= 0.85) {
+                } else if (discreteElevation >= 4) {
                     type = TileType.MOUNTAIN;
-                } else if (elevation >= 0.70) {
+                } else if (discreteElevation == 3) {
                     type = TileType.HILLS;
                 } else {
-                    if (moisture < 0.25) {
-                        type = TileType.DESERT;
-                    } else if (moisture > 0.65) {
-                        type = TileType.FOREST;
+                    // Elevations 1 and 2 (Meadows, Forests, Beaches)
+                    if (discreteElevation == 1 && moisture < 0.40) {
+                        type = TileType.DESERT; // Sandy beach near water
+                    } else if (moisture > 0.55) {
+                        type = TileType.FOREST; // Lush forest
+                    } else if (moisture < 0.15) {
+                        type = TileType.STONE;  // Rocky surface outcrops
                     } else {
-                        type = TileType.GRASS;
+                        type = TileType.GRASS;  // Standard green meadow
                     }
                 }
 
                 ResourceType resource = null;
                 double roll = rand.nextDouble();
-                if (type == TileType.WATER && roll < 0.08) resource = ResourceType.FISH;
-                else if (type == TileType.GRASS && roll < 0.05) resource = ResourceType.WHEAT;
-                else if (type == TileType.HILLS && roll < 0.12) resource = ResourceType.STONE; // Mapping ORE to STONE in hills
-                else if (type == TileType.MOUNTAIN && roll < 0.30) resource = ResourceType.IRON; // Mapping ORE to IRON in mountains
+                if (type == TileType.WATER && roll < 0.08) {
+                    resource = ResourceType.FISH;
+                } else if (type == TileType.HILLS && roll < 0.08) {
+                    resource = ResourceType.STONE; // Rocky outcrops
+                } else if (type == TileType.MOUNTAIN && roll < 0.18) {
+                    // Use moisture noise to create natural clusters/veins of ores
+                    if (moisture < 0.40) {
+                        resource = ResourceType.IRON;
+                    } else if (moisture < 0.80) {
+                        resource = ResourceType.COAL;
+                    } else {
+                        resource = ResourceType.STONE;
+                    }
+                }
 
-                MapTile tile = new MapTile(new Coordinates(x, y), type, (int)(elevation * 100));
+                MapTile tile = new MapTile(new Coordinates(x, y), type, discreteElevation);
                 if (resource != null) {
                     tile.setNaturalResource(new NaturalResourceNode(resource, 5)); // Dummy node with 5 quantity
                 }
@@ -210,6 +254,7 @@ public class MapGenerator {
                         for (int[] coord : lakeTiles) {
                             MapTile t = gridMap[coord[0]][coord[1]];
                             t.setType(TileType.GRASS);
+                            t.setElevation(1); // Raise elevation so it's not underwater
                             t.setNaturalResource(null);
                         }
                     }
