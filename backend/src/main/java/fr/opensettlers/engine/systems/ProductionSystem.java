@@ -12,9 +12,6 @@ public class ProductionSystem implements ISystem {
     /** Tick period of production for buildings. */
     public static int PRODUCTION_TIME = 5;
 
-    /** Used to ensure all buildings respect the production rate. */
-    private int productionCooldown = 0;
-
     /**
      * Process function, called every tock by the game loop.
      *
@@ -46,13 +43,14 @@ public class ProductionSystem implements ISystem {
                 }
             }
 
-            if (this.productionCooldown <= 0) {
+            int cooldown = productionBuilding.getProductionCooldown();
+            if (cooldown <= 0) {
                 if (productionBuilding.canProduce()) {
                     productionBuilding.produce();
-                    this.productionCooldown = PRODUCTION_TIME;
+                    productionBuilding.setProductionCooldown(PRODUCTION_TIME);
                 }
             } else {
-                this.productionCooldown--;
+                productionBuilding.setProductionCooldown(cooldown - 1);
             }
         });
     }
