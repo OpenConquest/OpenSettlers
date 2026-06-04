@@ -29,7 +29,6 @@ public class GameState {
     /** All building instances in the map. */
     private final List<Building> buildings = new ArrayList<>();
     /** All flag instances in the map. */
-
     private final List<Flag> flags = new ArrayList<>();
     /** All soldier instances in the map. */
     private final List<Soldier> soldiers = new ArrayList<>();
@@ -62,9 +61,6 @@ public class GameState {
 
         // Flags
         flags.removeIf(Flag::isDestroyed);
-
-        // Transport System (moves carriers, picks up/delivers resources)
-        transportManager.tick();
 
         // Buildings
         buildings.removeIf(Building::isDestroyed);

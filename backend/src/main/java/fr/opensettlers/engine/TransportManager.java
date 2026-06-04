@@ -9,7 +9,6 @@ import fr.opensettlers.engine.state.utils.CarrierState;
 import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,23 +42,9 @@ public class TransportManager {
     }
 
     /**
-     * Called every game tick. Manages the full transport cycle for all carriers.
-     */
-    public void tick() {
-        Collection<Road> allRoads = roadNetwork.getAllRoads();
-
-        for (Road road : allRoads) {
-            Carrier carrier = road.getCarrier();
-            if (carrier == null) continue;
-
-            processCarrier(carrier, road);
-        }
-    }
-
-    /**
      * Processes a single carrier for one tick: movement, pickup, delivery, and idle assignment.
      */
-    private void processCarrier(Carrier carrier, Road road) {
+    public void processCarrier(Carrier carrier, Road road) {
         switch (carrier.getState()) {
             case IDLE -> handleIdleCarrier(carrier, road);
 
