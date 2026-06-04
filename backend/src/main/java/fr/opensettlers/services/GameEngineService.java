@@ -2,21 +2,24 @@ package fr.opensettlers.services;
 
 import fr.opensettlers.engine.BuildingFactory;
 import fr.opensettlers.engine.GameState;
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.MilitaryBuilding;
+import fr.opensettlers.engine.state.Building;
+import fr.opensettlers.engine.state.Flag;
+import fr.opensettlers.engine.state.MilitaryBuilding;
 import fr.opensettlers.network.GameMessage;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jboss.logging.Logger;
 
 /**
  * Service managing active game states and processing player actions.
  */
 @ApplicationScoped
 public class GameEngineService {
+
+    private static final Logger LOG = Logger.getLogger(GameEngineService.class);
 
     /** Map of active games, indexed by GameId. */
     private final Map<UUID, GameState> activeGames = new ConcurrentHashMap<>();
@@ -41,7 +44,7 @@ public class GameEngineService {
     public void processMessage(UUID gameId, GameMessage message) {
         GameState state = activeGames.get(gameId);
         if (state == null) {
-            System.err.println("Game not found: " + gameId);
+            LOG.errorf("Game not found: %s", gameId);
             return;
         }
 
@@ -57,7 +60,7 @@ public class GameEngineService {
                 
                 // Explicitly register the attached flag to the road network
                 state.getRoadNetwork().addFlag(building.getAttachedFlag());
-                System.out.println("Building " + message.getBuildingName() + " constructed at " + message.getPosition());
+                LOG.infof("Building %s constructed at %s", message.getBuildingName(), message.getPosition());
             }
 
             case DESTROY_BUILDING -> {
@@ -68,7 +71,7 @@ public class GameEngineService {
                 
                 if (b != null && b.getPlayerId() == message.getPlayerId()) {
                     b.destroy(); // Flags and building marked as destroyed
-                    System.out.println("Building " + b.getId() + " destroyed.");
+                    LOG.infof("Building %s destroyed.", b.getId());
                 }
             }
 
@@ -77,7 +80,7 @@ public class GameEngineService {
                 Flag flag = new Flag(UUID.randomUUID(), message.getPlayerId(), message.getPosition());
                 state.getFlags().add(flag);
                 state.getRoadNetwork().addFlag(flag);
-                System.out.println("Flag placed at " + message.getPosition());
+                LOG.infof("Flag placed at %s", message.getPosition());
             }
 
             case LINK_FLAGS -> {
@@ -86,9 +89,9 @@ public class GameEngineService {
                 
                 if (flagA != null && flagB != null) {
                     state.getRoadNetwork().addRoad(flagA, flagB, message.getPath());
-                    System.out.println("Road created between " + flagA.getId() + " and " + flagB.getId());
+                    LOG.infof("Road created between %s and %s", flagA.getId(), flagB.getId());
                 } else {
-                    System.err.println("Failed to link flags: a flag was not found.");
+                    LOG.warn("Failed to link flags: a flag was not found.");
                 }
             }
 
@@ -100,7 +103,7 @@ public class GameEngineService {
                         .orElse(null);
                 
                 if (target instanceof MilitaryBuilding) {
-                    System.out.println("Attack order sent to building " + target.getId());
+                    LOG.infof("Attack order sent to building %s", target.getId());
                     // Route soldiers to enemy building logic
                 }
             }

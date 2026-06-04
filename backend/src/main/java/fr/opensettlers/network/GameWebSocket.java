@@ -1,13 +1,14 @@
 package fr.opensettlers.network;
 
 import fr.opensettlers.services.GameEngineService;
-import io.quarkus.websockets.next.OnMessage;
+import io.quarkus.websockets.next.OnTextMessage;
 import io.quarkus.websockets.next.OnOpen;
 import io.quarkus.websockets.next.WebSocket;
 import io.quarkus.websockets.next.WebSocketConnection;
 import jakarta.inject.Inject;
 
 import java.util.UUID;
+import org.jboss.logging.Logger;
 
 /**
  * WebSocket endpoint for game clients.
@@ -16,17 +17,19 @@ import java.util.UUID;
 @WebSocket(path = "/game/{gameId}")
 public class GameWebSocket {
 
+    private static final Logger LOG = Logger.getLogger(GameWebSocket.class);
+
     @Inject
     GameEngineService gameEngineService;
 
     @OnOpen
     public void onOpen(WebSocketConnection connection) {
         String gameId = connection.pathParam("gameId");
-        System.out.println("New WebSocket connection to game: " + gameId);
+        LOG.infof("New WebSocket connection to game: %s", gameId);
         // Add player to broadcast list here
     }
 
-    @OnMessage
+    @OnTextMessage
     public void onMessage(GameMessage message, WebSocketConnection connection) {
         String gameIdStr = connection.pathParam("gameId");
         try {
@@ -38,7 +41,7 @@ public class GameWebSocket {
             // send the updated GameState to all connected clients.
             
         } catch (IllegalArgumentException e) {
-            System.err.println("Invalid Game ID provided via WebSocket.");
+            LOG.error("Invalid Game ID provided via WebSocket.");
         }
     }
 }
