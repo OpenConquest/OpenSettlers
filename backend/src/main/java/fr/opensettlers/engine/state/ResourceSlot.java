@@ -1,8 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Data;
-import lombok.NonNull;
 
 /** A slot holding a specific resource type with a capped quantity. */
 @Data

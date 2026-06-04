@@ -1,9 +1,8 @@
 package fr.opensettlers.engine.mapgen;
 
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.NaturalResourceNode;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.engine.state.MapTile;
+import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.TileType;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;

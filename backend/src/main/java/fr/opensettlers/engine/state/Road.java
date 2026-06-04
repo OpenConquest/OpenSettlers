@@ -1,6 +1,6 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

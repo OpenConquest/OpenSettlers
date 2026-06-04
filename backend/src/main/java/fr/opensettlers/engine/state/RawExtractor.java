@@ -1,9 +1,10 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 /** Building that extracts raw resources from a map resource node. */
@@ -11,7 +12,7 @@ import java.util.UUID;
 public class RawExtractor extends ProductionBuilding {
 
     /** The type of resource this building extracts. Null for buildings like Forester that do not produce inventory. */
-    private final fr.opensettlers.utils.ResourceType extractedResource;
+    private final ResourceType extractedResource;
 
     /**
      * @param id       unique identifier
@@ -22,7 +23,7 @@ public class RawExtractor extends ProductionBuilding {
     public RawExtractor(UUID id, int playerId, Coordinates position, ResourceType extractedResource) {
         super(id, playerId, position);
         this.extractedResource = extractedResource;
-        this.inputSlots = new java.util.ArrayList<>();
+        this.inputSlots = new ArrayList<>();
         if (extractedResource != null) {
             this.outputSlot = new ResourceSlot(extractedResource);
         }
@@ -37,27 +38,13 @@ public class RawExtractor extends ProductionBuilding {
     }
 
     /** @return {@code true} if extraction conditions are met. */
-    public boolean canExtract() {
+    @Override
+    public boolean canProduce() {
         // Forester (no output slot) can always "extract" (plant) if map allows
         if (this.outputSlot == null) {
             return true; // TODO: check map if there's space to plant a tree
         }
         return this.outputSlot.getQuantity() < this.outputSlot.getMAX_PER_SLOT();
         // TODO: check map for resource node availability (e.g., fish in water, tree nearby)
-    }
-
-    /**
-     * Calls the production method according to the production frequency.
-     */
-    @Override
-    public void tick() {
-        if (this.productionCooldown <= 0) {
-            if (this.canExtract()) {
-                this.produce();
-                this.productionCooldown = PRODUCTION_TIME;
-            }
-        } else {
-            this.productionCooldown--;
-        }
     }
 }

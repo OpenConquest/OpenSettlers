@@ -1,9 +1,9 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.BuildingName;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.BuildingName;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.*;
-import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.Coordinates;
 
 import java.util.Map;
 import java.util.UUID;
@@ -82,7 +82,4 @@ public abstract class Building {
     public boolean isDestroyed() {
         return this.destroyed;
     }
-
-    /** The function that is triggered every tick by the game loop. */
-    public abstract void tick();
 }

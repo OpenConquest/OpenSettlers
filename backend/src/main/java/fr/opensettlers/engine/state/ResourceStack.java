@@ -1,6 +1,6 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package fr.opensettlers.utils;
+package fr.opensettlers.engine.state.utils;
 
 /**
  * Enumeration of all resource types, both raw and processed.
@@ -49,15 +49,6 @@ public enum ResourceType {
     /** @param oreType associated ore type, or {@code null} */
     ResourceType(OreType oreType) {
         this.oreType = oreType;
-    }
-
-    /**
-     * Returns the associated ore type.
-     *
-     * @return the ore type, or {@code null} if not an ore
-     */
-    public OreType getOreType() {
-        return this.oreType;
     }
 
     /**

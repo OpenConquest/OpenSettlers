@@ -1,12 +1,12 @@
 package fr.opensettlers.engine;
 
-import fr.opensettlers.entities.ProductionBuilding;
-import fr.opensettlers.entities.Carrier;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.ResourceStack;
-import fr.opensettlers.entities.Road;
-import fr.opensettlers.utils.CarrierState;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.ProductionBuilding;
+import fr.opensettlers.engine.state.Carrier;
+import fr.opensettlers.engine.state.Flag;
+import fr.opensettlers.engine.state.ResourceStack;
+import fr.opensettlers.engine.state.Road;
+import fr.opensettlers.engine.state.utils.CarrierState;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
 import java.util.Collection;

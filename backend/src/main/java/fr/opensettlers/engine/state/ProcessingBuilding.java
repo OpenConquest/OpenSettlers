@@ -1,9 +1,10 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 /** Building that transforms input resources into output resources via a recipe. */
@@ -21,8 +22,8 @@ public class ProcessingBuilding extends ProductionBuilding {
     public ProcessingBuilding(UUID id, int playerId, Coordinates position, Recipe recipe) {
         super(id, playerId, position);
         this.recipe = recipe;
-        
-        this.inputSlots = new java.util.ArrayList<>();
+
+        this.inputSlots = new ArrayList<>();
         if (recipe.getInput() != null) {
             for (ResourceType type : recipe.getInput().keySet()) {
                 this.inputSlots.add(new ResourceSlot(type));
@@ -39,37 +40,9 @@ public class ProcessingBuilding extends ProductionBuilding {
     }
 
     /** @return {@code true} if processing conditions are met. */
-    public boolean canProcess() {
+    @Override
+    public boolean canProduce() {
         return this.recipe.canProcess(this.inputSlots) && 
                this.outputSlot.getQuantity() < this.outputSlot.getMAX_PER_SLOT();
-    }
-
-    /** Calls the production method according to the production frequency. */
-    @Override
-    public void tick() {
-        Flag flag = this.getAttachedFlag();
-        if (this.inputSlots != null && flag != null) {
-            for (ResourceSlot slot : this.inputSlots) {
-                if (slot.getQuantity() < slot.getMAX_PER_SLOT()) {
-                    for (int i = 0; i < flag.getResourceSlots().size(); i++) {
-                        ResourceStack rs = flag.getResourceSlots().get(i);
-                        if (rs.getType() == slot.getType() && flag.getId().equals(rs.getTargetFlagId())) {
-                            flag.getResourceSlots().remove(i);
-                            slot.addResource();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (this.productionCooldown <= 0) {
-            if (this.canProcess()) {
-                this.produce();
-                this.productionCooldown = PRODUCTION_TIME;
-            }
-        } else {
-            this.productionCooldown--;
-        }
     }
 }

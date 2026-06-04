@@ -1,9 +1,9 @@
 package fr.opensettlers.engine;
 
-import fr.opensettlers.entities.Carrier;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.Road;
-import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.engine.state.Carrier;
+import fr.opensettlers.engine.state.Flag;
+import fr.opensettlers.engine.state.Road;
+import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
 
 import java.util.*;

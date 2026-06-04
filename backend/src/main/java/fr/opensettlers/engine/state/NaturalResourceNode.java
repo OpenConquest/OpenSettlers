@@ -1,8 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Data;
-import lombok.NonNull;
 
 /** A harvestable natural resource node on the map (e.g. tree, stone deposit). */
 @Data

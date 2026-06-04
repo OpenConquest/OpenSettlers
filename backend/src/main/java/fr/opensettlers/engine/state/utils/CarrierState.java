@@ -1,4 +1,4 @@
-package fr.opensettlers.utils;
+package fr.opensettlers.engine.state.utils;
 
 /**
  * Possible states for a resource carrier working on a road.

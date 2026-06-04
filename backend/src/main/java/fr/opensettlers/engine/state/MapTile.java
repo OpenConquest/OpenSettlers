@@ -1,7 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.TileType;
 import lombok.Getter;
 import lombok.Setter;
 

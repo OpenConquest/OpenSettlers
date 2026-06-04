@@ -1,6 +1,6 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.CarrierState;
+import fr.opensettlers.engine.state.utils.CarrierState;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;

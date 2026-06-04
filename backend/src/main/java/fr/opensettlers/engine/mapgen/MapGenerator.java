@@ -1,11 +1,10 @@
 package fr.opensettlers.engine.mapgen;
 
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.NaturalResourceNode;
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
-import java.util.UUID;
+import fr.opensettlers.engine.state.MapTile;
+import fr.opensettlers.engine.state.NaturalResourceNode;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.TileType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
