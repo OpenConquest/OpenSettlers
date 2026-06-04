@@ -38,6 +38,14 @@ public abstract class ProductionBuilding extends Building implements IProducer {
     @Setter
     private Worker occupant;
 
+    /** Productivity percentage of the building (0 to 100). */
+    @Setter
+    private int productivity = 0;
+
+    /** Ticks spent in waiting state to track the 10-second decay. */
+    @Setter
+    private int waitingTicks = 0;
+
     /**
      * Initializes a new ProductionBuilding.
      *

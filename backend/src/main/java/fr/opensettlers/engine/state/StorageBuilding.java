@@ -2,20 +2,26 @@ package fr.opensettlers.engine.state;
 
 import fr.opensettlers.engine.state.utils.Coordinates;
 import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.WorkerState;
+import fr.opensettlers.engine.state.utils.WorkerType;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Building that stores resources by type and quantity.
+ * Building that stores resources by type and quantity, and manages the neutral settler pool.
  */
 @Getter
-public class StorageBuilding extends Building{
-    /** Stored resources keyed by type. */
+public class StorageBuilding extends Building {
+    /**
+     * Stored resources keyed by type.
+     */
     private final Map<ResourceType, Integer> storedResources;
 
-    /** Stored neutral settlers who have no specialized job, capped at 99. */
+    /**
+     * Stored neutral settlers who have no specialized job, capped at 99.
+     */
     private int storedNeutralSettlers = 99;
 
     /**
@@ -43,18 +49,18 @@ public class StorageBuilding extends Building{
      * Retrieves one unit of the given resource.
      *
      * @param resourceType the resource type to retrieve
-     * @throws IllegalArgumentException if insufficient stock
+     * @throws IllegalArgumentException if insufficient stock is available
      */
     public void retrieveResource(ResourceType resourceType) {
         int currentAmount = storedResources.getOrDefault(resourceType, 0);
         if (currentAmount < 1) {
-            throw new IllegalArgumentException("Not enough resources in storage");
+            throw new IllegalArgumentException("Not enough resources in storage: " + resourceType);
         }
         storedResources.put(resourceType, currentAmount - 1);
     }
 
     /**
-     * Returns the count of stored neutral settlers.
+     * Gets the count of stored neutral settlers.
      *
      * @return the neutral settler count
      */
@@ -63,7 +69,7 @@ public class StorageBuilding extends Building{
     }
 
     /**
-     * Sets the count of stored neutral settlers.
+     * Sets the count of stored neutral settlers, capped at 99.
      *
      * @param count the new count
      */
@@ -72,7 +78,7 @@ public class StorageBuilding extends Building{
     }
 
     /**
-     * Regenerates the stored neutral settlers back to 99.
+     * Regenerates the stored neutral settlers back to 99 if they dropped below.
      */
     public void regenerateNeutralSettlers() {
         if (this.storedNeutralSettlers < 99) {
@@ -88,13 +94,13 @@ public class StorageBuilding extends Building{
      * @param spawnPos   the starting coordinates of the worker
      * @return the spawned Worker, or null if no settlers are available
      */
-    public Worker spawnWorker(fr.opensettlers.engine.state.utils.WorkerType targetType, Coordinates spawnPos) {
+    public Worker spawnWorker(WorkerType targetType, Coordinates spawnPos) {
         if (this.storedNeutralSettlers > 0) {
             this.storedNeutralSettlers--;
             Worker worker = new Worker(this.getPlayerId());
             worker.setType(targetType);
             worker.setPosition(spawnPos);
-            worker.setState(fr.opensettlers.engine.state.utils.WorkerState.SPAWNING);
+            worker.setState(WorkerState.SPAWNING);
             return worker;
         }
         return null;

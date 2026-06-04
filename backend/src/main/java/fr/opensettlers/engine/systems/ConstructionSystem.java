@@ -8,20 +8,26 @@ import fr.opensettlers.engine.state.utils.*;
 
 import java.util.List;
 
+/**
+ * System coordinating construction sites, from delivery ingestion, groundwork leveling,
+ * masonry construction progress, to final commissioning and specialist occupation.
+ */
 public class ConstructionSystem implements ISystem {
 
+    /**
+     * Iterates and updates all active construction sites and regenerates settlers at warehouses.
+     *
+     * @param gameState the active game session state
+     */
     @Override
     public void process(GameState gameState) {
-        // Collect construction sites to process
         List<Building> buildings = gameState.getBuildings();
-        for (int i = 0; i < buildings.size(); i++) {
-            Building b = buildings.get(i);
+        for (Building b : buildings) {
             if (b instanceof ConstructionSite site) {
                 processSite(gameState, site);
             }
         }
 
-        // Regenerate storage buildings settlers
         for (Building b : buildings) {
             if (b instanceof StorageBuilding sb) {
                 sb.regenerateNeutralSettlers();
@@ -29,8 +35,13 @@ public class ConstructionSystem implements ISystem {
         }
     }
 
+    /**
+     * Drives the step-by-step construction phases for an individual site.
+     *
+     * @param state the current game state
+     * @param site  the construction site to process
+     */
     private void processSite(GameState state, ConstructionSite site) {
-        // 1. Ingest materials that arrived at the site's attached flag
         Flag flag = site.getAttachedFlag();
         if (flag != null) {
             for (ResourceType type : site.getRequiredMaterials().keySet()) {
@@ -45,15 +56,12 @@ public class ConstructionSystem implements ISystem {
             }
         }
 
-        // 2. Lock phase until all materials are delivered
         if (!allMaterialsDelivered(site)) {
             return;
         }
 
-        // 3. Groundwork Phase
         if (site.getGroundworkProgress() < 100) {
             if (site.getAssignedTerrassier() == null) {
-                // Request/spawn a TERRASSIER
                 Worker terrassier = spawnWorkerFromWarehouse(state, site, WorkerType.TERRASSIER);
                 if (terrassier != null) {
                     site.setAssignedTerrassier(terrassier);
@@ -61,22 +69,19 @@ public class ConstructionSystem implements ISystem {
             } else {
                 Worker terrassier = site.getAssignedTerrassier();
                 if (terrassier.getState() == WorkerState.WORKING) {
-                    site.setGroundworkProgress(site.getGroundworkProgress() + 5); // 5% progress per tick
+                    site.setGroundworkProgress(site.getGroundworkProgress() + 5);
                 }
             }
             return;
         }
 
-        // 4. Building Phase
         if (site.getBuildingProgress() < 100) {
-            // Dismiss terrassier when groundwork is completed
             if (site.getAssignedTerrassier() != null) {
                 dismissWorker(state, site.getAssignedTerrassier());
                 site.setAssignedTerrassier(null);
             }
 
             if (site.getAssignedBuilder() == null) {
-                // Request/spawn a BUILDER
                 Worker builder = spawnWorkerFromWarehouse(state, site, WorkerType.BUILDER);
                 if (builder != null) {
                     site.setAssignedBuilder(builder);
@@ -84,13 +89,12 @@ public class ConstructionSystem implements ISystem {
             } else {
                 Worker builder = site.getAssignedBuilder();
                 if (builder.getState() == WorkerState.WORKING) {
-                    site.setBuildingProgress(site.getBuildingProgress() + 5); // 5% progress per tick
+                    site.setBuildingProgress(site.getBuildingProgress() + 5);
                 }
             }
             return;
         }
 
-        // 5. Completion Phase
         if (site.getAssignedBuilder() != null) {
             dismissWorker(state, site.getAssignedBuilder());
             site.setAssignedBuilder(null);
@@ -98,6 +102,12 @@ public class ConstructionSystem implements ISystem {
         completeConstruction(state, site);
     }
 
+    /**
+     * Checks if all required materials for construction have been delivered.
+     *
+     * @param site the construction site to check
+     * @return true if all material quantities are satisfied, false otherwise
+     */
     private boolean allMaterialsDelivered(ConstructionSite site) {
         for (ResourceType type : site.getRequiredMaterials().keySet()) {
             int needed = site.getRequiredMaterials().get(type);
@@ -109,6 +119,14 @@ public class ConstructionSystem implements ISystem {
         return true;
     }
 
+    /**
+     * Spawns a worker of the target role from the nearest warehouse.
+     *
+     * @param state          the current game state
+     * @param targetBuilding the building they are assigned to
+     * @param type           the specialized role to spawn them with
+     * @return the spawned Worker instance, or null if none available
+     */
     private Worker spawnWorkerFromWarehouse(GameState state, Building targetBuilding, WorkerType type) {
         StorageBuilding warehouse = findNearestWarehouse(state, targetBuilding.getPosition());
         if (warehouse != null) {
@@ -122,9 +140,15 @@ public class ConstructionSystem implements ISystem {
         return null;
     }
 
+    /**
+     * Dismisses a worker, removing their specialized role and routing them back to the warehouse.
+     *
+     * @param state  the current game state
+     * @param worker the worker unit to dismiss
+     */
     private void dismissWorker(GameState state, Worker worker) {
         if (worker == null) return;
-        worker.setType(null); // Loses role
+        worker.setType(null);
         worker.setTargetBuildingId(null);
         worker.setState(WorkerState.RETURNING);
 
@@ -137,27 +161,29 @@ public class ConstructionSystem implements ISystem {
                 worker.setCurrentPathIndex(0);
             }
         } else {
-            worker.setState(null); // Clean up immediately if no warehouse
+            worker.setState(null);
         }
     }
 
+    /**
+     * Converts a construction site into its completed building representation and spawns a specialist.
+     *
+     * @param state the current game state
+     * @param site  the completed site to swap out
+     */
     private void completeConstruction(GameState state, ConstructionSite site) {
-        // Instantiate the final building
         Building newBuilding = BuildingFactory.createBuilding(
                 site.getTargetBuildingType(),
                 site.getPlayerId(),
                 site.getPosition()
         );
 
-        // Reuse the existing flag and connect it to the new building
         newBuilding.setAttachedFlag(site.getAttachedFlag());
         site.getAttachedFlag().setBuilding(newBuilding);
 
-        // Swap the buildings in the game state
         state.getBuildings().remove(site);
         state.getBuildings().add(newBuilding);
 
-        // Spawn occupant worker if this is a production building
         WorkerType occupantRole = getWorkerTypeForBuilding(site.getTargetBuildingType());
         if (occupantRole != null && newBuilding instanceof ProductionBuilding pb) {
             Worker specialist = spawnWorkerFromWarehouse(state, pb, occupantRole);
@@ -167,6 +193,13 @@ public class ConstructionSystem implements ISystem {
         }
     }
 
+    /**
+     * Resolves the nearest warehouse building relative to a map position.
+     *
+     * @param state the current game state
+     * @param pos   the coordinates from which to measure distance
+     * @return the nearest active StorageBuilding, or null if none
+     */
     private StorageBuilding findNearestWarehouse(GameState state, Coordinates pos) {
         StorageBuilding nearest = null;
         double minDist = Double.MAX_VALUE;
@@ -182,6 +215,13 @@ public class ConstructionSystem implements ISystem {
         return nearest;
     }
 
+    /**
+     * Finds the closest registered flag in the network relative to coordinates.
+     *
+     * @param network the active road network
+     * @param coords  the coordinates to check
+     * @return the closest Flag instance
+     */
     private Flag findClosestFlag(RoadNetwork network, Coordinates coords) {
         Flag closest = null;
         double minDist = Double.MAX_VALUE;
@@ -195,6 +235,12 @@ public class ConstructionSystem implements ISystem {
         return closest;
     }
 
+    /**
+     * Maps a building name to its corresponding specialist worker type.
+     *
+     * @param name the building name
+     * @return the corresponding WorkerType, or null if none
+     */
     private WorkerType getWorkerTypeForBuilding(BuildingName name) {
         return switch (name) {
             case WOODCUTTER -> WorkerType.WOODCUTTER;

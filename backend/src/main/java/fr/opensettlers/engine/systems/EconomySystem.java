@@ -3,20 +3,35 @@ package fr.opensettlers.engine.systems;
 import fr.opensettlers.engine.GameState;
 import fr.opensettlers.engine.RoadNetwork;
 import fr.opensettlers.engine.state.*;
-import fr.opensettlers.engine.state.utils.BuildingName;
 import fr.opensettlers.engine.state.utils.Coordinates;
 import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.systems.economy.Demand;
+import fr.opensettlers.engine.systems.economy.Supply;
+import fr.opensettlers.engine.systems.economy.SupplySource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
+/**
+ * System coordinating matching of global supplies and demands.
+ * Routes surplus items to Warehouses, and serves demands prioritizing
+ * construction materials followed by a FIFO queue for production.
+ */
 public class EconomySystem implements ISystem {
 
+    /**
+     * Executes the matching logic between supplies and demands,
+     * routes items to targets, and deposits materials arriving at warehouse flags.
+     *
+     * @param gameState the active game session state
+     */
     @Override
     public void process(GameState gameState) {
         RoadNetwork roadNetwork = gameState.getRoadNetwork();
         List<Building> buildings = gameState.getBuildings();
 
-        // Ingest resources that arrived at StorageBuildings (Warehouses)
+        // Ingest resources that arrived at warehouses
         for (Building b : buildings) {
             if (b instanceof StorageBuilding sb && !sb.isDestroyed()) {
                 Flag flag = sb.getAttachedFlag();
@@ -26,27 +41,29 @@ public class EconomySystem implements ISystem {
                         if (rs.getTargetFlagId() != null && rs.getTargetFlagId().equals(flag.getId())) {
                             flag.getResourceSlots().remove(i);
                             sb.storeResource(rs.getType());
-                            i--; // Adjust index since we removed an item
+                            i--;
                         }
                     }
                 }
             }
         }
 
-        // Process matching for each ResourceType
+        // Run supply-demand matching for each ResourceType
         for (ResourceType type : ResourceType.values()) {
             List<Demand> demands = gatherDemands(gameState, type);
             List<Supply> supplies = gatherSupplies(gameState, type);
 
-            // Sort demands by priority: Military Construction > Regular Construction > Production
+            // Sort: Construction demands first, then regular production demands in FIFO order
             demands.sort((d1, d2) -> {
-                int p1 = getDemandPriority(d1, gameState);
-                int p2 = getDemandPriority(d2, gameState);
-                if (p1 != p2) {
-                    return Integer.compare(p1, p2);
+                boolean isConst1 = d1.building instanceof ConstructionSite;
+                boolean isConst2 = d2.building instanceof ConstructionSite;
+                if (isConst1 && !isConst2) {
+                    return -1;
                 }
-                // Tie breaker: use global resource distribution preferences if applicable
-                return Integer.compare(getPreferenceIndex(d1, gameState), getPreferenceIndex(d2, gameState));
+                if (!isConst1 && isConst2) {
+                    return 1;
+                }
+                return 0; // Preserves stable FIFO placement order
             });
 
             // Match demands with closest supplies
@@ -54,13 +71,11 @@ public class EconomySystem implements ISystem {
                 while (demand.quantity > 0) {
                     Supply bestSupply = findClosestSupply(roadNetwork, demand.flag, supplies);
                     if (bestSupply == null) {
-                        break; // No more supply for this resource type
+                        break;
                     }
 
-                    // Route 1 unit
                     routeResource(gameState, bestSupply, demand.flag, type);
 
-                    // Update counts
                     demand.quantity--;
                     bestSupply.quantity--;
                     if (bestSupply.quantity <= 0) {
@@ -69,65 +84,18 @@ public class EconomySystem implements ISystem {
                 }
             }
 
-            // Route any remaining unrouted production outputs or flag resources of this type to the nearest Warehouse
+            // Route leftover production output or flag items of this type to nearest warehouse
             routeSurplusToWarehouses(gameState, supplies, type);
         }
     }
 
-    private int getDemandPriority(Demand demand, GameState state) {
-        if (demand.building instanceof ConstructionSite site) {
-            BuildingName target = site.getTargetBuildingType();
-            if (target == BuildingName.GUARD_HOUSE || target == BuildingName.WATCH_TOWER || target == BuildingName.CASTLE) {
-                return 1; // High priority: Military construction
-            }
-            return 2; // Medium-high priority: Regular construction
-        }
-        return 3; // Medium priority: Active production
-    }
-
-    private int getPreferenceIndex(Demand demand, GameState state) {
-        if (demand.building != null) {
-            BuildingName name = null;
-            if (demand.building instanceof ConstructionSite site) {
-                name = site.getTargetBuildingType();
-            } else if (demand.building instanceof ProductionBuilding pb) {
-                name = getBuildingNameForClass(pb);
-            }
-
-            if (name != null) {
-                List<BuildingName> pref = state.getResourceDistributionPriorities().get(demand.type);
-                if (pref != null) {
-                    int idx = pref.indexOf(name);
-                    if (idx != -1) {
-                        return idx;
-                    }
-                }
-            }
-        }
-        return Integer.MAX_VALUE;
-    }
-
-    private BuildingName getBuildingNameForClass(ProductionBuilding pb) {
-        if (pb instanceof RawExtractor re) {
-            if (re.getExtractedResource() == ResourceType.LOG) return BuildingName.WOODCUTTER;
-            if (re.getExtractedResource() == ResourceType.STONE) return BuildingName.QUARRY;
-            if (re.getExtractedResource() == ResourceType.IRON) return BuildingName.MINE;
-            if (re.getExtractedResource() == ResourceType.FISH) return BuildingName.FISHING_HUT;
-            if (re.getExtractedResource() == ResourceType.WHEAT) return BuildingName.FARM;
-            if (re.getExtractedResource() == ResourceType.WATER) return BuildingName.WATER_WELL;
-            if (re.getExtractedResource() == null) return BuildingName.FORESTER;
-        } else if (pb instanceof ProcessingBuilding pcb) {
-            ResourceType out = pcb.getRecipe().getOutput();
-            if (out == ResourceType.PLANK) return BuildingName.SAWMILL;
-            if (out == ResourceType.FLOUR) return BuildingName.MILL;
-            if (out == ResourceType.BREAD) return BuildingName.BAKERY;
-            if (out == ResourceType.BEER) return BuildingName.BREWERY;
-            if (out == ResourceType.STEEL) return BuildingName.FOUNDRY;
-            if (out == ResourceType.SWORD) return BuildingName.ARMORY;
-        }
-        return null;
-    }
-
+    /**
+     * Gathers all unsatisfied demands for a specific resource type.
+     *
+     * @param state the current game state
+     * @param type  the target resource type
+     * @return a list of active Demands
+     */
     private List<Demand> gatherDemands(GameState state, ResourceType type) {
         List<Demand> demands = new ArrayList<>();
         for (Building b : state.getBuildings()) {
@@ -162,10 +130,16 @@ public class EconomySystem implements ISystem {
         return demands;
     }
 
+    /**
+     * Gathers all available supplies for a specific resource type.
+     *
+     * @param state the current game state
+     * @param type  the target resource type
+     * @return a list of available Supplies
+     */
     private List<Supply> gatherSupplies(GameState state, ResourceType type) {
         List<Supply> supplies = new ArrayList<>();
 
-        // 1. From production outputs
         for (Building b : state.getBuildings()) {
             if (b.isDestroyed()) continue;
             Flag flag = b.getAttachedFlag();
@@ -182,7 +156,6 @@ public class EconomySystem implements ISystem {
             }
         }
 
-        // 2. From unrouted resources on flags
         for (Flag flag : state.getRoadNetwork().getAllFlags()) {
             if (flag.isDestroyed()) continue;
             int unroutedCount = 0;
@@ -196,7 +169,6 @@ public class EconomySystem implements ISystem {
             }
         }
 
-        // 3. From storage buildings (Warehouse)
         for (Building b : state.getBuildings()) {
             if (b.isDestroyed()) continue;
             Flag flag = b.getAttachedFlag();
@@ -213,11 +185,19 @@ public class EconomySystem implements ISystem {
         return supplies;
     }
 
+    /**
+     * Resolves the closest supply flag from the demand flag using Dijkstra path length.
+     * Prioritizes active production/flag supplies over warehouses.
+     *
+     * @param network    the active road network
+     * @param demandFlag the destination flag of the demand
+     * @param supplies   the list of available supplies
+     * @return the closest Supply instance, or null if unreachable
+     */
     private Supply findClosestSupply(RoadNetwork network, Flag demandFlag, List<Supply> supplies) {
         Supply bestSupply = null;
         int minDistance = Integer.MAX_VALUE;
 
-        // Prioritize non-warehouse supplies first
         for (Supply s : supplies) {
             if (s.source == SupplySource.WAREHOUSE) continue;
             List<Flag> path = network.findPath(s.flag, demandFlag);
@@ -230,7 +210,6 @@ public class EconomySystem implements ISystem {
             }
         }
 
-        // Fallback to warehouse supplies if none found
         if (bestSupply == null) {
             for (Supply s : supplies) {
                 if (s.source != SupplySource.WAREHOUSE) continue;
@@ -248,6 +227,14 @@ public class EconomySystem implements ISystem {
         return bestSupply;
     }
 
+    /**
+     * Requests transport and decreases source stock inventory to route a matched supply.
+     *
+     * @param state      the active game state
+     * @param supply     the selected supply source
+     * @param demandFlag the target destination flag
+     * @param type       the type of resource to route
+     */
     private void routeResource(GameState state, Supply supply, Flag demandFlag, ResourceType type) {
         if (supply.source == SupplySource.PRODUCTION) {
             state.getTransportManager().requestTransportFromBuilding((ProductionBuilding) supply.provider, demandFlag);
@@ -260,9 +247,16 @@ public class EconomySystem implements ISystem {
         }
     }
 
+    /**
+     * Dispatches surplus unrouted active resources to the nearest Warehouse.
+     *
+     * @param state    the active game state
+     * @param supplies the list of unmatched supplies
+     * @param type     the target resource type
+     */
     private void routeSurplusToWarehouses(GameState state, List<Supply> supplies, ResourceType type) {
         for (Supply supply : supplies) {
-            if (supply.source == SupplySource.WAREHOUSE) continue; // Already in storage
+            if (supply.source == SupplySource.WAREHOUSE) continue;
 
             StorageBuilding nearestWarehouse = findNearestWarehouse(state, supply.flag.getCoordinates());
             if (nearestWarehouse != null && nearestWarehouse.getAttachedFlag() != null) {
@@ -278,6 +272,13 @@ public class EconomySystem implements ISystem {
         }
     }
 
+    /**
+     * Locates the nearest StorageBuilding relative to a coordinate.
+     *
+     * @param state the active game state
+     * @param pos   the search coordinate position
+     * @return the nearest active StorageBuilding instance, or null if none
+     */
     private StorageBuilding findNearestWarehouse(GameState state, Coordinates pos) {
         StorageBuilding nearest = null;
         double minDist = Double.MAX_VALUE;
@@ -293,6 +294,14 @@ public class EconomySystem implements ISystem {
         return nearest;
     }
 
+    /**
+     * Counts the total quantity of a resource type currently in transit to a flag.
+     *
+     * @param state        the current game state
+     * @param targetFlagId the target flag UUID
+     * @param type         the resource type to count
+     * @return the count of items in transit
+     */
     private int countInTransit(GameState state, UUID targetFlagId, ResourceType type) {
         int count = 0;
         for (Road road : state.getRoadNetwork().getAllRoads()) {
@@ -312,37 +321,5 @@ public class EconomySystem implements ISystem {
             }
         }
         return count;
-    }
-
-    // --- Helper Classes ---
-
-    private static class Demand {
-        Building building;
-        Flag flag;
-        ResourceType type;
-        int quantity;
-
-        Demand(Building building, Flag flag, ResourceType type, int quantity) {
-            this.building = building;
-            this.flag = flag;
-            this.type = type;
-            this.quantity = quantity;
-        }
-    }
-
-    private enum SupplySource { PRODUCTION, FLAG, WAREHOUSE }
-
-    private static class Supply {
-        Building provider; // ProductionBuilding or StorageBuilding (Warehouse), null if Flag
-        Flag flag;
-        int quantity;
-        SupplySource source;
-
-        Supply(Building provider, Flag flag, int quantity, SupplySource source) {
-            this.provider = provider;
-            this.flag = flag;
-            this.quantity = quantity;
-            this.source = source;
-        }
     }
 }

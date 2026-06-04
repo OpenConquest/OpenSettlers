@@ -4,8 +4,28 @@ package fr.opensettlers.engine.state.utils;
  * State machine states for physical worker units.
  */
 public enum WorkerState {
-    SPAWNING,          // Exiting the HQ/Warehouse
-    WALKING_TO_JOB,    // Traveling on the road network to target building
-    WORKING,           // On-site performing duties (leveling, building, harvesting)
-    RETURNING          // Traveling back to HQ/Warehouse after building destruction
+    /**
+     * Worker is exiting the storage building or headquarters.
+     */
+    SPAWNING,
+
+    /**
+     * Worker is traveling along the road network toward their target destination.
+     */
+    WALKING_TO_JOB,
+
+    /**
+     * Worker has arrived on-site and is actively performing their job.
+     */
+    WORKING,
+
+    /**
+     * Worker has arrived on-site but is waiting (inputs missing or output full).
+     */
+    WAITING,
+
+    /**
+     * Worker is returning to the nearest warehouse after their job was dismantled.
+     */
+    RETURNING
 }
