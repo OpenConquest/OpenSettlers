@@ -47,6 +47,22 @@ public class ProcessingBuilding extends ProductionBuilding {
     /** Calls the production method according to the production frequency. */
     @Override
     public void tick() {
+        Flag flag = this.getAttachedFlag();
+        if (this.inputSlots != null && flag != null) {
+            for (ResourceSlot slot : this.inputSlots) {
+                if (slot.getQuantity() < slot.getMAX_PER_SLOT()) {
+                    for (int i = 0; i < flag.getResourceSlots().size(); i++) {
+                        ResourceStack rs = flag.getResourceSlots().get(i);
+                        if (rs.getType() == slot.getType() && flag.getId().equals(rs.getTargetFlagId())) {
+                            flag.getResourceSlots().remove(i);
+                            slot.addResource();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         if (this.productionCooldown <= 0) {
             if (this.canProcess()) {
                 this.produce();

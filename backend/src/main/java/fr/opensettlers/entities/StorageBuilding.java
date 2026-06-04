@@ -20,7 +20,7 @@ public class StorageBuilding extends Building{
      * @param storedResources initial resource stock
      */
     public StorageBuilding(UUID id, int playerId, Coordinates position, Map<ResourceType, Integer> storedResources) {
-        super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
+        super(id, playerId, position);
         this.storedResources = storedResources;
         for (ResourceType resourceType : storedResources.keySet()) {
             storedResources.put(resourceType, storedResources.getOrDefault(resourceType, 0));

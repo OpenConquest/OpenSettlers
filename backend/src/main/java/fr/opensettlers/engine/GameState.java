@@ -19,6 +19,13 @@ public class GameState {
 
     /** Unique identifiers of the players in the game. Should not contain duplicates. */
     private final List<UUID> playerIds;
+    
+    /** The road network managing flags, roads, and pathfinding. */
+    private final RoadNetwork roadNetwork = new RoadNetwork();
+    
+    /** The transport manager handling resource logistics. */
+    private final TransportManager transportManager = new TransportManager(roadNetwork);
+    
     /** All building instances in the map. */
     private final List<Building> buildings = new ArrayList<>();
     /** All flag instances in the map. */
@@ -45,9 +52,19 @@ public class GameState {
     public void tick() {
         currentTick++;
 
+        // Sync flags to road network (in case new ones were added to the list but not the network)
+        for (Flag flag : flags) {
+            if (roadNetwork.getFlagById(flag.getId()) == null) {
+                roadNetwork.addFlag(flag);
+            }
+        }
+
         // Flags
         flags.removeIf(Flag::isDestroyed);
         flags.forEach(Flag::tick);
+        
+        // Transport System (moves carriers, picks up/delivers resources)
+        transportManager.tick();
 
         // Buildings
         buildings.removeIf(Building::isDestroyed);

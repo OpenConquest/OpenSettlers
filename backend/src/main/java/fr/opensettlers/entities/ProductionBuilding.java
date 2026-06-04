@@ -21,13 +21,19 @@ public abstract class ProductionBuilding extends Building {
     /** Output resource slot. */
     protected ResourceSlot outputSlot;
 
+    /** 
+     * Target destinations assigned to resources currently stored in the output slot.
+     * When an item is produced, it goes to outputSlot and a target is eventually assigned here.
+     */
+    protected List<UUID> outputDestinations = new java.util.ArrayList<>();
+
     /**
      * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
      */
     public ProductionBuilding(UUID id, int playerId, Coordinates position) {
-        super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
+        super(id, playerId, position);
     }
 
     /** Produces goods from available input resources. */

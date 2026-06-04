@@ -28,6 +28,21 @@ public abstract class Building {
     /** Flag attached to this building, or {@code null}. */
     private final Flag attachedFlag;
 
+    /**
+     * Initializes the building and attaches it bidirectionally to a new Flag.
+     * 
+     * @param id       unique identifier
+     * @param playerId owning player ID
+     * @param position map coordinates
+     */
+    public Building(UUID id, int playerId, Coordinates position) {
+        this.id = id;
+        this.playerId = playerId;
+        this.position = position;
+        this.attachedFlag = new Flag(UUID.randomUUID(), playerId, position);
+        this.attachedFlag.setBuilding(this);
+    }
+
     /** Resource costs for constructing each building type. */
     public static final Map<BuildingName, Map<ResourceType, Integer>> buildingCosts = Map.ofEntries(
             Map.entry(BuildingName.WOODCUTTER, Map.of(ResourceType.PLANK, 2)),
