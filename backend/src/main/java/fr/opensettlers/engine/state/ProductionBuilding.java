@@ -2,6 +2,7 @@ package fr.opensettlers.engine.state;
 
 import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +12,12 @@ import java.util.UUID;
  */
 @Getter
 public abstract class ProductionBuilding extends Building implements IProducer {
+    /**
+     * Cooldown remaining before the next production cycle can occur.
+     */
+    @Setter
+    protected int productionCooldown = 0;
+
     /**
      * Input resource slots.
      */

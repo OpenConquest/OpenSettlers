@@ -5,7 +5,6 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Building that stores resources by type and quantity.

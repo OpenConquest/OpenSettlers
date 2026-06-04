@@ -5,7 +5,6 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 /**
  * Building that transforms input resources into output resources via a recipe.

@@ -7,7 +7,6 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Factory class to instantiate buildings without creating 13 different subclasses.
