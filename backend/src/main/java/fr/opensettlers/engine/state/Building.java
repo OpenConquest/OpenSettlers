@@ -30,13 +30,12 @@ public abstract class Building {
 
     /**
      * Initializes the building and attaches it bidirectionally to a new Flag.
-     * 
-     * @param id       unique identifier
+     *
      * @param playerId owning player ID
      * @param position map coordinates
      */
-    public Building(UUID id, int playerId, Coordinates position) {
-        this.id = id;
+    public Building(int playerId, Coordinates position) {
+        this.id = UUID.randomUUID();
         this.playerId = playerId;
         this.position = position;
         this.attachedFlag = new Flag(UUID.randomUUID(), playerId, position);

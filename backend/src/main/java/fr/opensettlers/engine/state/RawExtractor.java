@@ -26,8 +26,8 @@ public class RawExtractor extends ProductionBuilding {
      * @param position map coordinates
      * @param extractedResource the resource it produces
      */
-    public RawExtractor(UUID id, int playerId, Coordinates position, ResourceType extractedResource) {
-        super(id, playerId, position);
+    public RawExtractor(int playerId, Coordinates position, ResourceType extractedResource) {
+        super(playerId, position);
         this.extractedResource = extractedResource;
         this.inputSlots = new ArrayList<>();
         if (extractedResource != null) {

@@ -20,13 +20,12 @@ public class ProcessingBuilding extends ProductionBuilding {
     /**
      * Initializes a new ProcessingBuilding.
      *
-     * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
      * @param recipe   conversion recipe
      */
-    public ProcessingBuilding(UUID id, int playerId, Coordinates position, Recipe recipe) {
-        super(id, playerId, position);
+    public ProcessingBuilding(int playerId, Coordinates position, Recipe recipe) {
+        super(playerId, position);
         this.recipe = recipe;
 
         this.inputSlots = new ArrayList<>();
