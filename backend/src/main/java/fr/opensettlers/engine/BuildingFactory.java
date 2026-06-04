@@ -1,12 +1,12 @@
 package fr.opensettlers.engine;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.ProcessingBuilding;
-import fr.opensettlers.entities.RawExtractor;
-import fr.opensettlers.entities.Recipe;
-import fr.opensettlers.utils.BuildingName;
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.Building;
+import fr.opensettlers.engine.state.ProcessingBuilding;
+import fr.opensettlers.engine.state.RawExtractor;
+import fr.opensettlers.engine.state.Recipe;
+import fr.opensettlers.engine.state.utils.BuildingName;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.ResourceType;
 
 import java.util.UUID;
 

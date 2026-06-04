@@ -1,4 +1,4 @@
-package fr.opensettlers.utils;
+package fr.opensettlers.engine.state.utils;
 
 /**
  * Enumeration of all building types available in the game.

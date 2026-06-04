@@ -1,7 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -77,10 +77,5 @@ public class Flag {
      */
     public boolean isDestroyed() {
         return this.destroyed;
-    }
-
-    /** The function that is triggered every tick by the game loop. */
-    public void tick() {
-        // TODO flag behaviour
     }
 }

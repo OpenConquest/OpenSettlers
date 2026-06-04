@@ -1,7 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Getter;
 
 import java.util.Map;
@@ -48,11 +48,5 @@ public class StorageBuilding extends Building{
             throw new IllegalArgumentException("Not enough resources in storage");
         }
         storedResources.put(resourceType, currentAmount - 1);
-    }
-
-    /** The function that is triggered every tick by the game loop. */
-    @Override
-    public void tick() {
-        // TODO storage building tick behaviour
     }
 }

@@ -1,7 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.Direction;
+import fr.opensettlers.engine.state.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.Direction;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -60,10 +60,5 @@ public class Soldier {
      */
     public boolean isSamePosition(Soldier other) {
         return this.position.equals(other.position);
-    }
-
-    /** The function that is triggered every tick by the game loop. */
-    public void tick() {
-        // TODO soldier behaviour
     }
 }

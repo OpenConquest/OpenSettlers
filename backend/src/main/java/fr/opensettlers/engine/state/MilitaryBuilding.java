@@ -1,6 +1,6 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
 
 import java.util.List;
@@ -15,14 +15,12 @@ public class MilitaryBuilding extends Building{
     /** Maximum number of soldiers this building can hold. */
     private int maxCapacity;
 
-
+    /**
+     * @param id Unique identifier of the building.
+     * @param playerId Unique identifier of the owning player.
+     * @param position Coordinates of the building.
+     */
     public MilitaryBuilding(UUID id, int playerId, Coordinates position) {
         super(id, playerId, position, new Flag(UUID.randomUUID(), playerId, position));
-    }
-
-    /** The function that is triggered every tick by the game loop. */
-    @Override
-    public void tick() {
-        // TODO military building tick behaviour
     }
 }

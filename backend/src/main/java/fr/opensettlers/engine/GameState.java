@@ -1,8 +1,8 @@
 package fr.opensettlers.engine;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.Soldier;
+import fr.opensettlers.engine.state.Building;
+import fr.opensettlers.engine.state.Flag;
+import fr.opensettlers.engine.state.Soldier;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -47,14 +47,11 @@ public class GameState {
 
         // Flags
         flags.removeIf(Flag::isDestroyed);
-        flags.forEach(Flag::tick);
 
         // Buildings
         buildings.removeIf(Building::isDestroyed);
-        buildings.forEach(Building::tick);
 
         // Soldiers
         soldiers.removeIf(Soldier::isDead);
-        soldiers.forEach(Soldier::tick);
     }
 }

@@ -1,7 +1,7 @@
-package fr.opensettlers.entities;
+package fr.opensettlers.engine.state;
 
-import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -11,7 +11,7 @@ import java.util.UUID;
 public class RawExtractor extends ProductionBuilding {
 
     /** The type of resource this building extracts. Null for buildings like Forester that do not produce inventory. */
-    private final fr.opensettlers.utils.ResourceType extractedResource;
+    private final ResourceType extractedResource;
 
     /**
      * @param id       unique identifier
@@ -44,20 +44,5 @@ public class RawExtractor extends ProductionBuilding {
         }
         return this.outputSlot.getQuantity() < this.outputSlot.getMAX_PER_SLOT();
         // TODO: check map for resource node availability (e.g., fish in water, tree nearby)
-    }
-
-    /**
-     * Calls the production method according to the production frequency.
-     */
-    @Override
-    public void tick() {
-        if (this.productionCooldown <= 0) {
-            if (this.canExtract()) {
-                this.produce();
-                this.productionCooldown = PRODUCTION_TIME;
-            }
-        } else {
-            this.productionCooldown--;
-        }
     }
 }

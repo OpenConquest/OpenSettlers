@@ -1,4 +1,4 @@
-package fr.opensettlers.utils;
+package fr.opensettlers.engine.state.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
