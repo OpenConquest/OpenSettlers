@@ -13,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-/** Implements the game loop. One instance of the engine is created per game session. */
+/** Implements the game loop. */
 @Data
 public class GameEngine implements Runnable {
     /**  The logger. */
