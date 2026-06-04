@@ -34,6 +34,10 @@ public abstract class ProductionBuilding extends Building implements IProducer {
      */
     protected List<UUID> outputDestinations = new java.util.ArrayList<>();
 
+    /** Specialist worker occupying this building. */
+    @Setter
+    private Worker occupant;
+
     /**
      * Initializes a new ProductionBuilding.
      *
@@ -44,9 +48,7 @@ public abstract class ProductionBuilding extends Building implements IProducer {
         super(playerId, position);
     }
 
-    /**
-     * Produces goods from available input resources.
-     */
+    /** Produces goods from available input resources. */
     @Override
     public abstract void produce();
 

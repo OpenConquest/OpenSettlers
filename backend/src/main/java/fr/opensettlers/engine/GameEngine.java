@@ -1,9 +1,6 @@
 package fr.opensettlers.engine;
 
-import fr.opensettlers.engine.systems.CombatSystem;
-import fr.opensettlers.engine.systems.MovementSystem;
-import fr.opensettlers.engine.systems.ProductionSystem;
-import fr.opensettlers.engine.systems.TransportSystem;
+import fr.opensettlers.engine.systems.*;
 import fr.opensettlers.network.GameWebSocket;
 import io.quarkus.websockets.next.WebSocketConnection;
 import lombok.Data;
@@ -46,6 +43,15 @@ public class GameEngine implements Runnable {
     /** System managing resource transport mechanisms. */
     private final TransportSystem transportSystem = new TransportSystem();
 
+    /** System managing physical worker movements and state transitions. */
+    private final WorkerSystem workerSystem = new fr.opensettlers.engine.systems.WorkerSystem();
+
+    /** System managing global resource allocation. */
+    private final EconomySystem economySystem = new fr.opensettlers.engine.systems.EconomySystem();
+
+    /** System managing construction site progress and worker assignments. */
+    private final ConstructionSystem constructionSystem = new fr.opensettlers.engine.systems.ConstructionSystem();
+
     /** Starts the game and launches the game loop. */
     public synchronized void start() {
         if (running) return;
@@ -80,6 +86,9 @@ public class GameEngine implements Runnable {
 
         combatSystem.process(state);
         movementSystem.process(state);
+        workerSystem.process(state);
+        economySystem.process(state);
+        constructionSystem.process(state);
         productionSystem.process(state);
         transportSystem.process(state);
 

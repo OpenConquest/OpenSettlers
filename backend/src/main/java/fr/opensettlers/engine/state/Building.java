@@ -26,7 +26,8 @@ public abstract class Building {
     private boolean destroyed = false;
 
     /** Flag attached to this building, or {@code null}. */
-    private final Flag attachedFlag;
+    @Setter
+    private Flag attachedFlag;
 
     /**
      * Initializes the building and attaches it bidirectionally to a new Flag.

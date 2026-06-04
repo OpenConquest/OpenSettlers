@@ -1,8 +1,8 @@
 package fr.opensettlers.services;
 
-import fr.opensettlers.engine.BuildingFactory;
 import fr.opensettlers.engine.GameState;
 import fr.opensettlers.engine.state.Building;
+import fr.opensettlers.engine.state.ConstructionSite;
 import fr.opensettlers.engine.state.Flag;
 import fr.opensettlers.engine.state.MilitaryBuilding;
 import fr.opensettlers.network.GameMessage;
@@ -60,17 +60,17 @@ public class GameEngineService {
 
         switch (message.getType()) {
             case BUILD_BUILDING -> {
-                // Create the building (the attached Flag is generated automatically)
-                Building building = BuildingFactory.createBuilding(
-                        message.getBuildingName(), 
-                        message.getPlayerId(), 
-                        message.getPosition()
+                // Create a Construction Site instead of building directly
+                ConstructionSite site = new ConstructionSite(
+                        message.getPlayerId(),
+                        message.getPosition(),
+                        message.getBuildingName()
                 );
-                state.getBuildings().add(building);
+                state.getBuildings().add(site);
                 
                 // Explicitly register the attached flag to the road network
-                state.getRoadNetwork().addFlag(building.getAttachedFlag());
-                LOG.infof("Building %s constructed at %s", message.getBuildingName(), message.getPosition());
+                state.getRoadNetwork().addFlag(site.getAttachedFlag());
+                LOG.infof("Construction site for %s placed at %s", message.getBuildingName(), message.getPosition());
             }
 
             case DESTROY_BUILDING -> {

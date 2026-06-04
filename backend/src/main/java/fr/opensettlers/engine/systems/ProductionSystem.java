@@ -45,7 +45,9 @@ public class ProductionSystem implements ISystem {
 
             int cooldown = productionBuilding.getProductionCooldown();
             if (cooldown <= 0) {
-                if (productionBuilding.canProduce()) {
+                boolean hasWorkingOccupant = (productionBuilding.getOccupant() != null 
+                        && productionBuilding.getOccupant().getState() == fr.opensettlers.engine.state.utils.WorkerState.WORKING);
+                if (hasWorkingOccupant && productionBuilding.canProduce()) {
                     productionBuilding.produce();
                     productionBuilding.setProductionCooldown(PRODUCTION_TIME);
                 }

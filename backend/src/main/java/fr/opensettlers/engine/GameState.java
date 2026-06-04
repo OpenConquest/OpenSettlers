@@ -3,10 +3,14 @@ package fr.opensettlers.engine;
 import fr.opensettlers.engine.state.Building;
 import fr.opensettlers.engine.state.Flag;
 import fr.opensettlers.engine.state.Soldier;
+import fr.opensettlers.engine.state.Worker;
+import fr.opensettlers.engine.state.utils.BuildingName;
+import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -32,6 +36,15 @@ public class GameState {
     private final List<Flag> flags = new ArrayList<>();
     /** All soldier instances in the map. */
     private final List<Soldier> soldiers = new ArrayList<>();
+    /** All active worker units on the map. */
+    private final List<Worker> workers = new ArrayList<>();
+
+    /** Global resource distribution priorities. */
+    private final Map<ResourceType, List<BuildingName>> resourceDistributionPriorities = new java.util.HashMap<>() {{
+        put(ResourceType.LOG, List.of(BuildingName.SAWMILL, BuildingName.MINE));
+        put(ResourceType.COAL, List.of(BuildingName.FOUNDRY, BuildingName.ARMORY));
+        put(ResourceType.WHEAT, List.of(BuildingName.MILL, BuildingName.BREWERY));
+    }};
 
     /** Current tick since the start of the game. */
     private long currentTick = 0;
@@ -67,5 +80,8 @@ public class GameState {
 
         // Soldiers
         soldiers.removeIf(Soldier::isDead);
+
+        // Workers (clean up workers that have been dismissed/removed)
+        workers.removeIf(w -> w.getState() == null);
     }
 }
