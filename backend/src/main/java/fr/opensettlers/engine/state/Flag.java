@@ -190,7 +190,9 @@ public class Flag {
         connectedRoads.remove(road);
     }
 
-    /** Destroys the flag, rendering it inactive. */
+    /**
+     * Destroys the flag, rendering it inactive.
+     */
     public void destroy() {
         this.destroyed = true;
     }

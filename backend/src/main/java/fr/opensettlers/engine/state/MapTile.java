@@ -5,26 +5,40 @@ import fr.opensettlers.engine.state.utils.TileType;
 import lombok.Getter;
 import lombok.Setter;
 
-/** A single tile on the game map with a type, elevation, and optional resource node. */
+/**
+ * A single tile on the game map with a type, elevation, and optional resource node.
+ */
 @Getter
 @Setter
 public class MapTile {
-    /** Tile coordinates on the map. */
+    /**
+     * Tile coordinates on the map.
+     */
     private final Coordinates coordinates;
 
-    /** Terrain type (may change during the game, e.g. forest → grass). */
+    /**
+     * Terrain type (may change during the game, e.g. forest → grass).
+     */
     private TileType type;
 
-    /** Tile elevation; affects road connectivity and movement. */
+    /**
+     * Tile elevation; affects road connectivity and movement.
+     */
     private int elevation;
 
-    /** Natural resource on this tile, or {@code null} if none. */
+    /**
+     * Natural resource on this tile, or {@code null} if none.
+     */
     private NaturalResourceNode naturalResource;
 
-    /** Max allowed elevation difference for road connections. */
+    /**
+     * Max allowed elevation difference for road connections.
+     */
     public static final int MAX_ROAD_ELEVATION_DELTA = 2;
 
     /**
+     * Initializes a new MapTile.
+     *
      * @param coordinates tile position
      * @param initialType terrain type
      * @param elevation   tile elevation
@@ -89,13 +103,19 @@ public class MapTile {
     }
 
     /**
+     * Checks if the tile supports building construction.
+     *
      * @return {@code true} if the tile supports building construction (grass or field)
      */
     public boolean isBuildable() {
         return this.type == TileType.GRASS;
     }
 
-    /** @return {@code true} if units can traverse this tile (not water or mountain) */
+    /**
+     * Checks if the tile is walkable.
+     *
+     * @return {@code true} if units can traverse this tile (not water or mountain)
+     */
     public boolean isWalkable() {
         return this.type != TileType.WATER && this.type != TileType.MOUNTAIN;
     }

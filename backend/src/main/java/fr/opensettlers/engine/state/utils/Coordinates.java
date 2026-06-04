@@ -10,10 +10,14 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Coordinates {
-    /** Horizontal axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>. */
+    /**
+     * Horizontal axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>.
+     */
     private double x;
 
-    /** Vertical axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>. */
+    /**
+     * Vertical axis coordinate. See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>.
+     */
     private double y;
 
     /**

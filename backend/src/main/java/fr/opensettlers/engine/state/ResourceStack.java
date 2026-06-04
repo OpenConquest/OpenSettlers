@@ -13,7 +13,9 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class ResourceStack {
-    /** The type of resource. */
+    /**
+     * The type of resource.
+     */
     private final ResourceType type;
 
     /**

@@ -13,6 +13,7 @@ import org.jboss.logging.Logger;
 /**
  * WebSocket endpoint for game clients.
  * Expected URL: ws://localhost:8080/game/{gameId}
+ *
  */
 @WebSocket(path = "/game/{gameId}")
 public class GameWebSocket {
@@ -22,6 +23,11 @@ public class GameWebSocket {
     @Inject
     GameEngineService gameEngineService;
 
+    /**
+     * Handles the opening of a new WebSocket connection.
+     *
+     * @param connection the WebSocket connection that was opened
+     */
     @OnOpen
     public void onOpen(WebSocketConnection connection) {
         String gameId = connection.pathParam("gameId");
@@ -29,6 +35,12 @@ public class GameWebSocket {
         // Add player to broadcast list here
     }
 
+    /**
+     * Handles incoming text messages from the WebSocket connection.
+     *
+     * @param message the parsed game message received from the client
+     * @param connection the WebSocket connection the message was received on
+     */
     @OnTextMessage
     public void onMessage(GameMessage message, WebSocketConnection connection) {
         String gameIdStr = connection.pathParam("gameId");

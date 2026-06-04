@@ -6,7 +6,9 @@ import fr.opensettlers.engine.state.utils.ResourceType;
 import java.util.Map;
 import java.util.UUID;
 
-/** Main building of a player; stores starting resources. */
+/**
+ * Main building of a player; stores starting resources.
+ */
 public class Headquarters extends StorageBuilding {
     /**
      * Constructor of the Headquarters class.

@@ -7,13 +7,19 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.UUID;
 
-/** Building that transforms input resources into output resources via a recipe. */
+/**
+ * Building that transforms input resources into output resources via a recipe.
+ */
 @Getter
 public class ProcessingBuilding extends ProductionBuilding {
-    /** Recipe defining the input/output resource conversion. */
+    /**
+     * Recipe defining the input/output resource conversion.
+     */
     private final Recipe recipe;
 
     /**
+     * Initializes a new ProcessingBuilding.
+     *
      * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
@@ -32,14 +38,20 @@ public class ProcessingBuilding extends ProductionBuilding {
         this.outputSlot = new ResourceSlot(recipe.getOutput());
     }
 
-    /** Processes input resources and produces the output according to the recipe. */
+    /**
+     * Processes input resources and produces the output according to the recipe.
+     */
     @Override
     public void produce() {
         this.recipe.consume(this.inputSlots);
         this.outputSlot.addResource();
     }
 
-    /** @return {@code true} if processing conditions are met. */
+    /**
+     * Checks if the building can produce.
+     *
+     * @return {@code true} if processing conditions are met.
+     */
     @Override
     public boolean canProduce() {
         return this.recipe.canProcess(this.inputSlots) && 

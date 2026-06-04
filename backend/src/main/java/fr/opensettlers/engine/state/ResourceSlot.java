@@ -3,16 +3,24 @@ package fr.opensettlers.engine.state;
 import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Data;
 
-/** A slot holding a specific resource type with a capped quantity. */
+/**
+ * A slot holding a specific resource type with a capped quantity.
+ */
 @Data
 public class ResourceSlot {
-    /** Resource type held by this slot. */
+    /**
+     * Resource type held by this slot.
+     */
     private final ResourceType type;
 
-    /** Current quantity stored. */
+    /**
+     * Current quantity stored.
+     */
     private int quantity;
 
-    /** Maximum quantity per slot. */
+    /**
+     * Maximum quantity per slot.
+     */
     private final int MAX_PER_SLOT = 5;
 
     /**

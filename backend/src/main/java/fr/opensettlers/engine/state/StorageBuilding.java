@@ -7,13 +7,17 @@ import lombok.Getter;
 import java.util.Map;
 import java.util.UUID;
 
-/** Building that stores resources by type and quantity. */
+/**
+ * Building that stores resources by type and quantity.
+ */
 @Getter
 public class StorageBuilding extends Building{
     /** Stored resources keyed by type. */
     private final Map<ResourceType, Integer> storedResources;
 
     /**
+     * Initializes a new StorageBuilding.
+     *
      * @param id              unique identifier
      * @param playerId        owning player ID
      * @param position        map coordinates

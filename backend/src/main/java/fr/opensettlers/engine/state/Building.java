@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /**
  * Abstract base class for all buildings, defined by a position and an owning player.
- * */
+ */
 @Data
 public abstract class Building {
     /** Unique identifier. */
@@ -43,7 +43,9 @@ public abstract class Building {
         this.attachedFlag.setBuilding(this);
     }
 
-    /** Resource costs for constructing each building type. */
+    /**
+     * Resource costs for constructing each building type.
+     */
     public static final Map<BuildingName, Map<ResourceType, Integer>> buildingCosts = Map.ofEntries(
             Map.entry(BuildingName.WOODCUTTER, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.FORESTER, Map.of(ResourceType.PLANK, 2)),
@@ -70,14 +72,17 @@ public abstract class Building {
             Map.entry(BuildingName.CASTLE, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 7))
     );
 
-    /** Destroys the building, rendering it inactive. */
+    /**
+     * Destroys the building, rendering it inactive.
+     */
     public void destroy() {
         this.destroyed = true;
     }
 
     /**
      * Checks if the building has been destroyed.
-     * @return boolean
+     *
+     * @return boolean indicating if the building is destroyed
      */
     public boolean isDestroyed() {
         return this.destroyed;

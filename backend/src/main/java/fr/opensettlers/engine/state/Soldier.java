@@ -7,19 +7,29 @@ import lombok.NonNull;
 
 import java.util.UUID;
 
-/** A military unit that can move, attack, and be killed. */
+/**
+ * A military unit that can move, attack, and be killed.
+ */
 @Data
 public class Soldier {
-    /** Unique identifier. */
+    /**
+     * Unique identifier.
+     */
     private final UUID id;
 
-    /** Owning player ID. */
+    /**
+     * Owning player ID.
+     */
     private final int playerId;
 
-    /** Current health points. */
+    /**
+     * Current health points.
+     */
     private int health = 3;
 
-    /** Current position on the map. */
+    /**
+     * Current position on the map.
+     */
     private @NonNull Coordinates position;
 
     /**
@@ -46,7 +56,8 @@ public class Soldier {
 
     /**
      * Checks if this unit is dead.
-     * @return boolean
+     *
+     * @return boolean indicating whether the soldier is dead
      */
     public boolean isDead() {
         return this.health <= 0;

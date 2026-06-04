@@ -14,13 +14,19 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(of = "id")
 public class Road {
-    /** Unique identifier. */
+    /**
+     * Unique identifier.
+     */
     private final UUID id;
 
-    /** The flag at one end of the road. */
+    /**
+     * The flag at one end of the road.
+     */
     private final Flag startFlag;
 
-    /** The flag at the other end of the road. */
+    /**
+     * The flag at the other end of the road.
+     */
     private final Flag endFlag;
 
     /**
@@ -29,7 +35,9 @@ public class Road {
      */
     private final List<Coordinates> path;
 
-    /** The carrier assigned to this road, or {@code null} if none yet. */
+    /**
+     * The carrier assigned to this road, or {@code null} if none yet.
+     */
     private Carrier carrier;
 
     /**

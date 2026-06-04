@@ -15,6 +15,7 @@ import org.jboss.logging.Logger;
 
 /**
  * Service managing active game states and processing player actions.
+ *
  */
 @ApplicationScoped
 public class GameEngineService {
@@ -26,6 +27,9 @@ public class GameEngineService {
 
     /**
      * Retrieves a game state.
+     *
+     * @param gameId the unique identifier of the game to retrieve
+     * @return the game state corresponding to the game ID, or null if not found
      */
     public GameState getGame(UUID gameId) {
         return activeGames.get(gameId);
@@ -33,6 +37,9 @@ public class GameEngineService {
 
     /**
      * Initializes and registers a new game.
+     *
+     * @param gameId the unique identifier of the new game
+     * @param state the initial state of the new game
      */
     public void createGame(UUID gameId, GameState state) {
         activeGames.put(gameId, state);
@@ -40,6 +47,9 @@ public class GameEngineService {
 
     /**
      * Processes an incoming WebSocket message and applies the action to the GameState.
+     *
+     * @param gameId the unique identifier of the game to process the message for
+     * @param message the incoming game message containing the player's action
      */
     public void processMessage(UUID gameId, GameMessage message) {
         GameState state = activeGames.get(gameId);

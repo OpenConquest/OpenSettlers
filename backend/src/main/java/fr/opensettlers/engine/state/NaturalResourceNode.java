@@ -3,20 +3,30 @@ package fr.opensettlers.engine.state;
 import fr.opensettlers.engine.state.utils.ResourceType;
 import lombok.Data;
 
-/** A harvestable natural resource node on the map (e.g. tree, stone deposit). */
+/**
+ * A harvestable natural resource node on the map (e.g. tree, stone deposit).
+ */
 @Data
 public class NaturalResourceNode {
 
-    /** Resource type provided by this node. */
+    /**
+     * Resource type provided by this node.
+     */
     private final ResourceType type;
 
-    /** Current harvestable quantity. */
+    /**
+     * Current harvestable quantity.
+     */
     private int quantity;
 
-    /** Maximum capacity (set to the initial quantity at creation). */
+    /**
+     * Maximum capacity (set to the initial quantity at creation).
+     */
     private final int maxCapacity;
 
     /**
+     * Initializes a new NaturalResourceNode.
+     *
      * @param type            resource type
      * @param initialQuantity initial (and max) quantity
      */
@@ -52,7 +62,11 @@ public class NaturalResourceNode {
         return false;
     }
 
-    /** @return {@code true} if no resources remain. */
+    /**
+     * Checks if the resource node is depleted.
+     *
+     * @return {@code true} if no resources remain.
+     */
     public boolean isDepleted() {
         return this.quantity <= 0;
     }

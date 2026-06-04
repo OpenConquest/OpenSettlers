@@ -6,13 +6,19 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
-/** Building that produces goods from input resources with a defined production time. */
+/**
+ * Building that produces goods from input resources with a defined production time.
+ */
 @Getter
 public abstract class ProductionBuilding extends Building implements IProducer {
-    /** Input resource slots. */
+    /**
+     * Input resource slots.
+     */
     protected List<ResourceSlot> inputSlots;
 
-    /** Output resource slot. */
+    /**
+     * Output resource slot.
+     */
     protected ResourceSlot outputSlot;
 
     /** 
@@ -22,6 +28,8 @@ public abstract class ProductionBuilding extends Building implements IProducer {
     protected List<UUID> outputDestinations = new java.util.ArrayList<>();
 
     /**
+     * Initializes a new ProductionBuilding.
+     *
      * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
@@ -30,14 +38,16 @@ public abstract class ProductionBuilding extends Building implements IProducer {
         super(id, playerId, position);
     }
 
-    /** Produces goods from available input resources. */
+    /**
+     * Produces goods from available input resources.
+     */
     @Override
     public abstract void produce();
 
     /**
      * Checks if the building can produce. Must be called before produce().
      *
-     * @return boolean
+     * @return boolean indicating if production is possible
      */
     @Override
     public abstract boolean canProduce();

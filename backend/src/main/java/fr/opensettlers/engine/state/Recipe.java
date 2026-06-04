@@ -5,10 +5,14 @@ import lombok.Value;
 
 import java.util.Map;
 
-/** Defines a resource conversion: required inputs and the produced output. */
+/**
+ * Defines a resource conversion: required inputs and the produced output.
+ */
 @Value
 public class Recipe {
-    /** All known recipes, keyed by output resource type mapping to required inputs and quantities. */
+    /**
+     * All known recipes, keyed by output resource type mapping to required inputs and quantities.
+     */
     public static final Map<ResourceType, Map<ResourceType, Integer>> RECIPES = Map.ofEntries(
             Map.entry(ResourceType.PLANK, Map.of(ResourceType.LOG, 1)),
             Map.entry(ResourceType.FLOUR, Map.of(ResourceType.WHEAT, 1)),
@@ -17,13 +21,19 @@ public class Recipe {
             Map.entry(ResourceType.STEEL, Map.of(ResourceType.IRON, 1, ResourceType.COAL, 1)),
             Map.entry(ResourceType.SWORD, Map.of(ResourceType.STEEL, 1, ResourceType.COAL, 1))
     );
-    /** Required input resources and their quantities. */
+    /**
+     * Required input resources and their quantities.
+     */
     Map<ResourceType, Integer> input;
 
-    /** Output resource type produced. */
+    /**
+     * Output resource type produced.
+     */
     ResourceType output;
 
     /** 
+     * Checks if the recipe can be processed with the available slots.
+     *
      * @param availableSlots the slots to check
      * @return {@code true} if all required inputs are available. 
      */
@@ -47,6 +57,7 @@ public class Recipe {
 
     /** 
      * Consumes the required input resources from the provided slots.
+     *
      * @param availableSlots the slots to consume from 
      */
     public void consume(java.util.List<ResourceSlot> availableSlots) {

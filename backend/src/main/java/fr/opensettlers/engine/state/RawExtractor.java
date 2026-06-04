@@ -7,14 +7,20 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.UUID;
 
-/** Building that extracts raw resources from a map resource node. */
+/**
+ * Building that extracts raw resources from a map resource node.
+ */
 @Getter
 public class RawExtractor extends ProductionBuilding {
 
-    /** The type of resource this building extracts. Null for buildings like Forester that do not produce inventory. */
+    /**
+     * The type of resource this building extracts. Null for buildings like Forester that do not produce inventory.
+     */
     private final ResourceType extractedResource;
 
     /**
+     * Initializes a new RawExtractor.
+     *
      * @param id       unique identifier
      * @param playerId owning player ID
      * @param position map coordinates
@@ -29,7 +35,9 @@ public class RawExtractor extends ProductionBuilding {
         }
     }
 
-    /** Extracts resources from the underlying resource node. */
+    /**
+     * Extracts resources from the underlying resource node.
+     */
     @Override
     public void produce() {
         if (this.outputSlot != null) {
@@ -37,7 +45,11 @@ public class RawExtractor extends ProductionBuilding {
         }
     }
 
-    /** @return {@code true} if extraction conditions are met. */
+    /**
+     * Checks if extraction conditions are met.
+     *
+     * @return {@code true} if extraction conditions are met.
+     */
     @Override
     public boolean canProduce() {
         // Forester (no output slot) can always "extract" (plant) if map allows
