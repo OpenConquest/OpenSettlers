@@ -67,4 +67,17 @@ public class Coordinates {
             case NORTHWEST -> new Coordinates(this.x - 1, this.y - 1);
         };
     }
+
+    /**
+     * Calculates the hex grid distance (number of steps) between this and another coordinate.
+     * Uses the double height hex distance formula.
+     *
+     * @param other the other coordinates
+     * @return the distance in hex steps
+     */
+    public int distanceTo(Coordinates other) {
+        double dx = Math.abs(this.x - other.x);
+        double dy = Math.abs(this.y - other.y);
+        return (int) (dx + Math.max(0, (dy - dx) / 2));
+    }
 }

@@ -17,26 +17,24 @@ import java.util.Set;
 
 public class MapGenerator {
 
-    public MapTile[][] generateContinentalGrid(int gridSize) {
-        MapTile[][] gridMap = new MapTile[gridSize][gridSize];
+    public MapTile[][] generateContinentalGrid(int gridSizeX, int gridSizeY) {
+        MapTile[][] gridMap = new MapTile[gridSizeX][gridSizeY];
         Random rand = new Random();
         
         PerlinNoise elevationNoise = new PerlinNoise(rand.nextLong());
         PerlinNoise moistureNoise = new PerlinNoise(rand.nextLong());
 
-        for (int x = 0; x < gridSize; x++) {
-            for (int y = 0; y < gridSize; y++) {
+        for (int x = 0; x < gridSizeX; x++) {
+            for (int y = 0; y < gridSizeY; y++) {
                 // Lower frequencies for larger, smoother landmasses like Settlers
                 double ex = x * 0.05;
                 double ey = y * 0.05;
                 double eNoise = (elevationNoise.noise(ex, ey) + 0.5 * elevationNoise.noise(ex * 2, ey * 2)) / 1.5;
                 
                 // Radial mask to make it an island (surrounded by water)
-                double cx = gridSize / 2.0;
-                double cy = gridSize / 2.0;
-                double distanceToCenter = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
-                double maxDistance = gridSize / 2.0;
-                double distanceNormalized = distanceToCenter / maxDistance; // 0 at center, ~1.4 at corners
+                double cx = gridSizeX / 2.0;
+                double cy = gridSizeY / 2.0;
+                double distanceNormalized = Math.sqrt(Math.pow((x - cx) / cx, 2) + Math.pow((y - cy) / cy, 2));
                 
                 // Use an even higher power (6.0) so the island extends almost to the edges,
                 // significantly reducing the surrounding ocean.
@@ -114,20 +112,20 @@ public class MapGenerator {
             }
         }
 
-        fuseCloseLakes(gridMap, gridSize, rand);
+        fuseCloseLakes(gridMap, gridSizeX, gridSizeY, rand);
 
-        removeSmallLakes(gridMap, gridSize);
+        removeSmallLakes(gridMap, gridSizeX, gridSizeY);
 
         return gridMap;
     }
 
-    private void fuseCloseLakes(MapTile[][] gridMap, int gridSize, Random rand) {
-        int[][] labels = new int[gridSize][gridSize];
+    private void fuseCloseLakes(MapTile[][] gridMap, int gridSizeX, int gridSizeY, Random rand) {
+        int[][] labels = new int[gridSizeX][gridSizeY];
         int currentLabel = 1;
 
         // 1. Group individual water clusters using a Hexagonal BFS Flood Fill
-        for (int x = 0; x < gridSize; x++) {
-            for (int y = 0; y < gridSize; y++) {
+        for (int x = 0; x < gridSizeX; x++) {
+            for (int y = 0; y < gridSizeY; y++) {
                 if (gridMap[x][y].getType() == TileType.WATER && labels[x][y] == 0) {
                     Queue<int[]> queue = new LinkedList<>();
                     queue.add(new int[]{x, y});
@@ -135,7 +133,7 @@ public class MapGenerator {
 
                     while (!queue.isEmpty()) {
                         int[] curr = queue.poll();
-                        for (int[] neighbor : getHexNeighbors(curr[0], curr[1], gridSize)) {
+                        for (int[] neighbor : getHexNeighbors(curr[0], curr[1], gridSizeX, gridSizeY)) {
                             int nx = neighbor[0];
                             int ny = neighbor[1];
                             if (gridMap[nx][ny].getType() == TileType.WATER && labels[nx][ny] == 0) {
@@ -151,8 +149,8 @@ public class MapGenerator {
 
         // 2. Identify land tiles that form a bridge up to 3 tiles wide
         List<int[]> tilesToVaporize = new ArrayList<>();
-        for (int x = 0; x < gridSize; x++) {
-            for (int y = 0; y < gridSize; y++) {
+        for (int x = 0; x < gridSizeX; x++) {
+            for (int y = 0; y < gridSizeY; y++) {
                 if (gridMap[x][y].getType() != TileType.WATER) {
                     
                     // Track the absolute shortest distance to any unique lake ID found
@@ -178,7 +176,7 @@ public class MapGenerator {
                         
                         // Look ahead up to a maximum radius of 3 tiles
                         if (dist < 3) {
-                            for (int[] neighbor : getHexNeighbors(cx, cy, gridSize)) {
+                            for (int[] neighbor : getHexNeighbors(cx, cy, gridSizeX, gridSizeY)) {
                                 int nx = neighbor[0];
                                 int ny = neighbor[1];
                                 String key = nx + "," + ny;
@@ -227,11 +225,11 @@ public class MapGenerator {
         }
     }
 
-    private void removeSmallLakes(MapTile[][] gridMap, int gridSize) {
-        boolean[][] visited = new boolean[gridSize][gridSize];
+    private void removeSmallLakes(MapTile[][] gridMap, int gridSizeX, int gridSizeY) {
+        boolean[][] visited = new boolean[gridSizeX][gridSizeY];
 
-        for (int x = 0; x < gridSize; x++) {
-            for (int y = 0; y < gridSize; y++) {
+        for (int x = 0; x < gridSizeX; x++) {
+            for (int y = 0; y < gridSizeY; y++) {
                 if (gridMap[x][y].getType() == TileType.WATER && !visited[x][y]) {
                     List<int[]> lakeTiles = new ArrayList<>();
                     Queue<int[]> queue = new LinkedList<>();
@@ -243,7 +241,7 @@ public class MapGenerator {
                         int[] curr = queue.poll();
                         lakeTiles.add(curr);
 
-                        for (int[] neighbor : getHexNeighbors(curr[0], curr[1], gridSize)) {
+                        for (int[] neighbor : getHexNeighbors(curr[0], curr[1], gridSizeX, gridSizeY)) {
                             int nx = neighbor[0];
                             int ny = neighbor[1];
                             if (gridMap[nx][ny].getType() == TileType.WATER && !visited[nx][ny]) {
@@ -266,7 +264,7 @@ public class MapGenerator {
         }
     }
 
-    private List<int[]> getHexNeighbors(int x, int y, int gridSize) {
+    private List<int[]> getHexNeighbors(int x, int y, int gridSizeX, int gridSizeY) {
         List<int[]> neighbors = new ArrayList<>();
         
         // Convert to double-height coordinates
@@ -282,7 +280,7 @@ public class MapGenerator {
             int nx = (int) neighborCoord.getX();
             int ny = (int) (neighborCoord.getY() - (nx % 2)) / 2;
 
-            if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+            if (nx >= 0 && nx < gridSizeX && ny >= 0 && ny < gridSizeY) {
                 neighbors.add(new int[]{nx, ny});
             }
         }

@@ -12,21 +12,22 @@ import javax.imageio.ImageIO;
 public class MapVisualizer {
     
     public static void saveHexagonalMap(MapTile[][] gridMap, String filePath) throws Exception {
-        int gridSize = gridMap.length;
+        int gridSizeX = gridMap.length;
+        int gridSizeY = gridMap[0].length;
         int w = 16; 
         int h = 16; 
         
-        int imgWidth = (gridSize - 1) * w;
-        int imgHeight = (int) ((gridSize - 1) * h * 0.75);
+        int imgWidth = (int) ((gridSizeX - 1) * w * 0.75) + w;
+        int imgHeight = (gridSizeY - 1) * h + h + (h / 2);
 
         BufferedImage img = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
 
-        int offsetX = -(w / 2);
-        int offsetY = -(h / 4);
+        int offsetX = 0;
+        int offsetY = 0;
 
-        for (int x = 0; x < gridSize; x++) {
-            for (int y = 0; y < gridSize; y++) {
+        for (int x = 0; x < gridSizeX; x++) {
+            for (int y = 0; y < gridSizeY; y++) {
                 MapTile tile = gridMap[x][y];
                 
                 switch (tile.getType()) {
@@ -39,21 +40,22 @@ public class MapVisualizer {
                     case STONE -> g.setColor(new Color(150, 150, 150));  // Surface boulders
                 }
 
-                // Apply the offsets to the starting coordinates
-                int xL = (x * w) + offsetX;
-                int yT = (int) (y * h * 0.75) + offsetY;
+                // Apply the offsets for odd-q flat-top layout
+                int xL = (int) (x * w * 0.75) + offsetX;
+                int yT = (y * h) + offsetY;
                 
-                if (y % 2 != 0) {
-                    xL += w / 2;
+                if (x % 2 != 0) {
+                    yT += h / 2;
                 }
 
-                int[] px = { xL + 8, xL + 16, xL + 16, xL + 8, xL, xL };
-                int[] py = { yT, yT + 4, yT + 12, yT + 16, yT + 12, yT + 4 };
+                int[] px = { xL + 4, xL + 12, xL + 16, xL + 12, xL + 4, xL };
+                int[] py = { yT, yT, yT + 8, yT + 16, yT + 16, yT + 8 };
 
                 g.fillPolygon(px, py, 6);
 
                 int cX = xL + 8; 
                 int cY = yT + 8; 
+
 
                 ResourceType res = tile.getNaturalResource() != null ? tile.getNaturalResource().getType() : null;
 

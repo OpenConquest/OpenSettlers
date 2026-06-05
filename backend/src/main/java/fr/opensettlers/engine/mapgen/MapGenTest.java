@@ -5,11 +5,12 @@ import fr.opensettlers.engine.state.MapTile;
 public class MapGenTest {
     public static void main(String[] args) {
         try {
-            int gridSize = 104; 
+            int gridSizeX = 284;
+            int gridSizeY = 160;
 
             System.out.println("1. Compiling raw tactical resource grid...");
             MapGenerator generator = new MapGenerator();
-            MapTile[][] gridMap = generator.generateContinentalGrid(gridSize);
+            MapTile[][] gridMap = generator.generateContinentalGrid(gridSizeX, gridSizeY);
 
             System.out.println("2. Displaying ASCII overview (w=wheat, o=ore):\n");
             System.out.println(MapVisualizer.toAsciiString(gridMap));
