@@ -23,5 +23,8 @@ public enum TileType {
     DESERT,
 
     /** Hilly terrain, uneven. */
-    HILLS
+    HILLS,
+
+    /** Agricultural field, planted by a farmer. */
+    FIELD
 }

@@ -1,10 +1,12 @@
 package fr.opensettlers.services;
 
+import fr.opensettlers.engine.GameConfig;
 import fr.opensettlers.engine.GameState;
 import fr.opensettlers.engine.state.Building;
 import fr.opensettlers.engine.state.ConstructionSite;
 import fr.opensettlers.engine.state.Flag;
 import fr.opensettlers.engine.state.MilitaryBuilding;
+import fr.opensettlers.engine.state.utils.BuildingName;
 import fr.opensettlers.network.GameMessage;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -60,6 +62,15 @@ public class GameEngineService {
 
         switch (message.getType()) {
             case BUILD_BUILDING -> {
+                // Validate special placement constraints
+                if (message.getBuildingName() == BuildingName.FISHING_HUT) {
+                    if (!state.hasWaterInRange(message.getPosition(), GameConfig.FISHERMAN_MAX_DISTANCE)) {
+                        LOG.warnf("Cannot place Fishing Hut at %s: no water within %d tiles",
+                                message.getPosition(), fr.opensettlers.engine.GameConfig.FISHERMAN_MAX_DISTANCE);
+                        return;
+                    }
+                }
+
                 // Create a Construction Site instead of building directly
                 ConstructionSite site = new ConstructionSite(
                         message.getPlayerId(),

@@ -23,13 +23,13 @@ public class BuildingFactory {
             case WAREHOUSE -> new StorageBuilding(playerId, position, new HashMap<>());
 
             // --- RAW EXTRACTORS ---
-            case WOODCUTTER -> new RawExtractor(playerId, position, ResourceType.LOG);
-            case FORESTER -> new RawExtractor(playerId, position, null); // No output inventory
-            case QUARRY -> new RawExtractor(playerId, position, ResourceType.STONE);
-            case MINE -> new RawExtractor(playerId, position, ResourceType.IRON); // TODO: Determine ore dynamically based on map tile
-            case FISHING_HUT -> new RawExtractor(playerId, position, ResourceType.FISH);
-            case FARM -> new RawExtractor(playerId, position, ResourceType.WHEAT);
-            case WATER_WELL -> new RawExtractor(playerId, position, ResourceType.WATER);
+            case WOODCUTTER -> new RawExtractor(playerId, position, ResourceType.LOG, BuildingName.WOODCUTTER);
+            case FORESTER -> new RawExtractor(playerId, position, null, BuildingName.FORESTER);
+            case QUARRY -> new RawExtractor(playerId, position, ResourceType.STONE, BuildingName.QUARRY);
+            case MINE -> new RawExtractor(playerId, position, ResourceType.IRON, BuildingName.MINE);
+            case FISHING_HUT -> new RawExtractor(playerId, position, ResourceType.FISH, BuildingName.FISHING_HUT);
+            case FARM -> new RawExtractor(playerId, position, ResourceType.WHEAT, BuildingName.FARM);
+            case WATER_WELL -> new RawExtractor(playerId, position, ResourceType.WATER, BuildingName.WATER_WELL);
             
             // --- PROCESSING BUILDINGS ---
             case SAWMILL -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.PLANK));

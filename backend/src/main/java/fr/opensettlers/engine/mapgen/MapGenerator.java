@@ -104,7 +104,9 @@ public class MapGenerator {
                     }
                 }
 
-                MapTile tile = new MapTile(new Coordinates(x, y), type, discreteElevation);
+                double coordX = x;
+                double coordY = 2 * y + (x % 2);
+                MapTile tile = new MapTile(new Coordinates(coordX, coordY), type, discreteElevation);
                 if (resource != null) {
                     tile.setNaturalResource(new NaturalResourceNode(resource, 5)); // Dummy node with 5 quantity
                 }
@@ -215,7 +217,9 @@ public class MapGenerator {
             int x = coord[0];
             int y = coord[1];
             ResourceType res = (rand.nextDouble() < 0.08) ? ResourceType.FISH : null;
-            MapTile tile = new MapTile(new Coordinates(x, y), TileType.WATER, 0);
+            double cx = x;
+            double cy = 2 * y + (x % 2);
+            MapTile tile = new MapTile(new Coordinates(cx, cy), TileType.WATER, 0);
             if (res != null) {
                 tile.setNaturalResource(new NaturalResourceNode(res, 5));
             }
@@ -264,17 +268,20 @@ public class MapGenerator {
 
     private List<int[]> getHexNeighbors(int x, int y, int gridSize) {
         List<int[]> neighbors = new ArrayList<>();
-        int[][] offsets;
         
-        if (y % 2 == 0) {
-            offsets = new int[][]{{-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {-1, 1}, {0, 1}};
-        } else {
-            offsets = new int[][]{{-1, 0}, {1, 0}, {0, -1}, {1, -1}, {0, 1}, {1, 1}};
-        }
+        // Convert to double-height coordinates
+        double cx = x;
+        double cy = 2 * y + (x % 2);
+        Coordinates current = new Coordinates(cx, cy);
 
-        for (int[] offset : offsets) {
-            int nx = x + offset[0];
-            int ny = y + offset[1];
+        // Use the unit vectors defined in Direction
+        for (fr.opensettlers.engine.state.utils.Direction dir : fr.opensettlers.engine.state.utils.Direction.values()) {
+            Coordinates neighborCoord = current.neighbor(dir);
+            
+            // Reverse mapping back to array indices
+            int nx = (int) neighborCoord.getX();
+            int ny = (int) (neighborCoord.getY() - (nx % 2)) / 2;
+
             if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
                 neighbors.add(new int[]{nx, ny});
             }

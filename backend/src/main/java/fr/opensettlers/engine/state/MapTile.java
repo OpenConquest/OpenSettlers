@@ -103,6 +103,21 @@ public class MapTile {
     }
 
     /**
+     * Converts a grass tile into a wheat field.
+     *
+     * @param wheatNode the wheat resource node
+     * @return {@code true} if the field was planted
+     */
+    public boolean plantField(NaturalResourceNode wheatNode) {
+        if (this.type == TileType.GRASS && this.naturalResource == null) {
+            this.type = TileType.FIELD;
+            this.naturalResource = wheatNode;
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Checks if the tile supports building construction.
      *
      * @return {@code true} if the tile supports building construction (grass or field)
