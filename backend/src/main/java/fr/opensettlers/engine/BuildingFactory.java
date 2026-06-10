@@ -39,9 +39,19 @@ public class BuildingFactory {
             case ARMORY -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.SWORD));
             case BREWERY -> new ProcessingBuilding(playerId, position, getRecipe(ResourceType.BEER));
             
-            // Storage & Others
-            case GUARD_HOUSE, WATCH_TOWER, CASTLE, BARRACKS ->
-                throw new UnsupportedOperationException("Factory for " + type + " not fully implemented yet.");
+            // --- MILITARY BUILDINGS ---
+            case BARRACKS -> new MilitaryBuilding(playerId, position, BuildingName.BARRACKS,
+                    GameConfig.militaryCapacity(BuildingName.BARRACKS),
+                    GameConfig.militaryRadius(BuildingName.BARRACKS));
+            case GUARD_HOUSE -> new MilitaryBuilding(playerId, position, BuildingName.GUARD_HOUSE,
+                    GameConfig.militaryCapacity(BuildingName.GUARD_HOUSE),
+                    GameConfig.militaryRadius(BuildingName.GUARD_HOUSE));
+            case WATCH_TOWER -> new MilitaryBuilding(playerId, position, BuildingName.WATCH_TOWER,
+                    GameConfig.militaryCapacity(BuildingName.WATCH_TOWER),
+                    GameConfig.militaryRadius(BuildingName.WATCH_TOWER));
+            case CASTLE -> new MilitaryBuilding(playerId, position, BuildingName.CASTLE,
+                    GameConfig.militaryCapacity(BuildingName.CASTLE),
+                    GameConfig.militaryRadius(BuildingName.CASTLE));
         };
     }
 

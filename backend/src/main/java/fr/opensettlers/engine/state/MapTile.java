@@ -32,6 +32,12 @@ public class MapTile {
     private NaturalResourceNode naturalResource;
 
     /**
+     * Player ID controlling this tile (-1 if unclaimed).
+     * Updated by {@link fr.opensettlers.engine.TerritoryManager}.
+     */
+    private int territoryOwner = -1;
+
+    /**
      * Max allowed elevation difference for road connections.
      */
     public static final int MAX_ROAD_ELEVATION_DELTA = 2;
