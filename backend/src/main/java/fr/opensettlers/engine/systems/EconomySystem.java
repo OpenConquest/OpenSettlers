@@ -74,7 +74,11 @@ public class EconomySystem implements ISystem {
                         break;
                     }
 
-                    routeResource(gameState, bestSupply, demand.flag, type);
+                    if (!routeResource(gameState, bestSupply, demand.flag, type)) {
+                        // Supply is blocked this tick (e.g. its flag is full); skip it
+                        supplies.remove(bestSupply);
+                        continue;
+                    }
 
                     demand.quantity--;
                     bestSupply.quantity--;
@@ -234,17 +238,25 @@ public class EconomySystem implements ISystem {
      * @param supply     the selected supply source
      * @param demandFlag the target destination flag
      * @param type       the type of resource to route
+     * @return {@code true} if the resource was routed, {@code false} if the supply is blocked
      */
-    private void routeResource(GameState state, Supply supply, Flag demandFlag, ResourceType type) {
+    private boolean routeResource(GameState state, Supply supply, Flag demandFlag, ResourceType type) {
         if (supply.source == SupplySource.PRODUCTION) {
-            state.getTransportManager().requestTransportFromBuilding((ProductionBuilding) supply.provider, demandFlag);
+            return state.getTransportManager().requestTransportFromBuilding((ProductionBuilding) supply.provider, demandFlag);
         } else if (supply.source == SupplySource.FLAG) {
-            state.getTransportManager().requestTransport(supply.flag, type, demandFlag);
+            return state.getTransportManager().requestTransport(supply.flag, type, demandFlag);
         } else if (supply.source == SupplySource.WAREHOUSE) {
             StorageBuilding sb = (StorageBuilding) supply.provider;
+            Flag whFlag = sb.getAttachedFlag();
+            if (whFlag == null || whFlag.isFull()
+                    || sb.getStoredResources().getOrDefault(type, 0) < 1) {
+                return false;
+            }
             sb.retrieveResource(type);
-            sb.getAttachedFlag().addResource(type, demandFlag.getId());
+            whFlag.addResource(type, demandFlag.getId());
+            return true;
         }
+        return false;
     }
 
     /**

@@ -21,7 +21,8 @@ public class ConstructionSystem implements ISystem {
      */
     @Override
     public void process(GameState gameState) {
-        List<Building> buildings = gameState.getBuildings();
+        // Copy: completeConstruction swaps entries in the live building list
+        List<Building> buildings = new java.util.ArrayList<>(gameState.getBuildings());
         for (Building b : buildings) {
             if (b instanceof ConstructionSite site) {
                 processSite(gameState, site);
@@ -175,7 +176,8 @@ public class ConstructionSystem implements ISystem {
         Building newBuilding = BuildingFactory.createBuilding(
                 site.getTargetBuildingType(),
                 site.getPlayerId(),
-                site.getPosition()
+                site.getPosition(),
+                state.getMap()
         );
 
         newBuilding.setAttachedFlag(site.getAttachedFlag());

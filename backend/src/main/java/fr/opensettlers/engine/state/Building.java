@@ -16,14 +16,18 @@ public abstract class Building {
     /** Unique identifier. */
     private final UUID id;
 
-    /** Owning player ID. */
-    private final int playerId;
+    /** Owning player ID. Mutable to support capture by another player. */
+    private int playerId;
 
     /** Position on the game map. */
     private final Coordinates position;
 
     /** Boolean defining if the building is destroyed. False means it is active. */
     private boolean destroyed = false;
+
+    /** The building type name, set at creation by the factory. */
+    @Setter
+    private BuildingName name;
 
     /** Flag attached to this building, or {@code null}. */
     @Setter

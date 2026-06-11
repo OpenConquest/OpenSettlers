@@ -2,6 +2,7 @@ package fr.opensettlers.engine;
 
 import fr.opensettlers.engine.state.Building;
 import fr.opensettlers.engine.state.Flag;
+import fr.opensettlers.engine.state.GameMap;
 import fr.opensettlers.engine.state.Soldier;
 import fr.opensettlers.engine.state.Worker;
 import fr.opensettlers.engine.state.utils.BuildingName;
@@ -23,6 +24,9 @@ public class GameState {
 
     /** Unique identifiers of the players in the game. Should not contain duplicates. */
     private final List<UUID> playerIds;
+
+    /** The game map (terrain, natural resources, territory ownership). */
+    private GameMap map;
 
     /** The road network managing flags, roads, and pathfinding. */
     private final RoadNetwork roadNetwork = new RoadNetwork();
@@ -72,7 +76,12 @@ public class GameState {
             }
         }
 
-        // Flags
+        // Flags (also unregister destroyed ones from the road network graph)
+        for (Flag flag : flags) {
+            if (flag.isDestroyed()) {
+                roadNetwork.removeFlag(flag.getId());
+            }
+        }
         flags.removeIf(Flag::isDestroyed);
 
         // Buildings

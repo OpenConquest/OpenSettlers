@@ -50,11 +50,11 @@ public class RawExtractor extends ProductionBuilding {
      */
     @Override
     public boolean canProduce() {
-        // Forester (no output slot) can always "extract" (plant) if map allows
+        // Map resource availability (trees, deposits, fish, plantable grass)
+        // is checked by the ProductionSystem, which has access to the GameMap.
         if (this.outputSlot == null) {
-            return true; // TODO: check map if there's space to plant a tree
+            return true; // Forester has no output inventory
         }
         return this.outputSlot.getQuantity() < this.outputSlot.getMAX_PER_SLOT();
-        // TODO: check map for resource node availability (e.g., fish in water, tree nearby)
     }
 }

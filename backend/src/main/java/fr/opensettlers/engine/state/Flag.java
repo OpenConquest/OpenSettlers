@@ -30,8 +30,8 @@ public class Flag {
     /** Unique identifier. */
     private final UUID id;
 
-    /** Owning player ID. */
-    private final int playerId;
+    /** Owning player ID. Mutable to support capture by another player. */
+    private int playerId;
 
     /** Position on the game map. */
     private final Coordinates coordinates;

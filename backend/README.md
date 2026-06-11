@@ -1,5 +1,30 @@
 # opensettlers
 
+Backend of OpenSettlers, a clone of The Settlers II (10th Anniversary): map
+generation, economy (roads, carriers, supply/demand), construction, production
+chains tied to map resources, and military (recruitment, attack, capture).
+
+## Game API
+
+REST (lobby):
+
+- `POST /games` with `{"playerCount": 2}` → creates a game (map generated, one
+  headquarters per player, game loop started) and returns `gameId`.
+- `GET /games` → lists active game IDs.
+- `DELETE /games/{gameId}` → stops a game.
+
+WebSocket (real time): `ws://localhost:8080/game/{gameId}`
+
+- On connect the server sends a `MAP` message (terrain, elevation, natural
+  resources), then a `STATE` message every tick (buildings, flags, roads,
+  carriers, workers, soldiers, territory owners).
+- Client actions are JSON messages with a `type` of `BUILD_BUILDING`,
+  `DESTROY_BUILDING`, `PLACE_FLAG`, `LINK_FLAGS` or `ATTACK_BUILDING`
+  (see `fr.opensettlers.network.GameMessage`).
+
+Engine tuning lives in `application.properties` (`opensettlers.*`: tick rate,
+map size, production time, soldier speed, attack radius).
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.

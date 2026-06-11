@@ -2,6 +2,7 @@ package fr.opensettlers.engine.state;
 
 import fr.opensettlers.engine.state.utils.Coordinates;
 import fr.opensettlers.engine.state.utils.Direction;
+import fr.opensettlers.engine.state.utils.SoldierState;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -33,6 +34,16 @@ public class Soldier {
     private @NonNull Coordinates position;
 
     /**
+     * Current state in the soldier's life cycle.
+     */
+    private SoldierState state = SoldierState.WALKING_TO_GARRISON;
+
+    /**
+     * ID of the building the soldier is heading to (friendly garrison or enemy target).
+     */
+    private UUID targetBuildingId;
+
+    /**
      * Attacks the target (50% hit chance, 1 damage) if on the same tile.
      *
      * @param target the enemy soldier
@@ -52,6 +63,27 @@ public class Soldier {
      */
     public void move(Direction direction) {
         this.position.move(direction);
+    }
+
+    /**
+     * Moves one grid step toward the target position (offset grid, diagonal allowed).
+     *
+     * @param target the destination coordinates
+     */
+    public void stepToward(Coordinates target) {
+        double dx = Math.signum(target.getX() - this.position.getX());
+        double dy = Math.signum(target.getY() - this.position.getY());
+        this.position.move(dx, dy);
+    }
+
+    /**
+     * Checks whether the soldier stands on the given position.
+     *
+     * @param target the position to compare
+     * @return {@code true} if positions match
+     */
+    public boolean isAt(Coordinates target) {
+        return this.position.getX() == target.getX() && this.position.getY() == target.getY();
     }
 
     /**

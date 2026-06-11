@@ -102,6 +102,10 @@ public class MapGenerator {
                     } else {
                         resource = ResourceType.STONE;
                     }
+                } else if (type == TileType.FOREST) {
+                    resource = ResourceType.LOG; // Harvestable trees; tile turns to grass once depleted
+                } else if (type == TileType.STONE) {
+                    resource = ResourceType.STONE; // Surface rock for quarries
                 }
 
                 MapTile tile = new MapTile(new Coordinates(x, y), type, discreteElevation);

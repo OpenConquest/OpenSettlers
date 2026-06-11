@@ -61,6 +61,7 @@ public class ConstructionSite extends Building {
     public ConstructionSite(int playerId, Coordinates position, BuildingName targetBuildingType) {
         super(playerId, position);
         this.targetBuildingType = targetBuildingType;
+        this.setName(targetBuildingType);
         this.requiredMaterials = new HashMap<>(Building.buildingCosts.getOrDefault(targetBuildingType, Map.of()));
         for (ResourceType rt : requiredMaterials.keySet()) {
             deliveredMaterials.put(rt, 0);

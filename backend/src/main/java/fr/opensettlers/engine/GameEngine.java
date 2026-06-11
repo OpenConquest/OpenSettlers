@@ -1,7 +1,8 @@
 package fr.opensettlers.engine;
 
+import fr.opensettlers.engine.commands.GameCommand;
 import fr.opensettlers.engine.systems.*;
-import fr.opensettlers.network.GameWebSocket;
+import fr.opensettlers.network.GameStateSerializer;
 import io.quarkus.websockets.next.WebSocketConnection;
 import lombok.Data;
 import org.jboss.logging.Logger;
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Data
 public class GameEngine implements Runnable {
     /**  The logger. */
-    private static final Logger LOG = Logger.getLogger(GameWebSocket.class);
+    private static final Logger LOG = Logger.getLogger(GameEngine.class);
 
     /** The current game session. */
     private final GameSession session;
@@ -30,6 +31,9 @@ public class GameEngine implements Runnable {
 
     /** System managing combat mechanisms. */
     private final CombatSystem combatSystem = new CombatSystem();
+
+    /** System managing garrison recruitment and territory expansion. */
+    private final MilitarySystem militarySystem = new MilitarySystem();
 
     /** System managing soldier movement mechanisms. */
     private final MovementSystem movementSystem = new MovementSystem();
@@ -71,7 +75,7 @@ public class GameEngine implements Runnable {
         try {
             tick();
         } catch (Exception e) {
-            LOG.error(e.getMessage());
+            LOG.error("Game tick failed", e);
         }
     }
 
@@ -79,8 +83,19 @@ public class GameEngine implements Runnable {
     private void tick() {
         GameState state = session.getState();
 
+        // Apply queued player commands on the loop thread before simulating
+        GameCommand command;
+        while ((command = session.getCommandQueue().poll()) != null) {
+            try {
+                command.execute(state);
+            } catch (Exception e) {
+                LOG.error("Failed to apply player command", e);
+            }
+        }
+
         state.tick();
 
+        militarySystem.process(state);
         combatSystem.process(state);
         movementSystem.process(state);
         workerSystem.process(state);
@@ -94,16 +109,12 @@ public class GameEngine implements Runnable {
 
     /** Sends the game state information to all connected clients. */
     private void broadcastState() {
-        String stateJson = serializeState(session.getState());
+        if (session.getConnections().isEmpty()) return;
+        String stateJson = GameStateSerializer.serializeState(session.getState());
         for (WebSocketConnection conn : session.getConnections()) {
             if (conn.isOpen()) {
                 conn.sendTextAndAwait(stateJson);
             }
         }
-    }
-    
-    private String serializeState(GameState state) {
-        return "{\"tick\":" + state.getCurrentTick() + "}";
-        // TODO add all information relevasnt to the clients
     }
 }
