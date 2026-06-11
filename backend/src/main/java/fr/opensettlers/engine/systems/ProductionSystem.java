@@ -5,7 +5,6 @@ import fr.opensettlers.engine.GameState;
 import fr.opensettlers.engine.state.*;
 import fr.opensettlers.engine.state.utils.BuildingName;
 import fr.opensettlers.engine.state.utils.ResourceType;
-import fr.opensettlers.engine.state.utils.TileType;
 import fr.opensettlers.engine.state.utils.WorkerState;
 
 import java.util.ArrayList;
@@ -13,12 +12,15 @@ import java.util.List;
 
 /**
  * System managing resource transformation and worker productivity in production buildings.
+ * Handles both ProcessingBuildings (transform inputs → outputs) and RawExtractors
+ * (extract resources from the map using specialized worker behaviors).
  */
 public class ProductionSystem implements ISystem {
+
     /**
      * Processes production cycles for all active buildings.
-     * Manages input resource collection, worker state changes (WORKING / WAITING),
-     * productivity value calculation, and production tick cooldowns.
+     * For RawExtractors, runs specialized worker behavior (resource finding, planting, etc.)
+     * before the generic cooldown/production logic.
      *
      * @param gameState the active game session state
      */
@@ -56,16 +58,22 @@ public class ProductionSystem implements ISystem {
                 }
             }
 
-            // Check production conditions (slots and, for extractors, map resources)
-            if (canProduce(gameState, pb)) {
+            // Run specialized RawExtractor behavior BEFORE generic production
+            if (pb instanceof RawExtractor extractor) {
+                processRawExtractor(extractor, gameState, occupant);
+                // Forester is fully handled inside processRawExtractor — skip generic logic
+                if (extractor.getBuildingName() == BuildingName.FORESTER) {
+                    continue;
+                }
+            }
+
+            // Generic production cooldown logic
+            if (pb.canProduce()) {
                 occupant.setState(WorkerState.WORKING);
                 pb.setWaitingTicks(0);
 
                 int cooldown = pb.getProductionCooldown();
                 if (cooldown <= 0) {
-                    if (pb instanceof RawExtractor ext) {
-                        consumeMapResource(gameState, ext);
-                    }
                     pb.produce();
                     pb.setProductivity(Math.min(100, pb.getProductivity() + 10));
                     pb.setProductionCooldown(GameConfig.PRODUCTION_TIME);
@@ -86,105 +94,212 @@ public class ProductionSystem implements ISystem {
     }
 
     /**
-     * Checks slot conditions and, for raw extractors, the availability of the
-     * natural resource on the map around the building.
+     * Dispatches to the correct worker behavior handler based on the building type.
+     * Called before the generic production cooldown logic each tick.
      *
-     * @param state the current game state
-     * @param pb    the production building to check
-     * @return {@code true} if the building can produce this cycle
+     * @param extractor the RawExtractor building to process
+     * @param state     the active game state
+     * @param occupant  the worker occupying this building
      */
-    private boolean canProduce(GameState state, ProductionBuilding pb) {
-        if (!pb.canProduce()) {
-            return false;
+    private void processRawExtractor(RawExtractor extractor, GameState state, Worker occupant) {
+        switch (extractor.getBuildingName()) {
+            case WOODCUTTER   -> handleWoodcutter(extractor, state);
+            case FORESTER     -> handleForester(extractor, state, occupant);
+            case QUARRY       -> handleQuarry(extractor, state);
+            case FARM         -> handleFarmer(extractor, state);
+            case FISHING_HUT  -> handleFisherman(extractor, state, occupant);
+            default -> {} // MINE, WATER_WELL — basic behavior, no special handling
         }
-        if (pb instanceof RawExtractor ext) {
-            return hasMapResource(state, ext);
-        }
-        return true;
     }
 
     /**
-     * Checks whether the map holds what the extractor needs: a harvestable node
-     * for harvesters, or a free grass tile for the forester. Farms and wells
-     * produce without a map node.
+     * Handles woodcutter behavior: searches for the closest tree (FOREST tile with LOG resource)
+     * within {@link GameConfig#WOODCUTTER_MAX_DISTANCE} and assigns it as the target work tile.
+     * When the tree is cut (produce()), it is removed from the map and the woodcutter searches
+     * for the next tree.
      *
-     * @param state the current game state
-     * @param ext   the raw extractor building
-     * @return {@code true} if the required map resource is available
+     * @param extractor the woodcutter building
+     * @param state     the game state for map access
      */
-    private boolean hasMapResource(GameState state, RawExtractor ext) {
-        GameMap map = state.getMap();
-        if (map == null) {
-            return true;
-        }
-
-        if (ext.getName() == BuildingName.FORESTER) {
-            return findPlantableTile(map, ext) != null;
-        }
-        if (ext.getExtractedResource() == ResourceType.WHEAT
-                || ext.getExtractedResource() == ResourceType.WATER) {
-            return true;
-        }
-        return map.findClosestResourceTile(
-                ext.getPosition(), workRadius(ext), ext.getExtractedResource()) != null;
-    }
-
-    /**
-     * Applies the extractor's effect on the map for one production cycle:
-     * harvests one unit from the closest matching node, or plants a tree
-     * for the forester.
-     *
-     * @param state the current game state
-     * @param ext   the raw extractor building
-     */
-    private void consumeMapResource(GameState state, RawExtractor ext) {
-        GameMap map = state.getMap();
-        if (map == null) {
-            return;
-        }
-
-        if (ext.getName() == BuildingName.FORESTER) {
-            MapTile spot = findPlantableTile(map, ext);
-            if (spot != null) {
-                spot.replantTree(new NaturalResourceNode(ResourceType.LOG, 5));
+    private void handleWoodcutter(RawExtractor extractor, GameState state) {
+        // Search for a target tree if none assigned
+        if (extractor.getTargetWorkTile() == null) {
+            List<MapTile> trees = state.findResourceTilesInRange(
+                    extractor.getPosition(),
+                    GameConfig.WOODCUTTER_MAX_DISTANCE,
+                    ResourceType.LOG
+            );
+            if (!trees.isEmpty()) {
+                extractor.setTargetWorkTile(trees.getFirst()); // closest first (BFS order)
             }
-            return;
         }
-        if (ext.getExtractedResource() == ResourceType.WHEAT
-                || ext.getExtractedResource() == ResourceType.WATER) {
+
+        // Validate existing target — clear if depleted
+        validateTargetWorkTile(extractor);
+    }
+
+    /**
+     * Handles forester behavior: searches for empty GRASS tiles within
+     * {@link GameConfig#FORESTER_MAX_DISTANCE} and plants new trees on them.
+     * The forester has no output slot — it "produces" by modifying the map directly.
+     * This method fully manages the production cycle (cooldown + planting), so the
+     * generic production logic is skipped for foresters.
+     *
+     * @param extractor the forester building
+     * @param state     the game state for map access
+     * @param occupant  the worker occupying this building
+     */
+    private void handleForester(RawExtractor extractor, GameState state, Worker occupant) {
+        int cooldown = extractor.getProductionCooldown();
+        if (cooldown > 0) {
+            extractor.setProductionCooldown(cooldown - 1);
+            occupant.setState(WorkerState.WORKING);
             return;
         }
 
-        MapTile tile = map.findClosestResourceTile(
-                ext.getPosition(), workRadius(ext), ext.getExtractedResource());
-        if (tile != null) {
-            tile.harvestResource();
+        // Find an empty grass tile to plant a tree on
+        List<MapTile> emptyGrass = state.findEmptyGrassTilesInRange(
+                extractor.getPosition(),
+                GameConfig.FORESTER_MAX_DISTANCE
+        );
+
+        if (!emptyGrass.isEmpty()) {
+            MapTile target = emptyGrass.getFirst();
+            boolean planted = target.replantTree(new NaturalResourceNode(ResourceType.LOG, 5));
+            if (planted) {
+                extractor.setProductionCooldown(GameConfig.PRODUCTION_TIME);
+                extractor.setProductivity(Math.min(100, extractor.getProductivity() + 10));
+                extractor.setWaitingTicks(0);
+                occupant.setState(WorkerState.WORKING);
+            }
+        } else {
+            // No space to plant — waiting
+            occupant.setState(WorkerState.WAITING);
+            extractor.setWaitingTicks(extractor.getWaitingTicks() + 1);
+            if (extractor.getWaitingTicks() >= 10000 / GameConfig.TICK_PERIOD_MS) {
+                extractor.setProductivity(Math.max(0, extractor.getProductivity() - 5));
+                extractor.setWaitingTicks(0);
+            }
         }
     }
 
     /**
-     * Finds a grass tile without a resource where the forester can plant a tree.
+     * Handles quarry behavior: searches for the closest STONE resource tile
+     * within {@link GameConfig#QUARRYMAN_MAX_DISTANCE}. Stone does not regrow.
      *
-     * @param map the game map
-     * @param ext the forester building
-     * @return a plantable tile, or {@code null} if none nearby
+     * @param extractor the quarry building
+     * @param state     the game state for map access
      */
-    private MapTile findPlantableTile(GameMap map, RawExtractor ext) {
-        return map.findClosestTile(ext.getPosition(), 5, tile ->
-                tile.getType() == TileType.GRASS && tile.getNaturalResource() == null);
+    private void handleQuarry(RawExtractor extractor, GameState state) {
+        // Search for a target stone deposit if none assigned
+        if (extractor.getTargetWorkTile() == null) {
+            List<MapTile> stones = state.findResourceTilesInRange(
+                    extractor.getPosition(),
+                    GameConfig.QUARRYMAN_MAX_DISTANCE,
+                    ResourceType.STONE
+            );
+            if (!stones.isEmpty()) {
+                extractor.setTargetWorkTile(stones.getFirst()); // closest first
+            }
+        }
+
+        // Validate existing target — clear if depleted
+        validateTargetWorkTile(extractor);
     }
 
     /**
-     * Returns how far the extractor's specialist works from the building:
-     * miners dig right under the mine, fishermen reach nearby shores,
-     * woodcutters and quarrymen roam a bit further.
+     * Handles farmer behavior:
+     * <ol>
+     *   <li>On first ticks: plants up to {@link GameConfig#FARMER_MAX_FIELDS} wheat fields
+     *       on nearby empty GRASS tiles (within distance 3 of the farm).</li>
+     *   <li>Searches managed fields for a harvestable one and assigns it as targetWorkTile.</li>
+     *   <li>After a field is fully harvested (depleted), replants it with fresh wheat.</li>
+     * </ol>
      *
-     * @param ext the raw extractor building
-     * @return the work radius in tiles
+     * @param extractor the farm building
+     * @param state     the game state for map access
      */
-    private int workRadius(RawExtractor ext) {
-        if (ext.getName() == BuildingName.MINE) return 3;
-        if (ext.getName() == BuildingName.FISHING_HUT) return 5;
-        return 6;
+    private void handleFarmer(RawExtractor extractor, GameState state) {
+        // Phase 1: Setup fields if not yet at capacity
+        if (extractor.getManagedFields().size() < GameConfig.FARMER_MAX_FIELDS) {
+            List<MapTile> emptyGrass = state.findEmptyGrassTilesInRange(
+                    extractor.getPosition(),
+                    3  // Fields must be very close to the farm
+            );
+            for (MapTile tile : emptyGrass) {
+                if (extractor.getManagedFields().size() >= GameConfig.FARMER_MAX_FIELDS) break;
+                if (tile.plantField(new NaturalResourceNode(ResourceType.WHEAT, 3))) {
+                    extractor.getManagedFields().add(tile);
+                }
+            }
+        }
+
+        // Phase 2: Find a harvestable field if no target assigned
+        if (extractor.getTargetWorkTile() == null) {
+            for (MapTile field : extractor.getManagedFields()) {
+                if (field.getNaturalResource() != null
+                        && field.getNaturalResource().getQuantity() > 0) {
+                    extractor.setTargetWorkTile(field);
+                    break;
+                }
+            }
+        }
+
+        // Phase 3: After harvest completion, replant the field
+        if (extractor.getTargetWorkTile() != null) {
+            MapTile target = extractor.getTargetWorkTile();
+            if (target.getNaturalResource() == null || target.getNaturalResource().isDepleted()) {
+                // Replant the field with fresh wheat
+                target.setNaturalResource(new NaturalResourceNode(ResourceType.WHEAT, 3));
+                extractor.setTargetWorkTile(null); // Will pick a new field next tick
+            }
+        }
+    }
+
+    /**
+     * Handles fisherman behavior: the fishing hut must be within
+     * {@link GameConfig#FISHERMAN_MAX_DISTANCE} tiles of water to function.
+     * Searches for WATER tiles with FISH resources and assigns them as targets.
+     *
+     * @param extractor the fishing hut building
+     * @param state     the game state for map access
+     * @param occupant  the worker occupying this building
+     */
+    private void handleFisherman(RawExtractor extractor, GameState state, Worker occupant) {
+        // Verify water proximity — if no water within range, fisherman can't work
+        if (!state.hasWaterInRange(extractor.getPosition(), GameConfig.FISHERMAN_MAX_DISTANCE)) {
+            occupant.setState(WorkerState.WAITING);
+            return; // Can't fish without water nearby
+        }
+
+        // Find a fish resource tile if none assigned
+        if (extractor.getTargetWorkTile() == null) {
+            List<MapTile> fishTiles = state.findResourceTilesInRange(
+                    extractor.getPosition(),
+                    GameConfig.FISHERMAN_MAX_DISTANCE,
+                    ResourceType.FISH
+            );
+            if (!fishTiles.isEmpty()) {
+                extractor.setTargetWorkTile(fishTiles.getFirst()); // closest first
+            }
+        }
+
+        // Validate existing target — clear if depleted
+        validateTargetWorkTile(extractor);
+    }
+
+    /**
+     * Validates the current targetWorkTile of a RawExtractor.
+     * Clears the target if the resource is null or depleted.
+     *
+     * @param extractor the RawExtractor to validate
+     */
+    private void validateTargetWorkTile(RawExtractor extractor) {
+        if (extractor.getTargetWorkTile() != null) {
+            MapTile target = extractor.getTargetWorkTile();
+            if (target.getNaturalResource() == null || target.getNaturalResource().isDepleted()) {
+                extractor.setTargetWorkTile(null);
+            }
+        }
     }
 }

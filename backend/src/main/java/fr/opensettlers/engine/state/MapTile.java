@@ -32,6 +32,12 @@ public class MapTile {
     private NaturalResourceNode naturalResource;
 
     /**
+     * Player ID controlling this tile (-1 if unclaimed).
+     * Updated by {@link fr.opensettlers.engine.TerritoryManager}.
+     */
+    private int territoryOwner = -1;
+
+    /**
      * Max allowed elevation difference for road connections.
      */
     public static final int MAX_ROAD_ELEVATION_DELTA = 2;
@@ -99,6 +105,21 @@ public class MapTile {
             return this.naturalResource.replenish();
         }
 
+        return false;
+    }
+
+    /**
+     * Converts a grass tile into a wheat field.
+     *
+     * @param wheatNode the wheat resource node
+     * @return {@code true} if the field was planted
+     */
+    public boolean plantField(NaturalResourceNode wheatNode) {
+        if (this.type == TileType.GRASS && this.naturalResource == null) {
+            this.type = TileType.FIELD;
+            this.naturalResource = wheatNode;
+            return true;
+        }
         return false;
     }
 

@@ -5,11 +5,11 @@ import fr.opensettlers.engine.state.Building;
 import fr.opensettlers.engine.state.MilitaryBuilding;
 import fr.opensettlers.engine.state.Soldier;
 import fr.opensettlers.engine.state.StorageBuilding;
+import fr.opensettlers.engine.state.utils.Coordinates;
 import fr.opensettlers.engine.state.utils.SoldierState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * System resolving combat: duels between soldiers sharing a tile, defender
@@ -28,20 +28,21 @@ public class CombatSystem implements ISystem {
         engageArrivedAttackers(gameState);
         resolveDuels(gameState);
         resolveSieges(gameState);
-        releaseVictoriousDefenders(gameState);
+        releaseVictoriousFighters(gameState);
     }
 
     /**
-     * Switches attackers that reached their target building into fighting mode.
+     * Switches attackers that reached their target building into waiting mode,
+     * ready to fight the defenders coming out.
      *
      * @param state the current game state
      */
     private void engageArrivedAttackers(GameState state) {
         for (Soldier soldier : state.getSoldiers()) {
-            if (soldier.getState() != SoldierState.ATTACKING) continue;
-            Building target = findBuildingById(state, soldier.getTargetBuildingId());
+            if (soldier.getState() != SoldierState.MARCHING_TO_ATTACK) continue;
+            Building target = soldier.getTargetBuilding();
             if (target != null && !target.isDestroyed() && soldier.isAt(target.getPosition())) {
-                soldier.setState(SoldierState.FIGHTING);
+                soldier.setState(SoldierState.WAITING_FOR_DEFENDER);
             }
         }
     }
@@ -64,10 +65,14 @@ public class CombatSystem implements ISystem {
                 }
                 a.setState(SoldierState.FIGHTING);
                 b.setState(SoldierState.FIGHTING);
+                a.setOpponent(b);
+                b.setOpponent(a);
                 a.attack(b);
                 if (!b.isDead()) {
                     b.attack(a);
                 }
+                if (a.isDead()) b.setOpponent(null);
+                if (b.isDead()) a.setOpponent(null);
             }
         }
     }
@@ -89,12 +94,13 @@ public class CombatSystem implements ISystem {
             List<Soldier> defenders = livingSoldiersAt(state, building, false);
             if (!defenders.isEmpty()) continue; // A duel is already in progress
 
-            if (building instanceof MilitaryBuilding mb && !mb.getSoldiers().isEmpty()) {
-                Soldier defender = mb.releaseSoldier();
-                defender.setPosition(new fr.opensettlers.engine.state.utils.Coordinates(
+            if (building instanceof MilitaryBuilding mb && !mb.isGarrisonEmpty()) {
+                Soldier defender = mb.removeFirstSoldier();
+                defender.setPosition(new Coordinates(
                         mb.getPosition().getX(), mb.getPosition().getY()));
                 defender.setState(SoldierState.FIGHTING);
-                defender.setTargetBuildingId(mb.getId());
+                defender.setTargetBuilding(mb);
+                defender.setGarrison(null);
                 state.getSoldiers().add(defender);
             } else if (building instanceof MilitaryBuilding mb) {
                 captureBuilding(state, mb, attackers.get(0));
@@ -103,13 +109,14 @@ public class CombatSystem implements ISystem {
                 if (building.getAttachedFlag() != null) {
                     building.getAttachedFlag().destroy();
                 }
+                state.getTerritoryManager().recalculate(state);
             }
         }
     }
 
     /**
      * Transfers a conquered military building (and its flag) to the attacker,
-     * garrisons the winning soldier inside, and claims the surrounding territory.
+     * garrisons the winning soldier inside, and recalculates the territories.
      *
      * @param state    the current game state
      * @param building the conquered military building
@@ -122,14 +129,12 @@ public class CombatSystem implements ISystem {
         }
 
         winner.setState(SoldierState.GARRISONED);
-        winner.setTargetBuildingId(null);
-        building.garrison(winner);
+        winner.setTargetBuilding(null);
+        winner.setGarrison(building);
+        building.addSoldier(winner);
         state.getSoldiers().remove(winner);
 
-        if (state.getMap() != null) {
-            state.getMap().claimTerritory(
-                    building.getPosition(), building.getTerritoryRadius(), winner.getPlayerId());
-        }
+        state.getTerritoryManager().recalculate(state);
     }
 
     /**
@@ -138,9 +143,13 @@ public class CombatSystem implements ISystem {
      *
      * @param state the current game state
      */
-    private void releaseVictoriousDefenders(GameState state) {
+    private void releaseVictoriousFighters(GameState state) {
         for (Soldier soldier : state.getSoldiers()) {
-            if (soldier.getState() != SoldierState.FIGHTING || soldier.isDead()) continue;
+            if ((soldier.getState() != SoldierState.FIGHTING
+                    && soldier.getState() != SoldierState.WAITING_FOR_DEFENDER)
+                    || soldier.isDead()) {
+                continue;
+            }
 
             boolean enemyPresent = state.getSoldiers().stream()
                     .anyMatch(other -> !other.isDead()
@@ -148,13 +157,13 @@ public class CombatSystem implements ISystem {
                             && other.isSamePosition(soldier));
             if (enemyPresent) continue;
 
-            Building target = findBuildingById(state, soldier.getTargetBuildingId());
-            if (target == null || target.isDestroyed()) {
+            soldier.setOpponent(null);
+            Building target = soldier.getTargetBuilding();
+            if (target == null || target.isDestroyed()
+                    || target.getPlayerId() == soldier.getPlayerId()) {
                 soldier.setState(SoldierState.WALKING_TO_GARRISON);
-            } else if (target.getPlayerId() == soldier.getPlayerId()) {
-                soldier.setState(SoldierState.WALKING_TO_GARRISON);
-            } else {
-                soldier.setState(SoldierState.ATTACKING);
+            } else if (soldier.getState() == SoldierState.FIGHTING) {
+                soldier.setState(SoldierState.MARCHING_TO_ATTACK);
             }
         }
     }
@@ -177,22 +186,5 @@ public class CombatSystem implements ISystem {
             }
         }
         return result;
-    }
-
-    /**
-     * Finds a building by its unique identifier.
-     *
-     * @param state the current game state
-     * @param id    the building UUID, may be {@code null}
-     * @return the matching building, or {@code null}
-     */
-    private Building findBuildingById(GameState state, UUID id) {
-        if (id == null) return null;
-        for (Building b : state.getBuildings()) {
-            if (b.getId().equals(id)) {
-                return b;
-            }
-        }
-        return null;
     }
 }

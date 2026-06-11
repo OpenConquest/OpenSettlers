@@ -177,7 +177,7 @@ public class ConstructionSystem implements ISystem {
                 site.getTargetBuildingType(),
                 site.getPlayerId(),
                 site.getPosition(),
-                state.getMap()
+                state
         );
 
         newBuilding.setAttachedFlag(site.getAttachedFlag());
@@ -207,7 +207,7 @@ public class ConstructionSystem implements ISystem {
         double minDist = Double.MAX_VALUE;
         for (Building b : state.getBuildings()) {
             if (b instanceof StorageBuilding sb && !sb.isDestroyed()) {
-                double dist = Math.hypot(sb.getPosition().getX() - pos.getX(), sb.getPosition().getY() - pos.getY());
+                double dist = sb.getPosition().distanceTo(pos);
                 if (dist < minDist) {
                     minDist = dist;
                     nearest = sb;
@@ -228,7 +228,7 @@ public class ConstructionSystem implements ISystem {
         Flag closest = null;
         double minDist = Double.MAX_VALUE;
         for (Flag flag : network.getAllFlags()) {
-            double dist = Math.hypot(flag.getCoordinates().getX() - coords.getX(), flag.getCoordinates().getY() - coords.getY());
+            double dist = flag.getCoordinates().distanceTo(coords);
             if (dist < minDist) {
                 minDist = dist;
                 closest = flag;

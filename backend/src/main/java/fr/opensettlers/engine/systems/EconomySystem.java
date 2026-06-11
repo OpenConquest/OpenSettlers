@@ -296,7 +296,7 @@ public class EconomySystem implements ISystem {
         double minDist = Double.MAX_VALUE;
         for (Building b : state.getBuildings()) {
             if (b instanceof StorageBuilding sb && !sb.isDestroyed()) {
-                double dist = Math.hypot(sb.getPosition().getX() - pos.getX(), sb.getPosition().getY() - pos.getY());
+                double dist = sb.getPosition().distanceTo(pos);
                 if (dist < minDist) {
                     minDist = dist;
                     nearest = sb;

@@ -43,8 +43,8 @@ public class GameWebSocket {
         session.addConnection(connection);
         LOG.infof("New WebSocket connection to game: %s", session.getId());
 
-        if (session.getState().getMap() != null) {
-            connection.sendTextAndAwait(GameStateSerializer.serializeMap(session.getState().getMap()));
+        if (!session.getState().getMapTiles().isEmpty()) {
+            connection.sendTextAndAwait(GameStateSerializer.serializeMap(session.getState()));
         }
     }
 

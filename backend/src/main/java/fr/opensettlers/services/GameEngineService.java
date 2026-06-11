@@ -29,10 +29,6 @@ public class GameEngineService {
 
     private static final Logger LOG = Logger.getLogger(GameEngineService.class);
 
-    /** Radius of territory claimed around a headquarters at game start. */
-    private static final int HQ_TERRITORY_RADIUS = 10;
-
-
     /** Map of active game sessions, indexed by game ID. */
     private final Map<UUID, GameSession> sessions = new ConcurrentHashMap<>();
 
@@ -44,7 +40,7 @@ public class GameEngineService {
 
     /**
      * Creates a new game: generates the map, places one headquarters per player,
-     * and starts the game loop.
+     * computes the initial territories, and starts the game loop.
      *
      * @param playerCount number of players (headquarters placed evenly around the island)
      * @return the created game session
@@ -54,9 +50,11 @@ public class GameEngineService {
         GameSession session = new GameSession(gameId);
         GameState state = session.getState();
 
-        GameMap map = new GameMap(new MapGenerator().generateContinentalGrid(GameConfig.MAP_SIZE));
-        state.setMap(map);
+        MapTile[][] grid = new MapGenerator()
+                .generateContinentalGrid(GameConfig.MAP_SIZE, GameConfig.MAP_SIZE);
+        state.setMapTilesFromGrid(grid);
         placeHeadquarters(state, playerCount);
+        state.getTerritoryManager().recalculate(state);
 
         sessions.put(gameId, session);
         GameEngine engine = new GameEngine(session, executor);
@@ -64,7 +62,7 @@ public class GameEngineService {
         engine.start();
 
         LOG.infof("Game %s created with %d players (map %dx%d)",
-                gameId, playerCount, map.getSize(), map.getSize());
+                gameId, playerCount, GameConfig.MAP_SIZE, GameConfig.MAP_SIZE);
         return session;
     }
 
@@ -159,13 +157,15 @@ public class GameEngineService {
 
                 if (b != null && b.getPlayerId() == message.getPlayerId()) {
                     b.destroy(); // Flags and building marked as destroyed
+                    if (b instanceof MilitaryBuilding || b instanceof StorageBuilding) {
+                        state.getTerritoryManager().recalculate(state);
+                    }
                     LOG.infof("Building %s destroyed.", b.getId());
                 }
             }
 
             case PLACE_FLAG -> {
-                if (state.getMap() != null
-                        && state.getMap().getOwner(message.getPosition()) != message.getPlayerId()) {
+                if (!state.getTerritoryManager().canBuild(message.getPlayerId(), message.getPosition())) {
                     LOG.warnf("Player %d cannot place a flag outside their territory", message.getPlayerId());
                     return;
                 }
@@ -198,8 +198,7 @@ public class GameEngineService {
      * @param message the build order
      */
     private void handleBuild(GameState state, GameMessage message) {
-        GameMap map = state.getMap();
-        if (map != null && !isPlacementValid(map, message.getBuildingName(), message.getPosition(), message.getPlayerId())) {
+        if (!isPlacementValid(state, message.getBuildingName(), message.getPosition(), message.getPlayerId())) {
             LOG.warnf("Invalid placement for %s at %s by player %d",
                     message.getBuildingName(), message.getPosition(), message.getPlayerId());
             return;
@@ -219,15 +218,15 @@ public class GameEngineService {
      * Checks terrain and ownership rules for a building placement.
      * Mines must stand on owned mountain tiles; everything else needs owned grass.
      *
-     * @param map      the game map
+     * @param state    the game state
      * @param name     the building type
      * @param position the desired position
      * @param playerId the building player
      * @return {@code true} if the placement is allowed
      */
-    private boolean isPlacementValid(GameMap map, BuildingName name, Coordinates position, int playerId) {
-        MapTile tile = map.getTile(position);
-        if (tile == null || map.getOwner(position) != playerId) {
+    private boolean isPlacementValid(GameState state, BuildingName name, Coordinates position, int playerId) {
+        MapTile tile = state.getTile(position);
+        if (tile == null || !state.getTerritoryManager().canBuild(playerId, position)) {
             return false;
         }
         if (name == BuildingName.MINE) {
@@ -264,20 +263,18 @@ public class GameEngineService {
                     || mb.getPlayerId() != message.getPlayerId()) {
                 continue;
             }
-            double dist = Math.hypot(
-                    mb.getPosition().getX() - target.getPosition().getX(),
-                    mb.getPosition().getY() - target.getPosition().getY());
-            if (dist > GameConfig.ATTACK_RADIUS) {
+            if (mb.getPosition().distanceTo(target.getPosition()) > GameConfig.ATTACK_RADIUS) {
                 continue;
             }
 
             // Keep one defender in each garrison
             while (mb.getSoldiers().size() > 1) {
-                Soldier soldier = mb.releaseSoldier();
+                Soldier soldier = mb.removeFirstSoldier();
                 soldier.setPosition(new Coordinates(
                         mb.getPosition().getX(), mb.getPosition().getY()));
-                soldier.setState(SoldierState.ATTACKING);
-                soldier.setTargetBuildingId(target.getId());
+                soldier.setState(SoldierState.MARCHING_TO_ATTACK);
+                soldier.setTargetBuilding(target);
+                soldier.setGarrison(null);
                 state.getSoldiers().add(soldier);
                 dispatched++;
             }
@@ -286,24 +283,23 @@ public class GameEngineService {
     }
 
     /**
-     * Places one headquarters per player, spaced evenly around the island,
-     * and claims their starting territory.
+     * Places one headquarters per player, spaced evenly around the island.
      *
      * @param state       the game state to populate
      * @param playerCount the number of players
      */
     private void placeHeadquarters(GameState state, int playerCount) {
-        GameMap map = state.getMap();
-        double center = map.getSize() / 2.0;
-        double spawnRadius = map.getSize() * 0.3;
+        double center = GameConfig.MAP_SIZE / 2.0;
+        double spawnRadius = GameConfig.MAP_SIZE * 0.3;
 
         for (int playerId = 0; playerId < playerCount; playerId++) {
             double angle = 2 * Math.PI * playerId / playerCount;
-            Coordinates ideal = new Coordinates(
-                    Math.round(center + spawnRadius * Math.cos(angle)),
-                    Math.round(center + spawnRadius * Math.sin(angle)));
+            int idealX = (int) Math.round(center + spawnRadius * Math.cos(angle));
+            int idealY = (int) Math.round(center + spawnRadius * Math.sin(angle));
+            // Convert array position to double-height coordinates
+            Coordinates ideal = new Coordinates(idealX, 2.0 * idealY + (idealX % 2));
 
-            MapTile spot = map.findClosestTile(ideal, map.getSize() / 2, MapTile::isBuildable);
+            MapTile spot = findClosestBuildableTile(state, ideal);
             if (spot == null) {
                 LOG.errorf("No buildable tile found for player %d headquarters", playerId);
                 continue;
@@ -312,13 +308,33 @@ public class GameEngineService {
             Coordinates position = new Coordinates(
                     spot.getCoordinates().getX(), spot.getCoordinates().getY());
             Building hq = fr.opensettlers.engine.BuildingFactory.createBuilding(
-                    BuildingName.HEADQUARTERS, playerId, position, map);
+                    BuildingName.HEADQUARTERS, playerId, position, state);
             state.getBuildings().add(hq);
             state.getFlags().add(hq.getAttachedFlag());
             state.getRoadNetwork().addFlag(hq.getAttachedFlag());
-            map.claimTerritory(position, HQ_TERRITORY_RADIUS, playerId);
             LOG.infof("Headquarters for player %d placed at %s", playerId, position);
         }
+    }
+
+    /**
+     * Finds the buildable tile closest to the given coordinates.
+     *
+     * @param state the game state
+     * @param ideal the preferred coordinates
+     * @return the closest buildable tile, or {@code null} if the map has none
+     */
+    private MapTile findClosestBuildableTile(GameState state, Coordinates ideal) {
+        MapTile best = null;
+        int bestDist = Integer.MAX_VALUE;
+        for (MapTile tile : state.getMapTiles().values()) {
+            if (!tile.isBuildable()) continue;
+            int dist = tile.getCoordinates().distanceTo(ideal);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = tile;
+            }
+        }
+        return best;
     }
 
     /** Shuts down all game loops when the application stops. */

@@ -2,6 +2,7 @@ package fr.opensettlers.network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.opensettlers.engine.GameConfig;
 import fr.opensettlers.engine.GameState;
 import fr.opensettlers.engine.state.*;
 import fr.opensettlers.network.dto.GameStateDto;
@@ -16,7 +17,8 @@ import java.util.Map;
  * Converts the in-memory game state into the JSON payloads sent to clients.
  *
  * <p>The full map is serialized once per connection ({@link #serializeMap}),
- * while the dynamic state is serialized every tick ({@link #serializeState}).</p>
+ * while the dynamic state is serialized every tick ({@link #serializeState}).
+ * All coordinates are double-height hexagonal coordinates.</p>
  */
 public final class GameStateSerializer {
 
@@ -82,33 +84,41 @@ public final class GameStateSerializer {
                     s.getHealth(), s.getState() != null ? s.getState().name() : null));
         }
 
-        int[][] owners = state.getMap() != null ? state.getMap().getOwners() : new int[0][0];
+        List<int[]> territory = new ArrayList<>();
+        for (MapTile tile : state.getMapTiles().values()) {
+            int owner = state.getTerritoryManager().getOwnerAt(tile.getCoordinates());
+            if (owner >= 0) {
+                territory.add(new int[]{
+                        (int) tile.getCoordinates().getX(),
+                        (int) tile.getCoordinates().getY(),
+                        owner});
+            }
+        }
 
         GameStateDto dto = new GameStateDto(
                 "STATE", state.getCurrentTick(),
-                buildings, flags, roads, workers, soldiers, owners);
+                buildings, flags, roads, workers, soldiers, territory);
         return write(dto);
     }
 
     /**
      * Serializes the static map (terrain, elevation, natural resources).
      *
-     * @param map the game map to serialize
+     * @param state the game state holding the map tiles
      * @return the JSON payload
      */
-    public static String serializeMap(GameMap map) {
+    public static String serializeMap(GameState state) {
         List<MapDto.TileDto> tiles = new ArrayList<>();
-        for (int x = 0; x < map.getSize(); x++) {
-            for (int y = 0; y < map.getSize(); y++) {
-                MapTile tile = map.getTile(x, y);
-                NaturalResourceNode node = tile.getNaturalResource();
-                tiles.add(new MapDto.TileDto(
-                        x, y, tile.getType().name(), tile.getElevation(),
-                        node != null ? node.getType().name() : null,
-                        node != null ? node.getQuantity() : null));
-            }
+        for (MapTile tile : state.getMapTiles().values()) {
+            NaturalResourceNode node = tile.getNaturalResource();
+            tiles.add(new MapDto.TileDto(
+                    (int) tile.getCoordinates().getX(),
+                    (int) tile.getCoordinates().getY(),
+                    tile.getType().name(), tile.getElevation(),
+                    node != null ? node.getType().name() : null,
+                    node != null ? node.getQuantity() : null));
         }
-        return write(new MapDto("MAP", map.getSize(), tiles));
+        return write(new MapDto("MAP", GameConfig.MAP_SIZE, tiles));
     }
 
     private static GameStateDto.BuildingDto toBuildingDto(Building b) {

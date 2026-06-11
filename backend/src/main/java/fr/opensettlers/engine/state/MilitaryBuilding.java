@@ -3,100 +3,109 @@ package fr.opensettlers.engine.state;
 import fr.opensettlers.engine.state.utils.BuildingName;
 import fr.opensettlers.engine.state.utils.Coordinates;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Building that garrisons soldiers and expands the owning player's territory.
+ * Building that garrisons {@link Soldier}s and projects territorial control.
+ * <p>
+ * Examples: Barracks (2 slots), Guard House (3), Watch Tower (6), Castle (9).
+ * The territory radius and max capacity are set from {@link fr.opensettlers.engine.GameConfig}.
  */
 @Getter
+@Setter
 public class MilitaryBuilding extends Building {
-    /**
-     * Soldiers currently garrisoned in this building.
-     */
+    /** Soldiers currently garrisoned in this building. */
     private final List<Soldier> soldiers = new ArrayList<>();
 
-    /**
-     * Maximum number of soldiers this building can hold.
-     */
-    private final int maxCapacity;
+    /** Maximum number of soldiers this building can hold. */
+    private int maxCapacity;
 
-    /**
-     * Radius of territory claimed around this building once occupied.
-     */
-    private final int territoryRadius;
+    /** Territory radius in hex distance (set from GameConfig). */
+    private int territoryRadius;
 
-    /**
-     * Whether this building already claimed its territory (done when the first soldier arrives).
-     */
+    /** The building type name, for configuration lookup. */
+    private final BuildingName buildingName;
+
+    /** Whether the first soldier already arrived and triggered the territory claim. */
     private boolean territoryClaimed = false;
 
     /**
-     * Initializes a new MilitaryBuilding with capacity and territory radius based on its type.
+     * Initializes a new MilitaryBuilding.
      *
-     * @param playerId Unique identifier of the owning player.
-     * @param position Coordinates of the building.
-     * @param type     The military building type (barracks, guard house, watch tower, castle).
+     * @param playerId        owning player ID
+     * @param position        coordinates on the map
+     * @param buildingName    the type of military building
+     * @param maxCapacity     max garrison size
+     * @param territoryRadius hex radius of territory projection
      */
-    public MilitaryBuilding(int playerId, Coordinates position, BuildingName type) {
+    public MilitaryBuilding(int playerId, Coordinates position,
+                            BuildingName buildingName,
+                            int maxCapacity, int territoryRadius) {
         super(playerId, position);
-        this.setName(type);
-        this.maxCapacity = switch (type) {
-            case BARRACKS -> 2;
-            case GUARD_HOUSE -> 3;
-            case WATCH_TOWER -> 6;
-            case CASTLE -> 9;
-            default -> 2;
-        };
-        this.territoryRadius = switch (type) {
-            case BARRACKS -> 4;
-            case GUARD_HOUSE -> 5;
-            case WATCH_TOWER -> 7;
-            case CASTLE -> 9;
-            default -> 4;
-        };
+        this.buildingName = buildingName;
+        this.maxCapacity = maxCapacity;
+        this.territoryRadius = territoryRadius;
     }
 
     /**
-     * Garrisons a soldier in this building if there is room.
+     * Checks if there is room for another soldier.
      *
-     * @param soldier the soldier to garrison
-     * @return {@code true} if the soldier was garrisoned
+     * @return {@code true} if the garrison is not full
      */
-    public boolean garrison(Soldier soldier) {
-        if (soldiers.size() >= maxCapacity) {
-            return false;
-        }
+    public boolean hasRoom() {
+        return soldiers.size() < maxCapacity;
+    }
+
+    /**
+     * Adds a soldier to the garrison if there is room.
+     *
+     * @param soldier the soldier to add
+     * @return {@code true} if the soldier was added
+     */
+    public boolean addSoldier(Soldier soldier) {
+        if (!hasRoom()) return false;
         soldiers.add(soldier);
         return true;
     }
 
     /**
-     * Removes a soldier from the garrison (to defend or attack).
+     * Removes and returns the first soldier from the garrison (weakest/oldest).
+     * Used when a defender needs to go fight an attacker.
      *
-     * @return the removed soldier, or {@code null} if the garrison is empty
+     * @return the removed soldier, or {@code null} if empty
      */
-    public Soldier releaseSoldier() {
-        if (soldiers.isEmpty()) {
-            return null;
-        }
-        return soldiers.remove(soldiers.size() - 1);
+    public Soldier removeFirstSoldier() {
+        if (soldiers.isEmpty()) return null;
+        return soldiers.remove(0);
     }
 
     /**
-     * Checks whether the garrison has free slots.
+     * Removes a specific soldier from the garrison.
      *
-     * @return {@code true} if at least one slot is free
+     * @param soldier the soldier to remove
      */
-    public boolean hasFreeSlot() {
-        return soldiers.size() < maxCapacity;
+    public void removeSoldier(Soldier soldier) {
+        soldiers.remove(soldier);
     }
 
     /**
-     * Marks the territory around this building as claimed.
+     * Returns the number of free slots in the garrison.
+     *
+     * @return available slots
      */
-    public void markTerritoryClaimed() {
-        this.territoryClaimed = true;
+    public int freeSlots() {
+        return maxCapacity - soldiers.size();
+    }
+
+    /**
+     * Checks if the garrison is completely empty.
+     *
+     * @return {@code true} if no soldiers are garrisoned
+     */
+    public boolean isGarrisonEmpty() {
+        return soldiers.isEmpty();
     }
 }

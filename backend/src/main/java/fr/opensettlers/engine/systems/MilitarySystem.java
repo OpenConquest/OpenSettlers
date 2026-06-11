@@ -6,18 +6,16 @@ import fr.opensettlers.engine.state.utils.Coordinates;
 import fr.opensettlers.engine.state.utils.ResourceType;
 import fr.opensettlers.engine.state.utils.SoldierState;
 
-import java.util.UUID;
-
 /**
  * System managing garrisons: recruits soldiers for military buildings with free
- * slots (one neutral settler + one sword per soldier) and claims territory
- * around newly occupied buildings.
+ * slots (one neutral settler + one sword per soldier) and recalculates the
+ * territory when a building becomes occupied for the first time.
  */
 public class MilitarySystem implements ISystem {
 
     /**
-     * Recruits soldiers toward under-staffed military buildings and claims territory
-     * for occupied ones.
+     * Recruits soldiers toward under-staffed military buildings and triggers the
+     * territory claim of newly occupied ones.
      *
      * @param gameState the active game session state
      */
@@ -28,9 +26,9 @@ public class MilitarySystem implements ISystem {
                 continue;
             }
 
-            if (!mb.isTerritoryClaimed() && !mb.getSoldiers().isEmpty() && gameState.getMap() != null) {
-                gameState.getMap().claimTerritory(mb.getPosition(), mb.getTerritoryRadius(), mb.getPlayerId());
-                mb.markTerritoryClaimed();
+            if (!mb.isTerritoryClaimed() && !mb.getSoldiers().isEmpty()) {
+                mb.setTerritoryClaimed(true);
+                gameState.getTerritoryManager().recalculate(gameState);
             }
 
             int reserved = countReservedSlots(gameState, mb);
@@ -55,9 +53,10 @@ public class MilitarySystem implements ISystem {
         int count = 0;
         for (Soldier s : state.getSoldiers()) {
             if (s.getPlayerId() == mb.getPlayerId()
-                    && mb.getId().equals(s.getTargetBuildingId())
+                    && mb.equals(s.getTargetBuilding())
                     && (s.getState() == SoldierState.WALKING_TO_GARRISON
-                        || s.getState() == SoldierState.FIGHTING)) {
+                        || s.getState() == SoldierState.FIGHTING
+                        || s.getState() == SoldierState.WALKING_TO_DEFEND)) {
                 count++;
             }
         }
@@ -82,10 +81,10 @@ public class MilitarySystem implements ISystem {
         source.setStoredNeutralSettlers(source.getStoredNeutralSettlers() - 1);
         source.retrieveResource(ResourceType.SWORD);
 
-        Soldier soldier = new Soldier(UUID.randomUUID(), mb.getPlayerId(),
+        Soldier soldier = new Soldier(mb.getPlayerId(),
                 new Coordinates(source.getPosition().getX(), source.getPosition().getY()));
         soldier.setState(SoldierState.WALKING_TO_GARRISON);
-        soldier.setTargetBuildingId(mb.getId());
+        soldier.setTargetBuilding(mb);
         state.getSoldiers().add(soldier);
         return true;
     }
@@ -100,7 +99,7 @@ public class MilitarySystem implements ISystem {
      */
     private StorageBuilding findNearestRecruitingStorage(GameState state, MilitaryBuilding mb) {
         StorageBuilding nearest = null;
-        double minDist = Double.MAX_VALUE;
+        int minDist = Integer.MAX_VALUE;
         for (Building b : state.getBuildings()) {
             if (!(b instanceof StorageBuilding sb) || sb.isDestroyed()
                     || sb.getPlayerId() != mb.getPlayerId()
@@ -108,9 +107,7 @@ public class MilitarySystem implements ISystem {
                     || sb.getStoredResources().getOrDefault(ResourceType.SWORD, 0) < 1) {
                 continue;
             }
-            double dist = Math.hypot(
-                    sb.getPosition().getX() - mb.getPosition().getX(),
-                    sb.getPosition().getY() - mb.getPosition().getY());
+            int dist = sb.getPosition().distanceTo(mb.getPosition());
             if (dist < minDist) {
                 minDist = dist;
                 nearest = sb;

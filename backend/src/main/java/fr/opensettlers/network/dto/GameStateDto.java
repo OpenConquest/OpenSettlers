@@ -14,7 +14,7 @@ import java.util.UUID;
  * @param roads     all roads with their carrier
  * @param workers   all worker units on the map
  * @param soldiers  all soldier units on the map
- * @param owners    territory owner per tile ([x][y], -1 if unclaimed)
+ * @param territory owned tiles as [x, y, playerId] triples (unowned tiles omitted)
  */
 public record GameStateDto(
         String type,
@@ -24,7 +24,7 @@ public record GameStateDto(
         List<RoadDto> roads,
         List<WorkerDto> workers,
         List<SoldierDto> soldiers,
-        int[][] owners
+        List<int[]> territory
 ) {
     /**
      * A building as seen by the client.

@@ -2,17 +2,13 @@ package fr.opensettlers.engine;
 
 import fr.opensettlers.engine.state.Building;
 import fr.opensettlers.engine.state.Flag;
-import fr.opensettlers.engine.state.GameMap;
+import fr.opensettlers.engine.state.MapTile;
 import fr.opensettlers.engine.state.Soldier;
 import fr.opensettlers.engine.state.Worker;
-import fr.opensettlers.engine.state.utils.BuildingName;
-import fr.opensettlers.engine.state.utils.ResourceType;
+import fr.opensettlers.engine.state.utils.*;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Stores all data in a game session and handles the game loop.
@@ -24,9 +20,6 @@ public class GameState {
 
     /** Unique identifiers of the players in the game. Should not contain duplicates. */
     private final List<UUID> playerIds;
-
-    /** The game map (terrain, natural resources, territory ownership). */
-    private GameMap map;
 
     /** The road network managing flags, roads, and pathfinding. */
     private final RoadNetwork roadNetwork = new RoadNetwork();
@@ -43,8 +36,14 @@ public class GameState {
     /** All active worker units on the map. */
     private final List<Worker> workers = new ArrayList<>();
 
+    /** The hex tile grid map using double height coordinates. */
+    private Map<Coordinates, MapTile> mapTiles = new HashMap<>();
+
+    /** Territory ownership manager, recalculated when military buildings change. */
+    private final TerritoryManager territoryManager = new TerritoryManager();
+
     /** Global resource distribution priorities. */
-    private final Map<ResourceType, List<BuildingName>> resourceDistributionPriorities = new java.util.HashMap<>() {{
+    private final Map<ResourceType, List<BuildingName>> resourceDistributionPriorities = new HashMap<>() {{
         put(ResourceType.LOG, List.of(BuildingName.SAWMILL, BuildingName.MINE));
         put(ResourceType.COAL, List.of(BuildingName.FOUNDRY, BuildingName.ARMORY));
         put(ResourceType.WHEAT, List.of(BuildingName.MILL, BuildingName.BREWERY));
@@ -52,6 +51,20 @@ public class GameState {
 
     /** Current tick since the start of the game. */
     private long currentTick = 0;
+
+    /**
+     * Initializes the map from a generated grid array.
+     */
+    public void setMapTilesFromGrid(MapTile[][] grid) {
+        mapTiles.clear();
+        for (MapTile[] row : grid) {
+            for (MapTile tile : row) {
+                if (tile != null) {
+                    mapTiles.put(tile.getCoordinates(), tile);
+                }
+            }
+        }
+    }
 
     /**
      * Handles player quitting. Soldiers and buildings aren't removed and stay autonomous.
@@ -92,5 +105,143 @@ public class GameState {
 
         // Workers (clean up workers that have been dismissed/removed)
         workers.removeIf(w -> w.getState() == null);
+    }
+
+    /**
+     * Returns the MapTile at the given double-height coordinates, or null if out of bounds.
+     */
+    public MapTile getTile(Coordinates coord) {
+        return mapTiles.get(coord);
+    }
+
+    /**
+     * Finds all tiles matching the given TileType within a hex BFS distance from a center position.
+     * Results are in BFS order (closest first).
+     */
+    public List<MapTile> findTilesInRange(Coordinates center, int maxDistance, TileType type) {
+        List<MapTile> result = new ArrayList<>();
+        if (!mapTiles.containsKey(center)) return result;
+
+        Set<Coordinates> visited = new HashSet<>();
+        Queue<Object[]> queue = new LinkedList<>();
+        queue.add(new Object[]{center, 0});
+        visited.add(center);
+
+        while (!queue.isEmpty()) {
+            Object[] curr = queue.poll();
+            Coordinates coord = (Coordinates) curr[0];
+            int dist = (Integer) curr[1];
+
+            MapTile tile = mapTiles.get(coord);
+            if (tile != null && tile.getType() == type && dist > 0) {
+                result.add(tile);
+            }
+
+            if (dist < maxDistance) {
+                for (Direction dir : Direction.values()) {
+                    Coordinates neighborCoord = coord.neighbor(dir);
+                    if (!visited.contains(neighborCoord) && mapTiles.containsKey(neighborCoord)) {
+                        visited.add(neighborCoord);
+                        queue.add(new Object[]{neighborCoord, dist + 1});
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Finds all tiles within range that have a NaturalResourceNode of the given type and are not depleted.
+     * Results are in BFS order (closest first).
+     */
+    public List<MapTile> findResourceTilesInRange(Coordinates center, int maxDistance, ResourceType resourceType) {
+        List<MapTile> result = new ArrayList<>();
+        if (!mapTiles.containsKey(center)) return result;
+
+        Set<Coordinates> visited = new HashSet<>();
+        Queue<Object[]> queue = new LinkedList<>();
+        queue.add(new Object[]{center, 0});
+        visited.add(center);
+
+        while (!queue.isEmpty()) {
+            Object[] curr = queue.poll();
+            Coordinates coord = (Coordinates) curr[0];
+            int dist = (Integer) curr[1];
+
+            MapTile tile = mapTiles.get(coord);
+            if (tile != null && dist > 0 && tile.getNaturalResource() != null
+                    && tile.getNaturalResource().getType() == resourceType
+                    && !tile.getNaturalResource().isDepleted()) {
+                result.add(tile);
+            }
+
+            if (dist < maxDistance) {
+                for (Direction dir : Direction.values()) {
+                    Coordinates neighborCoord = coord.neighbor(dir);
+                    if (!visited.contains(neighborCoord) && mapTiles.containsKey(neighborCoord)) {
+                        visited.add(neighborCoord);
+                        queue.add(new Object[]{neighborCoord, dist + 1});
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Finds all buildable (GRASS) tiles within range that have no natural resource and no building.
+     * Results are in BFS order (closest first).
+     */
+    public List<MapTile> findEmptyGrassTilesInRange(Coordinates center, int maxDistance) {
+        List<MapTile> result = new ArrayList<>();
+        if (!mapTiles.containsKey(center)) return result;
+
+        Set<Coordinates> visited = new HashSet<>();
+        Queue<Object[]> queue = new LinkedList<>();
+        queue.add(new Object[]{center, 0});
+        visited.add(center);
+
+        while (!queue.isEmpty()) {
+            Object[] curr = queue.poll();
+            Coordinates coord = (Coordinates) curr[0];
+            int dist = (Integer) curr[1];
+
+            MapTile tile = mapTiles.get(coord);
+            if (tile != null && dist > 0 && tile.getType() == TileType.GRASS
+                    && tile.getNaturalResource() == null
+                    && !hasBuildingAt(coord)) {
+                result.add(tile);
+            }
+
+            if (dist < maxDistance) {
+                for (Direction dir : Direction.values()) {
+                    Coordinates neighborCoord = coord.neighbor(dir);
+                    if (!visited.contains(neighborCoord) && mapTiles.containsKey(neighborCoord)) {
+                        visited.add(neighborCoord);
+                        queue.add(new Object[]{neighborCoord, dist + 1});
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Checks if at least one WATER tile exists within range.
+     */
+    public boolean hasWaterInRange(Coordinates center, int maxDistance) {
+        return !findTilesInRange(center, maxDistance, TileType.WATER).isEmpty();
+    }
+
+    /**
+     * Checks if there is a building at the given coordinate.
+     */
+    private boolean hasBuildingAt(Coordinates coord) {
+        for (Building b : buildings) {
+            if (b.getPosition().equals(coord)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

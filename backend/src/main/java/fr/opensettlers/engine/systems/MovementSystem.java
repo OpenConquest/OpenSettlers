@@ -9,11 +9,11 @@ import fr.opensettlers.engine.state.utils.SoldierState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * System moving soldier units across the map toward their target buildings,
- * one grid step every {@link GameConfig#SOLDIER_MOVE_TICKS} ticks.
+ * one hex step every {@link GameConfig#SOLDIER_MOVE_TICKS} ticks. Follows the
+ * soldier's precomputed path when set, otherwise walks straight toward the target.
  */
 public class MovementSystem implements ISystem {
 
@@ -33,29 +33,36 @@ public class MovementSystem implements ISystem {
         List<Soldier> arrived = new ArrayList<>();
         for (Soldier soldier : gameState.getSoldiers()) {
             if (soldier.getState() != SoldierState.WALKING_TO_GARRISON
-                    && soldier.getState() != SoldierState.ATTACKING) {
+                    && soldier.getState() != SoldierState.MARCHING_TO_ATTACK
+                    && soldier.getState() != SoldierState.WALKING_TO_DEFEND) {
                 continue;
             }
 
-            Building target = findBuildingById(gameState, soldier.getTargetBuildingId());
+            Building target = soldier.getTargetBuilding();
             if (target == null || target.isDestroyed()) {
                 retargetNearestGarrison(gameState, soldier);
-                target = findBuildingById(gameState, soldier.getTargetBuildingId());
+                target = soldier.getTargetBuilding();
                 if (target == null) {
                     continue;
                 }
             }
 
             if (!soldier.isAt(target.getPosition())) {
-                soldier.stepToward(target.getPosition());
+                if (!soldier.hasReachedDestination()) {
+                    soldier.advanceOnPath();
+                } else {
+                    soldier.stepToward(target.getPosition());
+                }
             }
 
             if (soldier.isAt(target.getPosition())
-                    && soldier.getState() == SoldierState.WALKING_TO_GARRISON
+                    && (soldier.getState() == SoldierState.WALKING_TO_GARRISON
+                        || soldier.getState() == SoldierState.WALKING_TO_DEFEND)
                     && target instanceof MilitaryBuilding mb) {
-                if (mb.garrison(soldier)) {
+                if (mb.addSoldier(soldier)) {
                     soldier.setState(SoldierState.GARRISONED);
-                    soldier.setTargetBuildingId(null);
+                    soldier.setGarrison(mb);
+                    soldier.setTargetBuilding(null);
                     arrived.add(soldier);
                 } else {
                     retargetNearestGarrison(gameState, soldier);
@@ -77,43 +84,26 @@ public class MovementSystem implements ISystem {
      */
     private void retargetNearestGarrison(GameState state, Soldier soldier) {
         MilitaryBuilding nearest = null;
-        double minDist = Double.MAX_VALUE;
+        int minDist = Integer.MAX_VALUE;
         for (Building b : state.getBuildings()) {
             if (!(b instanceof MilitaryBuilding mb) || mb.isDestroyed()
-                    || mb.getPlayerId() != soldier.getPlayerId() || !mb.hasFreeSlot()) {
+                    || mb.getPlayerId() != soldier.getPlayerId() || !mb.hasRoom()) {
                 continue;
             }
-            double dist = Math.hypot(
-                    mb.getPosition().getX() - soldier.getPosition().getX(),
-                    mb.getPosition().getY() - soldier.getPosition().getY());
+            int dist = mb.getPosition().distanceTo(soldier.getPosition());
             if (dist < minDist) {
                 minDist = dist;
                 nearest = mb;
             }
         }
 
+        soldier.setPath(new ArrayList<>());
+        soldier.setPathIndex(0);
         if (nearest != null) {
             soldier.setState(SoldierState.WALKING_TO_GARRISON);
-            soldier.setTargetBuildingId(nearest.getId());
+            soldier.setTargetBuilding(nearest);
         } else {
-            soldier.setTargetBuildingId(null);
+            soldier.setTargetBuilding(null);
         }
-    }
-
-    /**
-     * Finds a building by its unique identifier.
-     *
-     * @param state the current game state
-     * @param id    the building UUID, may be {@code null}
-     * @return the matching building, or {@code null}
-     */
-    private Building findBuildingById(GameState state, UUID id) {
-        if (id == null) return null;
-        for (Building b : state.getBuildings()) {
-            if (b.getId().equals(id)) {
-                return b;
-            }
-        }
-        return null;
     }
 }
