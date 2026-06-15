@@ -17,6 +17,7 @@ import java.util.UUID;
  * @param workers   all worker units on the map
  * @param soldiers  all soldier units on the map
  * @param donkeys   all donkey units on the map
+ * @param ships     all ships sailing the seas
  * @param territory owned tiles as [x, y, playerId] triples (unowned tiles omitted)
  * @param signs     geologist signs as one entry per surveyed tile
  * @param explored  tiles explored by the receiving player as [x, y] pairs
@@ -31,6 +32,7 @@ public record GameStateDto(
         List<WorkerDto> workers,
         List<SoldierDto> soldiers,
         List<DonkeyDto> donkeys,
+        List<ShipDto> ships,
         List<int[]> territory,
         List<SignDto> signs,
         List<int[]> explored
@@ -140,6 +142,17 @@ public record GameStateDto(
      * @param state    donkey state
      */
     public record DonkeyDto(UUID id, int playerId, double x, double y, String state) {}
+
+    /**
+     * A ship sailing the seas.
+     *
+     * @param id       unique identifier
+     * @param playerId owning player
+     * @param x        horizontal position
+     * @param y        vertical position
+     * @param state    ship state
+     */
+    public record ShipDto(UUID id, int playerId, double x, double y, String state) {}
 
     /**
      * A geologist sign on a surveyed tile.

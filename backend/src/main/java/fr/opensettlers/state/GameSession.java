@@ -12,6 +12,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * A live game: its {@link GameState}, the queue of player commands awaiting the
+ * next tick, and the set of WebSocket connections (players and spectators) that
+ * receive state broadcasts. One session exists per running game.
+ */
 @Getter
 public class GameSession {
     private final UUID id;
@@ -28,6 +33,18 @@ public class GameSession {
     public GameSession(UUID id) {
         this.id = id;
         this.state = new GameState(id, new ArrayList<>());
+    }
+
+    /**
+     * Wraps a pre-built game state in a session, used when restoring a saved
+     * game from persistence.
+     *
+     * @param id    the session identifier
+     * @param state the game state to host
+     */
+    public GameSession(UUID id, GameState state) {
+        this.id = id;
+        this.state = state;
     }
 
     public void queueCommand(GameCommand command) {

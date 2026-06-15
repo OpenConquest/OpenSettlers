@@ -209,7 +209,7 @@ public class ConstructionSystem implements ISystem {
         state.getBuildings().remove(site);
         state.getBuildings().add(newBuilding);
 
-        WorkerType occupantRole = getWorkerTypeForBuilding(site.getTargetBuildingType());
+        WorkerType occupantRole = BuildingFactory.occupantRoleFor(site.getTargetBuildingType());
         if (occupantRole != null && newBuilding instanceof ProductionBuilding pb) {
             Worker specialist = spawnWorkerFromWarehouse(state, pb, occupantRole);
             if (specialist != null) {
@@ -260,34 +260,4 @@ public class ConstructionSystem implements ISystem {
         return closest;
     }
 
-    /**
-     * Maps a building name to its corresponding specialist worker type.
-     *
-     * @param name the building name
-     * @return the corresponding WorkerType, or null if none
-     */
-    private WorkerType getWorkerTypeForBuilding(BuildingName name) {
-        return switch (name) {
-            case WOODCUTTER -> WorkerType.WOODCUTTER;
-            case FORESTER -> WorkerType.FORESTER;
-            case QUARRY -> WorkerType.QUARRYMAN;
-            case MINE -> WorkerType.MINER;
-            case FISHING_HUT -> WorkerType.FISHERMAN;
-            case HUNTERS_HUT -> WorkerType.HUNTER;
-            case FARM -> WorkerType.FARMER;
-            case SAWMILL -> WorkerType.CARPENTER;
-            case MILL -> WorkerType.MILLER;
-            case BAKERY -> WorkerType.BAKER;
-            case PIG_FARM -> WorkerType.PIG_BREEDER;
-            case SLAUGHTERHOUSE -> WorkerType.BUTCHER;
-            case DONKEY_BREEDER -> WorkerType.DONKEY_BREEDER;
-            case BREWERY -> WorkerType.BREWER;
-            case FOUNDRY -> WorkerType.SMELTER;
-            case ARMORY -> WorkerType.SMITH;
-            case MINT -> WorkerType.MINTER;
-            case METALWORKS -> WorkerType.METALWORKER;
-            case CATAPULT -> WorkerType.HELPER;
-            default -> null;
-        };
-    }
 }

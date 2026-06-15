@@ -82,7 +82,9 @@ public abstract class Building {
             Map.entry(BuildingName.MINT, Map.of(ResourceType.PLANK, 2, ResourceType.STONE, 2)),
             Map.entry(BuildingName.METALWORKS, Map.of(ResourceType.PLANK, 2, ResourceType.STONE, 2)),
             Map.entry(BuildingName.CATAPULT, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 2)),
-            Map.entry(BuildingName.FORTRESS, Map.of(ResourceType.PLANK, 5, ResourceType.STONE, 9))
+            Map.entry(BuildingName.FORTRESS, Map.of(ResourceType.PLANK, 5, ResourceType.STONE, 9)),
+            Map.entry(BuildingName.HARBOR, Map.of(ResourceType.PLANK, 6, ResourceType.STONE, 6)),
+            Map.entry(BuildingName.SHIPYARD, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 3))
     );
 
     /**

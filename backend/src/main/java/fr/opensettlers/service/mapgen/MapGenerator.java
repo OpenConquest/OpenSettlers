@@ -15,6 +15,12 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * Procedural map generator. Combines layered {@link PerlinNoise} (elevation and
+ * moisture) to lay out a central continent of grass, forest, mountain, water and
+ * desert, then scatters harvestable resource nodes (trees, stone, ore deposits)
+ * with {@link PoisonDisk} sampling. Produces a fresh, balanced island every run.
+ */
 public class MapGenerator {
 
     public MapTile[][] generateContinentalGrid(int gridSizeX, int gridSizeY) {

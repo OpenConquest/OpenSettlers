@@ -2,6 +2,11 @@ package fr.opensettlers.service.mapgen;
 
 import java.util.Random;
 
+/**
+ * Classic 2D Perlin noise generator with a seeded permutation table. The
+ * {@link MapGenerator} uses it to produce smooth, natural-looking elevation and
+ * moisture fields from which terrain types are derived.
+ */
 public class PerlinNoise {
     private final int[] p = new int[512];
 

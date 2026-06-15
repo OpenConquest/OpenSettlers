@@ -25,9 +25,11 @@ public class GameController {
     /**
      * Request body for game creation.
      *
-     * @param playerCount the number of players (1 to 4)
+     * @param playerCount the total number of players (1 to 4)
+     * @param aiPlayers   how many of those players are computer-controlled
+     *                    (the last slots); {@code 0} for an all-human game
      */
-    public record CreateGameRequest(int playerCount) {}
+    public record CreateGameRequest(int playerCount, int aiPlayers) {}
 
     /**
      * Response body describing a created game.
@@ -47,12 +49,18 @@ public class GameController {
     @POST
     public Response createGame(CreateGameRequest request) {
         int playerCount = request != null ? request.playerCount() : 0;
+        int aiPlayers = request != null ? request.aiPlayers() : 0;
         if (playerCount < 1 || playerCount > 4) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"playerCount must be between 1 and 4\"}")
                     .build();
         }
-        GameSession session = gameEngineService.createGame(playerCount);
+        if (aiPlayers < 0 || aiPlayers > playerCount) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"aiPlayers must be between 0 and playerCount\"}")
+                    .build();
+        }
+        GameSession session = gameEngineService.createGame(playerCount, aiPlayers);
         return Response.status(Response.Status.CREATED)
                 .entity(new GameCreatedResponse(session.getId(), playerCount, "/game/" + session.getId()))
                 .build();

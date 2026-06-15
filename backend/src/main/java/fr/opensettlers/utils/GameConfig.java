@@ -113,6 +113,37 @@ public final class GameConfig {
     /** Extra vision beyond the territory radius of military buildings and headquarters. */
     public static final int VISION_TERRITORY_MARGIN = 2;
 
+    // --- AI (computer opponents) ---
+
+    /** Ticks between two decisions of a computer-controlled player. */
+    public static final int AI_DECISION_INTERVAL = 20;
+
+    /** Hex distance around its buildings within which the AI looks for build spots. */
+    public static final int AI_BUILD_SEARCH_RADIUS = 6;
+
+    /** Maximum hex distance the AI auto-connects a new building's flag to the network. */
+    public static final int AI_MAX_ROAD_LENGTH = 8;
+
+    /** Hex distance below which the AI orders an attack on a spotted enemy building. */
+    public static final int AI_ATTACK_RANGE = 12;
+
+    // --- Naval (ships, harbors, expeditions) ---
+
+    /** Planks a harbor must hold before it can launch a colonization expedition. */
+    public static final int EXPEDITION_PLANKS = 4;
+
+    /** Stones a harbor must hold before it can launch a colonization expedition. */
+    public static final int EXPEDITION_STONES = 4;
+
+    /** Ticks between two one-tile advances of a ship at sea. */
+    public static final int SHIP_MOVE_TICKS = 4;
+
+    /** Minimum water distance an expedition must cover (avoids landing next door). */
+    public static final int EXPEDITION_MIN_DISTANCE = 4;
+
+    /** Maximum water tiles a ship will search through when planning an expedition. */
+    public static final int EXPEDITION_MAX_SEARCH = 4000;
+
     /**
      * Returns the garrison capacity for a given military building type.
      */

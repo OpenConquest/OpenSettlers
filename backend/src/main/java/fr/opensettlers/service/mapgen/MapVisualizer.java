@@ -9,6 +9,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
 
+/**
+ * Developer utility that renders a generated map grid to a PNG image or an ASCII
+ * overview. Used to eyeball map generation; not part of the runtime game loop.
+ */
 public class MapVisualizer {
     
     public static void saveHexagonalMap(MapTile[][] gridMap, String filePath) throws Exception {

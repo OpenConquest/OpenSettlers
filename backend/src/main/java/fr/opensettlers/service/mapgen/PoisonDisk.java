@@ -6,6 +6,12 @@ import java.util.Random;
 
 import fr.opensettlers.utils.Coordinates;
 
+/**
+ * Poisson-disk sampler (Bridson's algorithm): produces points that are randomly
+ * but evenly spread, with no two closer than a minimum radius. The
+ * {@link MapGenerator} uses it to scatter resource clusters naturally across the
+ * map.
+ */
 public class PoisonDisk{
 
     private final double width;

@@ -127,6 +127,16 @@ public final class GameStateSerializer {
                     d.getState() != null ? d.getState().name() : null));
         }
 
+        List<GameStateDto.ShipDto> ships = new ArrayList<>();
+        for (Ship ship : state.getShips()) {
+            if (ship.getPosition() == null
+                    || !isVisible(viewerId, explored, ship.getPlayerId(), ship.getPosition())) continue;
+            ships.add(new GameStateDto.ShipDto(
+                    ship.getId(), ship.getPlayerId(),
+                    ship.getPosition().getX(), ship.getPosition().getY(),
+                    ship.getState() != null ? ship.getState().name() : null));
+        }
+
         List<int[]> territory = new ArrayList<>();
         List<GameStateDto.SignDto> signs = new ArrayList<>();
         for (MapTile tile : state.getMapTiles().values()) {
@@ -158,7 +168,7 @@ public final class GameStateSerializer {
 
         GameStateDto dto = new GameStateDto(
                 "STATE", state.getCurrentTick(),
-                buildings, flags, roads, workers, soldiers, donkeys,
+                buildings, flags, roads, workers, soldiers, donkeys, ships,
                 territory, signs, exploredList);
         return write(dto);
     }
@@ -179,6 +189,22 @@ public final class GameStateSerializer {
         if (viewerId == null) return true;
         if (ownerPlayerId == viewerId) return true;
         return explored.contains(position);
+    }
+
+    /**
+     * Serializes the terminal {@code GAME_OVER} message announcing the winner
+     * and the eliminated players.
+     *
+     * @param state the finished game state
+     * @return the JSON payload
+     */
+    public static String serializeGameOver(GameState state) {
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("type", "GAME_OVER");
+        dto.put("tick", state.getCurrentTick());
+        dto.put("winner", state.getWinnerPlayerId());
+        dto.put("eliminated", new ArrayList<>(state.getEliminatedPlayers()));
+        return write(dto);
     }
 
     /**

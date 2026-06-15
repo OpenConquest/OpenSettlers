@@ -83,7 +83,13 @@ public enum BuildingName {
     BARRACKS,
 
     /** Siege building that throws stones at enemy military buildings. */
-    CATAPULT;
+    CATAPULT,
+
+    /** Coastal warehouse able to launch and receive sea expeditions. */
+    HARBOR,
+
+    /** Coastal building that enables a player to send colonization expeditions. */
+    SHIPYARD;
 
     /**
      * Returns a user-friendly display name for this building.
@@ -120,6 +126,8 @@ public enum BuildingName {
             case FORTRESS -> "Fortress";
             case BARRACKS -> "Barracks";
             case CATAPULT -> "Catapult";
+            case HARBOR -> "Harbor";
+            case SHIPYARD -> "Shipyard";
         };
     }
 }

@@ -4,6 +4,7 @@ import fr.opensettlers.entities.Building;
 import fr.opensettlers.entities.Donkey;
 import fr.opensettlers.entities.Flag;
 import fr.opensettlers.entities.MapTile;
+import fr.opensettlers.entities.Ship;
 import fr.opensettlers.entities.Soldier;
 import fr.opensettlers.entities.Worker;
 import fr.opensettlers.systems.TransportManager;
@@ -40,6 +41,27 @@ public class GameState {
 
     /** All donkey units on the map (walking to or assisting main roads). */
     private final List<Donkey> donkeys = new ArrayList<>();
+
+    /** All ships sailing the seas (transport and colonization expeditions). */
+    private final List<Ship> ships = new ArrayList<>();
+
+    /** Total number of players (human and AI) the game was created with. */
+    private int playerCount;
+
+    /** Player IDs driven by the built-in computer opponent. */
+    private final Set<Integer> aiPlayers = new HashSet<>();
+
+    /**
+     * Players that have been eliminated (lost all their warehouses and
+     * headquarters). Maintained by {@link fr.opensettlers.systems.VictorySystem}.
+     */
+    private final Set<Integer> eliminatedPlayers = new HashSet<>();
+
+    /** Winner player ID once the game is over, or {@code null} while ongoing. */
+    private Integer winnerPlayerId;
+
+    /** Whether the game has ended (a winner was decided or everyone is gone). */
+    private boolean over = false;
 
     /** Per-player exploration state (fog of war). */
     private final FogOfWarManager fogOfWar = new FogOfWarManager();
@@ -113,6 +135,9 @@ public class GameState {
 
         // Workers (clean up workers that have been dismissed/removed)
         workers.removeIf(w -> w.getState() == null);
+
+        // Ships (clean up expeditions that have landed)
+        ships.removeIf(Ship::isFinished);
     }
 
     /**

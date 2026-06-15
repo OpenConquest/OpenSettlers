@@ -65,8 +65,20 @@ public class GameEngine implements Runnable {
     /** System managing geologists surveying the mountains. */
     private final GeologistSystem geologistSystem = new GeologistSystem();
 
+    /** System managing sea expeditions launched from harbors. */
+    private final NavalSystem navalSystem = new NavalSystem();
+
+    /** System driving the built-in computer opponents. */
+    private final AiSystem aiSystem = new AiSystem();
+
     /** System refreshing the per-player fog of war. */
     private final VisionSystem visionSystem = new VisionSystem();
+
+    /** System detecting player elimination and deciding the winner. */
+    private final VictorySystem victorySystem = new VictorySystem();
+
+    /** Whether the terminal GAME_OVER message has already been broadcast. */
+    private boolean gameOverBroadcast = false;
 
     /** Starts the game and launches the game loop. */
     public synchronized void start() {
@@ -110,6 +122,7 @@ public class GameEngine implements Runnable {
 
         state.tick();
 
+        aiSystem.process(state);
         militarySystem.process(state);
         combatSystem.process(state);
         catapultSystem.process(state);
@@ -121,9 +134,29 @@ public class GameEngine implements Runnable {
         productionSystem.process(state);
         transportSystem.process(state);
         donkeySystem.process(state);
+        navalSystem.process(state);
         visionSystem.process(state);
+        victorySystem.process(state);
 
         broadcastState();
+
+        if (state.isOver() && !gameOverBroadcast) {
+            gameOverBroadcast = true;
+            broadcastGameOver();
+            stop();
+        }
+    }
+
+    /** Broadcasts the terminal GAME_OVER message to every connected client. */
+    private void broadcastGameOver() {
+        String payload = GameStateSerializer.serializeGameOver(session.getState());
+        for (WebSocketConnection conn : session.getConnections()) {
+            if (conn.isOpen()) {
+                conn.sendTextAndAwait(payload);
+            }
+        }
+        LOG.infof("Game %s over — winner: %s", session.getId(),
+                session.getState().getWinnerPlayerId());
     }
 
     /**

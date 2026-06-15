@@ -6,6 +6,7 @@ import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.WorkerType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +61,11 @@ public class BuildingFactory {
         Building building = switch (type) {
             case HEADQUARTERS -> new StorageBuilding(playerId, position, new HashMap<>(HEADQUARTERS_STOCK));
             case WAREHOUSE -> new StorageBuilding(playerId, position, new HashMap<>());
+
+            // --- NAVAL ---
+            // A harbor is a coastal warehouse that can launch sea expeditions.
+            case HARBOR -> new StorageBuilding(playerId, position, new HashMap<>());
+            case SHIPYARD -> new ShipyardBuilding(playerId, position);
 
             // --- RAW EXTRACTORS ---
             case WOODCUTTER -> new RawExtractor(playerId, position, ResourceType.LOG, BuildingName.WOODCUTTER);
@@ -134,5 +140,37 @@ public class BuildingFactory {
 
     private static Recipe getRecipe(ResourceType outputType) {
         return new Recipe(Recipe.RECIPES.get(outputType), outputType);
+    }
+
+    /**
+     * Maps a building type to the specialist worker that occupies it once built.
+     *
+     * @param name the building type
+     * @return the occupying worker role, or {@code null} for buildings without a
+     *         specialist occupant (storage, military, naval)
+     */
+    public static WorkerType occupantRoleFor(BuildingName name) {
+        return switch (name) {
+            case WOODCUTTER -> WorkerType.WOODCUTTER;
+            case FORESTER -> WorkerType.FORESTER;
+            case QUARRY -> WorkerType.QUARRYMAN;
+            case MINE -> WorkerType.MINER;
+            case FISHING_HUT -> WorkerType.FISHERMAN;
+            case HUNTERS_HUT -> WorkerType.HUNTER;
+            case FARM -> WorkerType.FARMER;
+            case SAWMILL -> WorkerType.CARPENTER;
+            case MILL -> WorkerType.MILLER;
+            case BAKERY -> WorkerType.BAKER;
+            case PIG_FARM -> WorkerType.PIG_BREEDER;
+            case SLAUGHTERHOUSE -> WorkerType.BUTCHER;
+            case DONKEY_BREEDER -> WorkerType.DONKEY_BREEDER;
+            case BREWERY -> WorkerType.BREWER;
+            case FOUNDRY -> WorkerType.SMELTER;
+            case ARMORY -> WorkerType.SMITH;
+            case MINT -> WorkerType.MINTER;
+            case METALWORKS -> WorkerType.METALWORKER;
+            case CATAPULT -> WorkerType.HELPER;
+            default -> null;
+        };
     }
 }

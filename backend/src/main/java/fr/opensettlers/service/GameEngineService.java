@@ -1,15 +1,14 @@
 package fr.opensettlers.service;
 
 import fr.opensettlers.utils.GameConfig;
-import fr.opensettlers.service.GameEngine;
 import fr.opensettlers.state.GameSession;
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.service.mapgen.MapGenerator;
-import fr.opensettlers.entities.*;
+import fr.opensettlers.entities.Building;
+import fr.opensettlers.entities.BuildingFactory;
+import fr.opensettlers.entities.MapTile;
 import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.SoldierState;
-import fr.opensettlers.utils.TileType;
 import fr.opensettlers.controller.GameMessage;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -46,9 +45,28 @@ public class GameEngineService {
      * @return the created game session
      */
     public GameSession createGame(int playerCount) {
+        return createGame(playerCount, 0);
+    }
+
+    /**
+     * Creates a new game with a number of computer-controlled opponents. The
+     * last {@code aiPlayers} player slots are driven by the built-in AI; the
+     * remaining slots are reserved for human players.
+     *
+     * @param playerCount total number of players (human and AI)
+     * @param aiPlayers   how many of those players are computer-controlled
+     * @return the created game session
+     */
+    public GameSession createGame(int playerCount, int aiPlayers) {
         UUID gameId = UUID.randomUUID();
         GameSession session = new GameSession(gameId);
         GameState state = session.getState();
+        state.setPlayerCount(playerCount);
+
+        int aiCount = Math.max(0, Math.min(aiPlayers, playerCount));
+        for (int playerId = playerCount - aiCount; playerId < playerCount; playerId++) {
+            state.getAiPlayers().add(playerId);
+        }
 
         MapTile[][] grid = new MapGenerator()
                 .generateContinentalGrid(GameConfig.MAP_SIZE, GameConfig.MAP_SIZE);
@@ -61,8 +79,26 @@ public class GameEngineService {
         engines.put(gameId, engine);
         engine.start();
 
-        LOG.infof("Game %s created with %d players (map %dx%d)",
-                gameId, playerCount, GameConfig.MAP_SIZE, GameConfig.MAP_SIZE);
+        LOG.infof("Game %s created with %d players (%d AI, map %dx%d)",
+                gameId, playerCount, aiCount, GameConfig.MAP_SIZE, GameConfig.MAP_SIZE);
+        return session;
+    }
+
+    /**
+     * Registers a game restored from a snapshot and starts its loop.
+     *
+     * @param state the reconstructed game state (its game ID becomes the new game ID)
+     * @return the created game session
+     */
+    public GameSession loadGame(GameState state) {
+        UUID gameId = state.getGameId();
+        GameSession session = new GameSession(gameId, state);
+        sessions.put(gameId, session);
+        GameEngine engine = new GameEngine(session, executor);
+        engines.put(gameId, engine);
+        engine.start();
+        LOG.infof("Game %s restored from save (%d players, tick %d)",
+                gameId, state.getPlayerCount(), state.getCurrentTick());
         return session;
     }
 
@@ -146,183 +182,59 @@ public class GameEngineService {
      * @param message the player action
      */
     private void applyMessage(GameState state, GameMessage message) {
+        int playerId = message.getPlayerId();
         switch (message.getType()) {
-            case BUILD_BUILDING -> handleBuild(state, message);
+            case BUILD_BUILDING -> {
+                if (GameActions.placeBuilding(state, playerId, message.getBuildingName(), message.getPosition())) {
+                    LOG.infof("Construction site for %s placed at %s",
+                            message.getBuildingName(), message.getPosition());
+                } else {
+                    LOG.warnf("Invalid placement for %s at %s by player %d",
+                            message.getBuildingName(), message.getPosition(), playerId);
+                }
+            }
 
             case DESTROY_BUILDING -> {
-                Building b = state.getBuildings().stream()
-                        .filter(x -> x.getId().equals(message.getTargetId()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (b != null && b.getPlayerId() == message.getPlayerId()) {
-                    b.destroy(); // Flags and building marked as destroyed
-                    if (b instanceof MilitaryBuilding || b instanceof StorageBuilding) {
-                        state.getTerritoryManager().recalculate(state);
-                    }
-                    LOG.infof("Building %s destroyed.", b.getId());
+                if (GameActions.destroyBuilding(state, playerId, message.getTargetId())) {
+                    LOG.infof("Building %s destroyed.", message.getTargetId());
                 }
             }
 
             case PLACE_FLAG -> {
-                if (!state.getTerritoryManager().canBuild(message.getPlayerId(), message.getPosition())) {
-                    LOG.warnf("Player %d cannot place a flag outside their territory", message.getPlayerId());
-                    return;
+                if (GameActions.placeFlag(state, playerId, message.getPosition()) != null) {
+                    LOG.infof("Flag placed at %s", message.getPosition());
+                } else {
+                    LOG.warnf("Player %d cannot place a flag outside their territory", playerId);
                 }
-                Flag flag = new Flag(UUID.randomUUID(), message.getPlayerId(), message.getPosition());
-                state.getFlags().add(flag);
-                state.getRoadNetwork().addFlag(flag);
-                LOG.infof("Flag placed at %s", message.getPosition());
             }
 
             case LINK_FLAGS -> {
-                Flag flagA = state.getRoadNetwork().getFlagById(message.getFlagIdA());
-                Flag flagB = state.getRoadNetwork().getFlagById(message.getFlagIdB());
-
-                if (flagA != null && flagB != null) {
-                    state.getRoadNetwork().addRoad(flagA, flagB, message.getPath());
-                    LOG.infof("Road created between %s and %s", flagA.getId(), flagB.getId());
+                if (GameActions.linkFlags(state, message.getFlagIdA(), message.getFlagIdB(), message.getPath())) {
+                    LOG.infof("Road created between %s and %s", message.getFlagIdA(), message.getFlagIdB());
                 } else {
                     LOG.warn("Failed to link flags: a flag was not found.");
                 }
             }
 
-            case ATTACK_BUILDING -> handleAttack(state, message);
+            case ATTACK_BUILDING -> {
+                int dispatched = GameActions.attack(state, playerId, message.getTargetId());
+                if (dispatched < 0) {
+                    LOG.warn("Invalid attack target.");
+                } else {
+                    LOG.infof("Attack order on %s: %d soldiers dispatched",
+                            message.getTargetId(), dispatched);
+                }
+            }
 
-            case SEND_GEOLOGIST -> handleSendGeologist(state, message);
-        }
-    }
-
-    /**
-     * Sends a geologist to survey the mountains around a flag. The geologist
-     * is trained (one settler + one tool) at the nearest warehouse able to,
-     * then walks to the flag along the road network.
-     *
-     * @param state   the game state
-     * @param message the order, with {@code targetId} holding the flag ID
-     */
-    private void handleSendGeologist(GameState state, GameMessage message) {
-        Flag target = state.getRoadNetwork().getFlagById(message.getTargetId());
-        if (target == null || target.isDestroyed() || target.getPlayerId() != message.getPlayerId()) {
-            LOG.warnf("Invalid geologist target flag %s for player %d",
-                    message.getTargetId(), message.getPlayerId());
-            return;
-        }
-
-        StorageBuilding source = null;
-        double minDist = Double.MAX_VALUE;
-        for (Building b : state.getBuildings()) {
-            if (b instanceof StorageBuilding sb && !sb.isDestroyed()
-                    && sb.getPlayerId() == message.getPlayerId() && sb.canSpawnWorker()) {
-                double dist = sb.getPosition().distanceTo(target.getCoordinates());
-                if (dist < minDist) {
-                    minDist = dist;
-                    source = sb;
+            case SEND_GEOLOGIST -> {
+                if (GameActions.sendGeologist(state, playerId, message.getTargetId())) {
+                    LOG.infof("Geologist dispatched to flag %s", message.getTargetId());
+                } else {
+                    LOG.warnf("Player %d cannot dispatch a geologist to flag %s",
+                            playerId, message.getTargetId());
                 }
             }
         }
-        if (source == null) {
-            LOG.warnf("Player %d has no warehouse able to train a geologist", message.getPlayerId());
-            return;
-        }
-
-        Worker geologist = source.spawnWorker(
-                fr.opensettlers.utils.WorkerType.GEOLOGIST, source.getPosition());
-        geologist.setTargetFlagId(target.getId());
-        geologist.setSurveysLeft(GameConfig.GEOLOGIST_SURVEYS);
-        state.getWorkers().add(geologist);
-        LOG.infof("Geologist dispatched to flag %s", target.getId());
-    }
-
-    /**
-     * Validates terrain and territory, then places a construction site.
-     *
-     * @param state   the game state
-     * @param message the build order
-     */
-    private void handleBuild(GameState state, GameMessage message) {
-        if (!isPlacementValid(state, message.getBuildingName(), message.getPosition(), message.getPlayerId())) {
-            LOG.warnf("Invalid placement for %s at %s by player %d",
-                    message.getBuildingName(), message.getPosition(), message.getPlayerId());
-            return;
-        }
-
-        ConstructionSite site = new ConstructionSite(
-                message.getPlayerId(),
-                message.getPosition(),
-                message.getBuildingName()
-        );
-        state.getBuildings().add(site);
-        state.getRoadNetwork().addFlag(site.getAttachedFlag());
-        LOG.infof("Construction site for %s placed at %s", message.getBuildingName(), message.getPosition());
-    }
-
-    /**
-     * Checks terrain and ownership rules for a building placement.
-     * Mines must stand on owned mountain tiles; everything else needs owned grass.
-     *
-     * @param state    the game state
-     * @param name     the building type
-     * @param position the desired position
-     * @param playerId the building player
-     * @return {@code true} if the placement is allowed
-     */
-    private boolean isPlacementValid(GameState state, BuildingName name, Coordinates position, int playerId) {
-        MapTile tile = state.getTile(position);
-        if (tile == null || !state.getTerritoryManager().canBuild(playerId, position)) {
-            return false;
-        }
-        if (name == BuildingName.MINE) {
-            return tile.getType() == TileType.MOUNTAIN;
-        }
-        return tile.isBuildable();
-    }
-
-    /**
-     * Sends soldiers from the player's nearby military buildings toward an enemy building.
-     * Each garrison keeps one defender behind.
-     *
-     * @param state   the game state
-     * @param message the attack order
-     */
-    private void handleAttack(GameState state, GameMessage message) {
-        Building target = state.getBuildings().stream()
-                .filter(x -> x.getId().equals(message.getTargetId()))
-                .findFirst()
-                .orElse(null);
-
-        if (target == null || target.isDestroyed() || target.getPlayerId() == message.getPlayerId()) {
-            LOG.warn("Invalid attack target.");
-            return;
-        }
-        if (!(target instanceof MilitaryBuilding) && !(target instanceof StorageBuilding)) {
-            LOG.warn("Only military buildings and warehouses can be attacked.");
-            return;
-        }
-
-        int dispatched = 0;
-        for (Building b : state.getBuildings()) {
-            if (!(b instanceof MilitaryBuilding mb) || mb.isDestroyed()
-                    || mb.getPlayerId() != message.getPlayerId()) {
-                continue;
-            }
-            if (mb.getPosition().distanceTo(target.getPosition()) > GameConfig.ATTACK_RADIUS) {
-                continue;
-            }
-
-            // Keep one defender in each garrison
-            while (mb.getSoldiers().size() > 1) {
-                Soldier soldier = mb.removeFirstSoldier();
-                soldier.setPosition(new Coordinates(
-                        mb.getPosition().getX(), mb.getPosition().getY()));
-                soldier.setState(SoldierState.MARCHING_TO_ATTACK);
-                soldier.setTargetBuilding(target);
-                soldier.setGarrison(null);
-                state.getSoldiers().add(soldier);
-                dispatched++;
-            }
-        }
-        LOG.infof("Attack order on %s: %d soldiers dispatched", target.getId(), dispatched);
     }
 
     /**
