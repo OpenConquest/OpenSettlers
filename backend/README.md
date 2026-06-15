@@ -2,28 +2,38 @@
 
 Backend of OpenSettlers, a clone of The Settlers II (10th Anniversary): map
 generation, economy (roads, carriers, supply/demand), construction, production
-chains tied to map resources, and military (recruitment, attack, capture).
+chains tied to map resources, military (recruitment, attack, capture, catapults),
+sea expeditions, computer opponents, win conditions, and save/load.
+
+See [CLAUDE.md](CLAUDE.md) for the architecture and developer conventions.
 
 ## Game API
 
-REST (lobby):
+REST (lobby & saves):
 
-- `POST /games` with `{"playerCount": 2}` → creates a game (map generated, one
-  headquarters per player, game loop started) and returns `gameId`.
+- `POST /games` with `{"playerCount": 2, "aiPlayers": 1}` → creates a game (map
+  generated, one headquarters per player, game loop started) and returns
+  `gameId`. `aiPlayers` (optional) makes the last slots computer-controlled.
 - `GET /games` → lists active game IDs.
 - `DELETE /games/{gameId}` → stops a game.
+- `POST /games/{gameId}/save` with `{"name": "..."}` → persists a snapshot,
+  returns a `saveId`.
+- `GET /saves` → lists saved games.
+- `POST /saves/{saveId}/load` → restores a save as a new running game.
 
-WebSocket (real time): `ws://localhost:8080/game/{gameId}`
+WebSocket (real time): `ws://localhost:8080/game/{gameId}?playerId=N`
+(omit `playerId` for a spectator).
 
 - On connect the server sends a `MAP` message (terrain, elevation, natural
   resources), then a `STATE` message every tick (buildings, flags, roads,
-  carriers, workers, soldiers, territory owners).
+  carriers, workers, soldiers, ships, territory owners), and a final `GAME_OVER`.
 - Client actions are JSON messages with a `type` of `BUILD_BUILDING`,
-  `DESTROY_BUILDING`, `PLACE_FLAG`, `LINK_FLAGS` or `ATTACK_BUILDING`
-  (see `fr.opensettlers.network.GameMessage`).
+  `DESTROY_BUILDING`, `PLACE_FLAG`, `LINK_FLAGS`, `ATTACK_BUILDING` or
+  `SEND_GEOLOGIST` (see `fr.opensettlers.controller.GameMessage`).
 
-Engine tuning lives in `application.properties` (`opensettlers.*`: tick rate,
-map size, production time, soldier speed, attack radius).
+Engine tuning (tick rate, map size, production time, soldier speed, attack
+radius, AI cadence, naval expeditions, …) lives as constants in
+`fr.opensettlers.utils.GameConfig`.
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
