@@ -1,6 +1,7 @@
 package fr.opensettlers.persistence;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,6 +51,12 @@ public class GameSnapshot {
     /** All roads of the network. */
     public List<RoadSnap> roads = new ArrayList<>();
 
+    /** Per-player distribution priorities (playerId → good name → ordered building names). */
+    public Map<Integer, Map<String, List<String>>> distributionPriorities = new HashMap<>();
+
+    /** Per-player target garrison occupation percentage. */
+    public Map<Integer, Integer> militaryOccupation = new HashMap<>();
+
     /** A single map tile. */
     public static class TileSnap {
         /** Horizontal coordinate. */
@@ -96,6 +103,10 @@ public class GameSnapshot {
         public List<String> garrisonRanks;
         /** Stored gold coins (military buildings only). */
         public int storedCoins;
+        /** Whether production is paused (production buildings only). */
+        public Boolean productionPaused;
+        /** Whether coin delivery is enabled (military buildings only). */
+        public Boolean coinsAllowed;
     }
 
     /** A road between two flags. */

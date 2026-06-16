@@ -5,6 +5,7 @@ import fr.opensettlers.entities.ConstructionSite;
 import fr.opensettlers.entities.Flag;
 import fr.opensettlers.entities.MapTile;
 import fr.opensettlers.entities.MilitaryBuilding;
+import fr.opensettlers.entities.ProductionBuilding;
 import fr.opensettlers.entities.Soldier;
 import fr.opensettlers.entities.StorageBuilding;
 import fr.opensettlers.entities.Worker;
@@ -12,11 +13,14 @@ import fr.opensettlers.state.GameState;
 import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.GameConfig;
+import fr.opensettlers.utils.ResourceType;
 import fr.opensettlers.utils.SoldierState;
 import fr.opensettlers.utils.TileType;
 import fr.opensettlers.utils.WorkerType;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -233,6 +237,76 @@ public final class GameActions {
         geologist.setTargetFlagId(target.getId());
         geologist.setSurveysLeft(GameConfig.GEOLOGIST_SURVEYS);
         state.getWorkers().add(geologist);
+        return true;
+    }
+
+    /**
+     * Pauses or resumes production at one of the player's own production
+     * buildings.
+     *
+     * @param state    the game state to mutate
+     * @param playerId the player owning the building
+     * @param targetId the production building to toggle
+     * @param enabled  {@code true} to produce, {@code false} to pause
+     * @return {@code true} if the building was toggled
+     */
+    public static boolean setProduction(GameState state, int playerId, UUID targetId, boolean enabled) {
+        Building b = findBuilding(state, targetId);
+        if (b instanceof ProductionBuilding pb && !b.isDestroyed() && b.getPlayerId() == playerId) {
+            pb.setProductionPaused(!enabled);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Enables or disables gold-coin delivery to one of the player's own military
+     * buildings.
+     *
+     * @param state    the game state to mutate
+     * @param playerId the player owning the building
+     * @param targetId the military building to toggle
+     * @param enabled  {@code true} to accept coins, {@code false} to refuse them
+     * @return {@code true} if the building was toggled
+     */
+    public static boolean setCoinDelivery(GameState state, int playerId, UUID targetId, boolean enabled) {
+        Building b = findBuilding(state, targetId);
+        if (b instanceof MilitaryBuilding mb && !b.isDestroyed() && b.getPlayerId() == playerId) {
+            mb.setCoinsAllowed(enabled);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Sets the player's distribution priority order of consumer buildings for a
+     * contested good.
+     *
+     * @param state      the game state to mutate
+     * @param playerId   the player whose preferences to change
+     * @param type       the contested good
+     * @param priorities the ordered consumer building types, highest first
+     * @return {@code true} if the preferences were updated
+     */
+    public static boolean setDistribution(GameState state, int playerId, ResourceType type, List<BuildingName> priorities) {
+        if (type == null || priorities == null) {
+            return false;
+        }
+        state.getDistributionFor(playerId).put(type, new ArrayList<>(priorities));
+        return true;
+    }
+
+    /**
+     * Sets the player's target garrison occupation (military strength), clamped
+     * to [0, 100].
+     *
+     * @param state    the game state to mutate
+     * @param playerId the player whose preference to change
+     * @param percent  the desired occupation percentage
+     * @return {@code true} (always accepted; the value is clamped)
+     */
+    public static boolean setMilitaryOccupation(GameState state, int playerId, int percent) {
+        state.setMilitaryOccupationOf(playerId, percent);
         return true;
     }
 

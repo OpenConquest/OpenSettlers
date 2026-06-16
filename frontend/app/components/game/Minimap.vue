@@ -115,12 +115,16 @@ watch(() => [camera.x, camera.y, camera.zoom, camera.viewW, camera.viewH], draw)
 </script>
 
 <template>
-  <div class="absolute right-4 top-16 rounded-lg border border-border bg-card/90 p-1.5 shadow-lg backdrop-blur">
+  <div class="dark-wood z-50 rounded-sm p-2">
+    <div class="mb-1.5 flex items-center justify-between px-0.5">
+      <span class="cinzel-title text-[11px] font-bold tracking-widest text-[#f4e8c1]">MAP</span>
+      <span class="text-[9px] font-bold text-[#f4e8c1]/60">click to recenter</span>
+    </div>
     <canvas
       ref="canvasRef"
       :width="SIZE"
       :height="SIZE"
-      class="cursor-pointer rounded"
+      class="cursor-pointer rounded-sm border-2 border-[#1a0f05] shadow-[inset_0_0_12px_rgba(0,0,0,0.9)]"
       @click="onClick"
     />
   </div>

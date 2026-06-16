@@ -2,6 +2,7 @@ package fr.opensettlers.controller;
 
 import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.utils.ResourceType;
 import lombok.Data;
 
 import java.util.List;
@@ -28,8 +29,24 @@ public class GameMessage {
     private UUID targetId;
     
     // --- Attributes for LINK_FLAGS ---
+    @com.fasterxml.jackson.annotation.JsonProperty("flagIdA")
     private UUID flagIdA;
+    @com.fasterxml.jackson.annotation.JsonProperty("flagIdB")
     private UUID flagIdB;
     /** Intermediate path coordinates (excluding the two endpoint flags). */
     private List<Coordinates> path;
+
+    // --- Attributes for SET_PRODUCTION / SET_COIN_DELIVERY ---
+    /** Toggle value: true to produce / deliver coins, false to pause / stop. */
+    private boolean enabled;
+
+    // --- Attributes for SET_DISTRIBUTION ---
+    /** The contested good whose distribution order is being set. */
+    private ResourceType resourceType;
+    /** Ordered consumer building types, highest priority first. */
+    private List<BuildingName> priorities;
+
+    // --- Attributes for SET_MILITARY ---
+    /** Target garrison occupation percentage (0–100). */
+    private int militaryOccupation;
 }

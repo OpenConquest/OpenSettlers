@@ -35,6 +35,13 @@ public class MilitaryBuilding extends Building {
     /** Gold coins stored for soldier promotions (max set by GameConfig.coinCapacity). */
     private int storedCoins = 0;
 
+    /**
+     * Whether this building accepts gold-coin deliveries for promotions. When the
+     * player switches coins off, the economy stops routing coins here, mirroring
+     * the per-building coin toggle of the original game.
+     */
+    private boolean coinsAllowed = true;
+
     /** Ticks remaining before the next promotion can happen in this building. */
     private int promotionCooldown = 0;
 

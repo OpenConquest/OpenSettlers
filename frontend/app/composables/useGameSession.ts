@@ -15,6 +15,7 @@ import type {
   Coordinates,
   GameOverMessage,
   MapMessage,
+  ResourceType,
   ServerMessage,
   StateMessage,
   TileDto,
@@ -165,6 +166,18 @@ const actions = {
     send({ type: "LINK_FLAGS", flagIdA, flagIdB, path }),
   attack: (targetId: string) => send({ type: "ATTACK_BUILDING", targetId }),
   sendGeologist: (flagId: string) => send({ type: "SEND_GEOLOGIST", targetId: flagId }),
+  /** Pause (`enabled: false`) or resume a production building. */
+  setProduction: (targetId: string, enabled: boolean) =>
+    send({ type: "SET_PRODUCTION", targetId, enabled }),
+  /** Toggle gold-coin delivery to a military building. */
+  setCoinDelivery: (targetId: string, enabled: boolean) =>
+    send({ type: "SET_COIN_DELIVERY", targetId, enabled }),
+  /** Set the priority order of consumer buildings for a contested good. */
+  setDistribution: (resourceType: ResourceType, priorities: BuildingName[]) =>
+    send({ type: "SET_DISTRIBUTION", resourceType, priorities }),
+  /** Set the target garrison occupation percentage (0–100). */
+  setMilitary: (militaryOccupation: number) =>
+    send({ type: "SET_MILITARY", militaryOccupation }),
 };
 
 export function useGameSession() {

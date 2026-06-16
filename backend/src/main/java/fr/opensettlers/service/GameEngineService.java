@@ -234,6 +234,33 @@ public class GameEngineService {
                             playerId, message.getTargetId());
                 }
             }
+
+            case SET_PRODUCTION -> {
+                if (GameActions.setProduction(state, playerId, message.getTargetId(), message.isEnabled())) {
+                    LOG.infof("Production %s for building %s",
+                            message.isEnabled() ? "resumed" : "paused", message.getTargetId());
+                }
+            }
+
+            case SET_COIN_DELIVERY -> {
+                if (GameActions.setCoinDelivery(state, playerId, message.getTargetId(), message.isEnabled())) {
+                    LOG.infof("Coin delivery %s for building %s",
+                            message.isEnabled() ? "enabled" : "disabled", message.getTargetId());
+                }
+            }
+
+            case SET_DISTRIBUTION -> {
+                if (GameActions.setDistribution(state, playerId, message.getResourceType(), message.getPriorities())) {
+                    LOG.infof("Distribution priorities updated for %s by player %d",
+                            message.getResourceType(), playerId);
+                }
+            }
+
+            case SET_MILITARY -> {
+                GameActions.setMilitaryOccupation(state, playerId, message.getMilitaryOccupation());
+                LOG.infof("Military occupation set to %d%% by player %d",
+                        message.getMilitaryOccupation(), playerId);
+            }
         }
     }
 

@@ -20,8 +20,15 @@ import java.util.UUID;
  * @param ships     all ships sailing the seas
  * @param territory owned tiles as [x, y, playerId] triples (unowned tiles omitted)
  * @param signs     geologist signs as one entry per surveyed tile
+ * @param resources live natural-resource nodes on explored tiles (trees, stone,
+ *                  ore, fish, water) with their remaining quantity
  * @param explored  tiles explored by the receiving player as [x, y] pairs
  *                  ({@code null} for spectators, who see everything)
+ * @param distribution the receiving player's distribution priority order per
+ *                  contested good (good name → ordered consumer building names);
+ *                  {@code null} for spectators
+ * @param militaryOccupation the receiving player's target garrison occupation
+ *                  percentage (0–100); {@code null} for spectators
  */
 public record GameStateDto(
         String type,
@@ -35,7 +42,10 @@ public record GameStateDto(
         List<ShipDto> ships,
         List<int[]> territory,
         List<SignDto> signs,
-        List<int[]> explored
+        List<ResourceTileDto> resources,
+        List<int[]> explored,
+        Map<String, List<String>> distribution,
+        Integer militaryOccupation
 ) {
     /**
      * A building as seen by the client.
@@ -54,6 +64,8 @@ public record GameStateDto(
      * @param garrison          garrisoned soldier count (military buildings only)
      * @param maxGarrison       garrison capacity (military buildings only)
      * @param coins             stored gold coins (military buildings only)
+     * @param productionPaused  whether production is paused (production buildings only)
+     * @param coinsAllowed      whether coin delivery is enabled (military buildings only)
      */
     public record BuildingDto(
             UUID id,
@@ -69,7 +81,9 @@ public record GameStateDto(
             Map<String, Integer> storedResources,
             Integer garrison,
             Integer maxGarrison,
-            Integer coins
+            Integer coins,
+            Boolean productionPaused,
+            Boolean coinsAllowed
     ) {}
 
     /**
@@ -162,4 +176,14 @@ public record GameStateDto(
      * @param resource ore found on this tile, or {@code null} for an empty sign
      */
     public record SignDto(int x, int y, String resource) {}
+
+    /**
+     * A live natural-resource node on an explored tile.
+     *
+     * @param x        horizontal position
+     * @param y        vertical position
+     * @param resource resource type provided by the node (e.g. {@code LOG}, {@code STONE})
+     * @param quantity remaining harvestable quantity
+     */
+    public record ResourceTileDto(int x, int y, String resource, int quantity) {}
 }

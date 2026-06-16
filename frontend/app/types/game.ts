@@ -119,8 +119,17 @@ export interface StateMessage {
   /** `[x, y, playerId]` triples for owned tiles. */
   territory: [number, number, number][];
   signs: SignDto[];
+  /** Live natural-resource nodes on explored tiles (trees, ore, fish, …). */
+  resources: ResourceTileDto[];
   /** `[x, y]` pairs explored by the viewer, or `null` for spectators. */
   explored: [number, number][] | null;
+  /**
+   * The viewer's distribution priority order per contested good (good →
+   * ordered consumer building names). `null` for spectators.
+   */
+  distribution: Partial<Record<ResourceType, BuildingName[]>> | null;
+  /** The viewer's target garrison occupation percentage (0–100). `null` for spectators. */
+  militaryOccupation: number | null;
 }
 
 export interface BuildingDto {
@@ -138,6 +147,10 @@ export interface BuildingDto {
   garrison: number | null;
   maxGarrison: number | null;
   coins: number | null;
+  /** Whether production is paused (production buildings only). */
+  productionPaused: boolean | null;
+  /** Whether gold-coin delivery is enabled (military buildings only). */
+  coinsAllowed: boolean | null;
 }
 
 export interface FlagDto {
@@ -207,6 +220,14 @@ export interface SignDto {
   resource: ResourceType | null;
 }
 
+/** A live natural-resource node on an explored tile, with remaining quantity. */
+export interface ResourceTileDto {
+  x: number;
+  y: number;
+  resource: ResourceType;
+  quantity: number;
+}
+
 export interface GameOverMessage {
   type: "GAME_OVER";
   tick: number;
@@ -224,7 +245,11 @@ export type MessageType =
   | "PLACE_FLAG"
   | "LINK_FLAGS"
   | "ATTACK_BUILDING"
-  | "SEND_GEOLOGIST";
+  | "SEND_GEOLOGIST"
+  | "SET_PRODUCTION"
+  | "SET_COIN_DELIVERY"
+  | "SET_DISTRIBUTION"
+  | "SET_MILITARY";
 
 /** Mirror of `fr.opensettlers.controller.GameMessage`. Unused fields stay omitted. */
 export interface ClientMessage {
@@ -236,6 +261,14 @@ export interface ClientMessage {
   flagIdA?: string;
   flagIdB?: string;
   path?: Coordinates[];
+  /** Toggle value for SET_PRODUCTION / SET_COIN_DELIVERY. */
+  enabled?: boolean;
+  /** Contested good for SET_DISTRIBUTION. */
+  resourceType?: ResourceType;
+  /** Ordered consumer building types for SET_DISTRIBUTION (highest first). */
+  priorities?: BuildingName[];
+  /** Target garrison occupation percentage for SET_MILITARY (0–100). */
+  militaryOccupation?: number;
 }
 
 /* -------------------------------------------------------------------------- */

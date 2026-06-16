@@ -34,6 +34,17 @@ public class ProductionSystem implements ISystem {
         }
 
         for (ProductionBuilding pb : productionBuildings) {
+            // Paused by the player: keep the occupant but produce nothing.
+            if (pb.isProductionPaused()) {
+                pb.setProductivity(0);
+                pb.setWaitingTicks(0);
+                Worker occ = pb.getOccupant();
+                if (occ != null && occ.getState() == WorkerState.WORKING) {
+                    occ.setState(WorkerState.WAITING);
+                }
+                continue;
+            }
+
             Worker occupant = pb.getOccupant();
             if (occupant == null || (occupant.getState() != WorkerState.WORKING && occupant.getState() != WorkerState.WAITING)) {
                 pb.setProductivity(0);

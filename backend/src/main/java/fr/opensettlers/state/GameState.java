@@ -72,12 +72,71 @@ public class GameState {
     /** Territory ownership manager, recalculated when military buildings change. */
     private final TerritoryManager territoryManager = new TerritoryManager();
 
-    /** Global resource distribution priorities. */
-    private final Map<ResourceType, List<BuildingName>> resourceDistributionPriorities = new HashMap<>() {{
-        put(ResourceType.LOG, List.of(BuildingName.SAWMILL, BuildingName.MINE));
-        put(ResourceType.COAL, List.of(BuildingName.FOUNDRY, BuildingName.ARMORY));
-        put(ResourceType.WHEAT, List.of(BuildingName.MILL, BuildingName.BREWERY));
-    }};
+    /**
+     * Per-player distribution priorities: for each contested good, the ordered
+     * list of consumer building types that should be served first. Initialized
+     * lazily from {@link #defaultDistribution()} the first time a player's table
+     * is read (see {@link #getDistributionFor(int)}).
+     */
+    private final Map<Integer, Map<ResourceType, List<BuildingName>>> distributionPriorities = new HashMap<>();
+
+    /**
+     * The default distribution priority order applied to every player until they
+     * change it. Covers the goods with several competing consumers: coal, iron,
+     * grain and water.
+     *
+     * @return a fresh, mutable default priority table
+     */
+    public static Map<ResourceType, List<BuildingName>> defaultDistribution() {
+        Map<ResourceType, List<BuildingName>> d = new EnumMap<>(ResourceType.class);
+        d.put(ResourceType.COAL, new ArrayList<>(List.of(
+                BuildingName.FOUNDRY, BuildingName.ARMORY, BuildingName.MINT)));
+        d.put(ResourceType.IRON, new ArrayList<>(List.of(
+                BuildingName.FOUNDRY, BuildingName.METALWORKS)));
+        d.put(ResourceType.WHEAT, new ArrayList<>(List.of(
+                BuildingName.MILL, BuildingName.PIG_FARM, BuildingName.BREWERY, BuildingName.DONKEY_BREEDER)));
+        d.put(ResourceType.WATER, new ArrayList<>(List.of(
+                BuildingName.BAKERY, BuildingName.BREWERY, BuildingName.PIG_FARM, BuildingName.DONKEY_BREEDER)));
+        return d;
+    }
+
+    /**
+     * Returns the distribution priority table of a player, creating it from
+     * {@link #defaultDistribution()} on first access.
+     *
+     * @param playerId the player whose preferences to read
+     * @return the player's mutable priority table
+     */
+    public Map<ResourceType, List<BuildingName>> getDistributionFor(int playerId) {
+        return distributionPriorities.computeIfAbsent(playerId, p -> defaultDistribution());
+    }
+
+    /**
+     * Per-player target garrison occupation as a percentage (0–100). At 100 the
+     * military buildings are staffed to capacity; lower values keep soldiers in
+     * reserve, mirroring the military-strength control of the original game.
+     */
+    private final Map<Integer, Integer> militaryOccupation = new HashMap<>();
+
+    /**
+     * Returns a player's target garrison occupation percentage (default 100).
+     *
+     * @param playerId the player
+     * @return the occupation percentage in [0, 100]
+     */
+    public int getMilitaryOccupationOf(int playerId) {
+        return militaryOccupation.getOrDefault(playerId, 100);
+    }
+
+    /**
+     * Sets a player's target garrison occupation percentage, clamped to [0, 100].
+     *
+     * @param playerId the player
+     * @param percent  the desired occupation percentage
+     */
+    public void setMilitaryOccupationOf(int playerId, int percent) {
+        militaryOccupation.put(playerId, Math.max(0, Math.min(100, percent)));
+    }
 
     /** Current tick since the start of the game. */
     private long currentTick = 0;

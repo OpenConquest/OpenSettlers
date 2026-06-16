@@ -8,6 +8,7 @@ import lombok.Data;
  * See <a href="https://www.redblobgames.com/grids/hexagons/#neighbors-doubled">redblobgames</a>.
  */
 @Data
+@lombok.NoArgsConstructor
 @AllArgsConstructor
 public class Coordinates {
     /**

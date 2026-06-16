@@ -38,8 +38,12 @@ public class MilitarySystem implements ISystem {
             ingestCoins(mb);
             promoteSoldiers(mb);
 
+            // Staff toward the player's chosen occupation (always at least one
+            // soldier, so the building keeps holding its territory).
+            int occupation = gameState.getMilitaryOccupationOf(mb.getPlayerId());
+            int target = Math.max(1, (int) Math.ceil(mb.getMaxCapacity() * occupation / 100.0));
             int reserved = countReservedSlots(gameState, mb);
-            int missing = mb.getMaxCapacity() - mb.getSoldiers().size() - reserved;
+            int missing = target - mb.getSoldiers().size() - reserved;
             for (int i = 0; i < missing; i++) {
                 if (!recruitSoldier(gameState, mb)) {
                     break;

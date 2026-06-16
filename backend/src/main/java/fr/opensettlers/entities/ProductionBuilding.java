@@ -42,6 +42,14 @@ public abstract class ProductionBuilding extends Building implements IProducer {
     @Setter
     private int productivity = 0;
 
+    /**
+     * Whether the player has paused this building. A paused building keeps its
+     * occupant but produces nothing and accepts no new input deliveries, mirroring
+     * the "stop production" control of the original game.
+     */
+    @Setter
+    private boolean productionPaused = false;
+
     /** Ticks spent in waiting state to track the 10-second decay. */
     @Setter
     private int waitingTicks = 0;

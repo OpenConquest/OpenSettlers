@@ -105,6 +105,11 @@ export function isNeighbor(a: Coordinates, b: Coordinates): boolean {
   return HEX_DIRECTIONS.some((d) => a.x + d.x === b.x && a.y + d.y === b.y);
 }
 
+/** The six direct neighbours of a tile, in {@link HEX_DIRECTIONS} order. */
+export function hexNeighbors(c: Coordinates): Coordinates[] {
+  return HEX_DIRECTIONS.map((d) => ({ x: c.x + d.x, y: c.y + d.y }));
+}
+
 /** Stable string key for a coordinate, suitable for Map/Set lookups. */
 export function hexKey(x: number, y: number): string {
   return `${x},${y}`;

@@ -139,6 +139,7 @@ public final class GameStateSerializer {
 
         List<int[]> territory = new ArrayList<>();
         List<GameStateDto.SignDto> signs = new ArrayList<>();
+        List<GameStateDto.ResourceTileDto> resources = new ArrayList<>();
         for (MapTile tile : state.getMapTiles().values()) {
             boolean tileExplored = explored == null || explored.contains(tile.getCoordinates());
             if (!tileExplored) continue;
@@ -156,6 +157,13 @@ public final class GameStateSerializer {
                         (int) tile.getCoordinates().getY(),
                         tile.getGeologistSign() != null ? tile.getGeologistSign().name() : null));
             }
+            NaturalResourceNode node = tile.getNaturalResource();
+            if (node != null && node.getQuantity() > 0) {
+                resources.add(new GameStateDto.ResourceTileDto(
+                        (int) tile.getCoordinates().getX(),
+                        (int) tile.getCoordinates().getY(),
+                        node.getType().name(), node.getQuantity()));
+            }
         }
 
         List<int[]> exploredList = null;
@@ -166,10 +174,26 @@ public final class GameStateSerializer {
             }
         }
 
+        // The viewer's own distribution priorities (spectators get none).
+        Map<String, List<String>> distribution = null;
+        if (viewerId != null) {
+            distribution = new HashMap<>();
+            for (Map.Entry<fr.opensettlers.utils.ResourceType, List<fr.opensettlers.utils.BuildingName>> e
+                    : state.getDistributionFor(viewerId).entrySet()) {
+                List<String> order = new ArrayList<>(e.getValue().size());
+                for (fr.opensettlers.utils.BuildingName bn : e.getValue()) {
+                    order.add(bn.name());
+                }
+                distribution.put(e.getKey().name(), order);
+            }
+        }
+
+        Integer militaryOccupation = viewerId != null ? state.getMilitaryOccupationOf(viewerId) : null;
+
         GameStateDto dto = new GameStateDto(
                 "STATE", state.getCurrentTick(),
                 buildings, flags, roads, workers, soldiers, donkeys, ships,
-                territory, signs, exploredList);
+                territory, signs, resources, exploredList, distribution, militaryOccupation);
         return write(dto);
     }
 
@@ -236,6 +260,8 @@ public final class GameStateSerializer {
         Integer garrison = null;
         Integer maxGarrison = null;
         Integer coins = null;
+        Boolean productionPaused = null;
+        Boolean coinsAllowed = null;
         boolean underConstruction = false;
 
         if (b instanceof ConstructionSite site) {
@@ -245,6 +271,7 @@ public final class GameStateSerializer {
         } else if (b instanceof ProductionBuilding pb) {
             productivity = pb.getProductivity();
             outputQuantity = pb.getOutputSlot() != null ? pb.getOutputSlot().getQuantity() : null;
+            productionPaused = pb.isProductionPaused();
         } else if (b instanceof StorageBuilding sb) {
             stored = new HashMap<>();
             for (Map.Entry<fr.opensettlers.utils.ResourceType, Integer> e : sb.getStoredResources().entrySet()) {
@@ -254,6 +281,7 @@ public final class GameStateSerializer {
             garrison = mb.getSoldiers().size();
             maxGarrison = mb.getMaxCapacity();
             coins = mb.getStoredCoins();
+            coinsAllowed = mb.isCoinsAllowed();
         }
 
         return new GameStateDto.BuildingDto(
@@ -262,7 +290,8 @@ public final class GameStateSerializer {
                 b.getPlayerId(),
                 b.getPosition().getX(), b.getPosition().getY(),
                 underConstruction, groundwork, progress,
-                productivity, outputQuantity, stored, garrison, maxGarrison, coins);
+                productivity, outputQuantity, stored, garrison, maxGarrison, coins,
+                productionPaused, coinsAllowed);
     }
 
     private static String write(Object dto) {

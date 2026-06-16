@@ -23,23 +23,38 @@ export interface Tool {
   building?: BuildingName;
 }
 
-/** A road being laid out flag-to-flag, segment by segment. */
+/**
+ * A road being laid out. Only the chosen start flag is held here; the path to
+ * the second flag is auto-routed (shortest buildable path) and previewed live by
+ * {@link GameCanvas} as the cursor moves.
+ */
 export interface RoadDraft {
   startFlagId: string;
   start: Coordinates;
-  /** Intermediate tiles already committed (flag endpoints excluded). */
-  path: Coordinates[];
 }
+
+/** The global overlay dialogs that can be open (one at a time). */
+export type GamePanel = "distribution" | "inventory" | "military";
 
 const tool = ref<Tool>({ kind: "inspect" });
 const selectedBuildingId = ref<string | null>(null);
+const selectedTile = ref<Coordinates | null>(null);
 const roadDraft = shallowRef<RoadDraft | null>(null);
+const openPanel = ref<GamePanel | null>(null);
+
+/** Opens a global panel, or closes it if it is already the open one. */
+function togglePanel(panel: GamePanel): void {
+  openPanel.value = openPanel.value === panel ? null : panel;
+}
 
 function setTool(next: Tool): void {
   tool.value = next;
   // Switching away from road drawing abandons any half-drawn road.
   if (next.kind !== "road") roadDraft.value = null;
-  if (next.kind !== "inspect") selectedBuildingId.value = null;
+  if (next.kind !== "inspect") {
+    selectedBuildingId.value = null;
+    selectedTile.value = null;
+  }
 }
 
 function resetTool(): void {
@@ -47,5 +62,5 @@ function resetTool(): void {
 }
 
 export function useGameUi() {
-  return { tool, selectedBuildingId, roadDraft, setTool, resetTool };
+  return { tool, selectedBuildingId, selectedTile, roadDraft, openPanel, togglePanel, setTool, resetTool };
 }

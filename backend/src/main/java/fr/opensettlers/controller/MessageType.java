@@ -39,5 +39,29 @@ public enum MessageType {
      * Action to send a geologist survey the mountains around a flag.
      * Uses {@code targetId} as the destination flag ID.
      */
-    SEND_GEOLOGIST
+    SEND_GEOLOGIST,
+
+    /**
+     * Pauses or resumes production at one of the player's production buildings.
+     * Uses {@code targetId} (the building) and {@code enabled} (true = produce).
+     */
+    SET_PRODUCTION,
+
+    /**
+     * Enables or disables gold-coin delivery to one of the player's military
+     * buildings. Uses {@code targetId} (the building) and {@code enabled}.
+     */
+    SET_COIN_DELIVERY,
+
+    /**
+     * Sets the player's distribution priority order of consumer buildings for a
+     * contested good. Uses {@code resourceType} and the ordered {@code priorities}.
+     */
+    SET_DISTRIBUTION,
+
+    /**
+     * Sets the player's target garrison occupation percentage (military strength).
+     * Uses {@code militaryOccupation} (0–100).
+     */
+    SET_MILITARY
 }

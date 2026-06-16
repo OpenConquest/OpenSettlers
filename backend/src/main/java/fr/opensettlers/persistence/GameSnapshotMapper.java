@@ -96,6 +96,19 @@ public final class GameSnapshotMapper {
             r.transportCount = road.getTransportCount();
             snap.roads.add(r);
         }
+
+        // Player economy/military preferences.
+        state.getDistributionPriorities().forEach((playerId, table) -> {
+            Map<String, List<String>> t = new HashMap<>();
+            table.forEach((good, order) -> {
+                List<String> names = new ArrayList<>();
+                for (BuildingName bn : order) names.add(bn.name());
+                t.put(good.name(), names);
+            });
+            snap.distributionPriorities.put(playerId, t);
+        });
+        snap.militaryOccupation = new HashMap<>(state.getMilitaryOccupation());
+
         return snap;
     }
 
@@ -122,6 +135,10 @@ public final class GameSnapshotMapper {
                 s.garrisonRanks.add(soldier.getRank().name());
             }
             s.storedCoins = mb.getStoredCoins();
+            s.coinsAllowed = mb.isCoinsAllowed();
+        }
+        if (b instanceof ProductionBuilding pb) {
+            s.productionPaused = pb.isProductionPaused();
         }
         return s;
     }
@@ -141,6 +158,22 @@ public final class GameSnapshotMapper {
         state.setWinnerPlayerId(snap.winnerPlayerId);
         state.setOver(snap.over);
         state.setCurrentTick(snap.tick);
+
+        // Restore player economy/military preferences (older saves may omit these).
+        if (snap.distributionPriorities != null) {
+            snap.distributionPriorities.forEach((playerId, table) -> {
+                Map<ResourceType, List<BuildingName>> t = new HashMap<>();
+                table.forEach((good, order) -> {
+                    List<BuildingName> names = new ArrayList<>();
+                    for (String n : order) names.add(BuildingName.valueOf(n));
+                    t.put(ResourceType.valueOf(good), names);
+                });
+                state.getDistributionPriorities().put(playerId, t);
+            });
+        }
+        if (snap.militaryOccupation != null) {
+            snap.militaryOccupation.forEach(state::setMilitaryOccupationOf);
+        }
 
         Map<Coordinates, MapTile> tiles = new HashMap<>();
         for (GameSnapshot.TileSnap t : snap.tiles) {
@@ -221,6 +254,9 @@ public final class GameSnapshotMapper {
             }
             mb.setStoredCoins(bs.storedCoins);
             mb.setTerritoryClaimed(!mb.getSoldiers().isEmpty());
+            if (bs.coinsAllowed != null) {
+                mb.setCoinsAllowed(bs.coinsAllowed);
+            }
         }
         if (building instanceof ProductionBuilding pb) {
             WorkerType role = BuildingFactory.occupantRoleFor(type);
@@ -231,6 +267,9 @@ public final class GameSnapshotMapper {
                 occupant.setState(WorkerState.WORKING);
                 pb.setOccupant(occupant);
                 state.getWorkers().add(occupant);
+            }
+            if (bs.productionPaused != null) {
+                pb.setProductionPaused(bs.productionPaused);
             }
         }
 

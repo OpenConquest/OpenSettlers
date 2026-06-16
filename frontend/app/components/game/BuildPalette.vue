@@ -1,108 +1,79 @@
 <script setup lang="ts">
 /**
- * Left-hand command palette: the general tools (inspect / flag / road /
- * geologist / destroy / attack) on top, then the catalogue of placeable
- * buildings grouped by category. Selecting an entry arms the matching tool in
- * {@link useGameUi}; the canvas then applies it on the next click.
+ * Full-width bottom control bar (Settlers II style): a status line, the row of
+ * round brass tool buttons (inspect / flag / road / geologist / destroy /
+ * attack), and a keyboard reminder. Selecting a tool arms it in
+ * {@link useGameUi}; the canvas then applies it on the next click. Buildings are
+ * placed from the {@link TileInspector} after clicking a tile.
  */
-import { ref } from "vue";
-import {
-  BUILDING_CATEGORIES,
-  placeableBuildings,
-  type BuildingCategory,
-} from "~/lib/buildings";
+import { computed } from "vue";
+import { MousePointer2, Flag, Route, Telescope, Bomb, Swords } from "@lucide/vue";
 import type { ToolKind } from "~/composables/useGameUi";
-import type { BuildingName } from "~/types/game";
 
-const { tool, setTool } = useGameUi();
+const { tool, roadDraft, setTool } = useGameUi();
 
-const GENERAL_TOOLS: { kind: ToolKind; icon: string; label: string }[] = [
-  { kind: "inspect", icon: "🖱️", label: "Inspect / Pan" },
-  { kind: "flag", icon: "🚩", label: "Place flag" },
-  { kind: "road", icon: "🛣️", label: "Build road" },
-  { kind: "geologist", icon: "🔍", label: "Send geologist" },
-  { kind: "destroy", icon: "💥", label: "Demolish" },
-  { kind: "attack", icon: "⚔️", label: "Attack" },
+/** Context-sensitive one-liner shown in the help scroll for the active tool. */
+const hint = computed(() => {
+  switch (tool.value.kind) {
+    case "road":
+      return roadDraft.value
+        ? "Click the target flag — the shortest buildable road is previewed (green = OK, red = blocked)."
+        : "Click a flag to start a road, then click the flag you want to connect it to.";
+    case "build":
+      return "Click a tile to place the building. Esc cancels.";
+    case "flag":
+      return "Click a tile to plant a flag. Esc cancels.";
+    case "geologist":
+      return "Click one of your flags to send a geologist prospecting nearby.";
+    case "destroy":
+      return "Click one of your buildings to demolish it.";
+    case "attack":
+      return "Click an enemy military building or warehouse to attack it.";
+    default:
+      return "Click a tile to inspect it and build. Drag to pan, scroll to zoom, 1–6 picks a tool.";
+  }
+});
+
+const GENERAL_TOOLS: { kind: ToolKind; icon: any; label: string; key: number }[] = [
+  { kind: "inspect", icon: MousePointer2, label: "Inspect / Pan", key: 1 },
+  { kind: "flag", icon: Flag, label: "Place flag", key: 2 },
+  { kind: "road", icon: Route, label: "Build road", key: 3 },
+  { kind: "geologist", icon: Telescope, label: "Send geologist", key: 4 },
+  { kind: "destroy", icon: Bomb, label: "Demolish", key: 5 },
+  { kind: "attack", icon: Swords, label: "Attack", key: 6 },
 ];
 
-const openCategory = ref<BuildingCategory | null>("extraction");
-
 function isToolActive(kind: ToolKind): boolean {
-  return tool.value.kind === kind && kind !== "build";
-}
-
-function isBuildingActive(name: BuildingName): boolean {
-  return tool.value.kind === "build" && tool.value.building === name;
-}
-
-function toggleCategory(id: BuildingCategory): void {
-  openCategory.value = openCategory.value === id ? null : id;
+  return tool.value.kind === kind;
 }
 </script>
 
 <template>
-  <aside
-    class="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-card/95 p-3 backdrop-blur"
-  >
-    <div>
-      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Tools
-      </h2>
-      <div class="grid grid-cols-3 gap-1.5">
-        <button
-          v-for="t in GENERAL_TOOLS"
-          :key="t.kind"
-          :title="t.label"
-          class="flex aspect-square flex-col items-center justify-center rounded-md border text-lg transition-colors"
-          :class="
-            isToolActive(t.kind)
-              ? 'border-primary bg-primary/15 text-primary'
-              : 'border-border bg-background hover:bg-accent'
-          "
-          @click="setTool({ kind: t.kind })"
-        >
-          <span>{{ t.icon }}</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="space-y-1.5">
-      <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Buildings
-      </h2>
-      <div v-for="cat in BUILDING_CATEGORIES" :key="cat.id" class="rounded-md border border-border">
-        <button
-          class="flex w-full items-center justify-between px-2.5 py-1.5 text-sm font-medium hover:bg-accent"
-          @click="toggleCategory(cat.id)"
-        >
-          <span>{{ cat.label }}</span>
-          <span class="text-xs text-muted-foreground">
-            {{ openCategory === cat.id ? "−" : "+" }}
-          </span>
-        </button>
-        <div v-if="openCategory === cat.id" class="grid grid-cols-4 gap-1 p-1.5 pt-0">
-          <button
-            v-for="b in placeableBuildings(cat.id)"
-            :key="b.name"
-            :title="`${b.label} — ${b.description}`"
-            class="flex aspect-square items-center justify-center rounded-md border text-lg transition-colors"
-            :class="
-              isBuildingActive(b.name)
-                ? 'border-primary bg-primary/15'
-                : 'border-transparent hover:border-border hover:bg-accent'
-            "
-            @click="setTool({ kind: 'build', building: b.name })"
-          >
-            {{ b.icon }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <p class="mt-auto text-[11px] leading-relaxed text-muted-foreground">
-      Drag (or hold <kbd>Shift</kbd>) to pan, scroll to zoom. Keys
-      <kbd>1</kbd>–<kbd>6</kbd> pick a tool, <kbd>Esc</kbd> cancels. Roads are
-      drawn one tile at a time from flag to flag.
+  <!-- Full-width Settlers II control bar: status · tools · help. -->
+  <div class="dark-wood pointer-events-auto flex w-full items-center gap-4 border-t-4 border-[#b8860b]/50 px-12 py-2">
+    <!-- Left: the contextual hint, like the game's status line. -->
+    <p class="hidden min-w-0 flex-1 truncate text-[12px] font-bold text-[#f4e8c1] md:block">
+      {{ hint }}
     </p>
-  </aside>
+
+    <!-- Centre: round brass tool buttons. -->
+    <div class="flex shrink-0 items-center gap-2.5">
+      <button
+        v-for="t in GENERAL_TOOLS"
+        :key="t.kind"
+        :title="`${t.label} (${t.key})`"
+        class="brass-btn h-12 w-12"
+        :class="{ active: isToolActive(t.kind) }"
+        @click="setTool({ kind: t.kind })"
+      >
+        <component :is="t.icon" class="h-6 w-6" />
+        <span class="absolute -bottom-1 -right-1 rounded-full bg-[#2a1608] px-1 text-[9px] font-bold text-amber-200 shadow">{{ t.key }}</span>
+      </button>
+    </div>
+
+    <!-- Right: keyboard reminder. -->
+    <p class="hidden flex-1 text-right text-[11px] font-bold text-[#f4e8c1]/70 lg:block">
+      1–6 tools · Esc cancels · drag to pan
+    </p>
+  </div>
 </template>

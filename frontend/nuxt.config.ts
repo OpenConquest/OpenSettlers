@@ -2,6 +2,13 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
+  app: {
+    head: {
+      link: [
+        { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" }
+      ]
+    }
+  },
   devtools: { enabled: true },
   css: ["./app/assets/css/main.css", "vue-sonner/style.css"],
   modules: ["shadcn-nuxt"],
@@ -38,5 +45,20 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    /**
+     * Pre-bundle the dependencies Vite would otherwise discover lazily at
+     * runtime (which forces a full page reload the first time each is hit).
+     * Keep in sync with the list Vite prints in dev when it finds new deps.
+     */
+    optimizeDeps: {
+      include: [
+        "@tabler/icons-vue",
+        "class-variance-authority",
+        "clsx",
+        "reka-ui",
+        "tailwind-merge",
+        "vue-sonner",
+      ],
+    },
   },
 });

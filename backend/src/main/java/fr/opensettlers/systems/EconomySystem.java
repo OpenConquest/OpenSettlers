@@ -4,6 +4,7 @@ import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.state.RoadNetwork;
 import fr.opensettlers.entities.*;
+import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.ResourceType;
 import fr.opensettlers.systems.economy.Demand;
@@ -12,6 +13,7 @@ import fr.opensettlers.systems.economy.SupplySource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -57,17 +59,21 @@ public class EconomySystem implements ISystem {
             List<Demand> demands = gatherDemands(gameState, type);
             List<Supply> supplies = gatherSupplies(gameState, type);
 
-            // Sort: Construction demands first, then regular production demands in FIFO order
+            // Sort: construction demands first, then production demands by the
+            // owner's distribution priority for this good (ties keep FIFO order).
+            final ResourceType good = type;
             demands.sort((d1, d2) -> {
                 boolean isConst1 = d1.building instanceof ConstructionSite;
                 boolean isConst2 = d2.building instanceof ConstructionSite;
-                if (isConst1 && !isConst2) {
-                    return -1;
+                if (isConst1 != isConst2) {
+                    return isConst1 ? -1 : 1;
                 }
-                if (!isConst1 && isConst2) {
-                    return 1;
+                if (isConst1) {
+                    return 0; // both construction: stable FIFO placement order
                 }
-                return 0; // Preserves stable FIFO placement order
+                return Integer.compare(
+                        distributionRank(gameState, d1, good),
+                        distributionRank(gameState, d2, good));
             });
 
             // Match demands with closest supplies
@@ -98,6 +104,38 @@ public class EconomySystem implements ISystem {
     }
 
     /**
+     * Distribution rank of a demand's consumer building for a good: its index in
+     * the owner's priority order (0 = highest priority). Construction sites and
+     * buildings with no stated preference rank last, so preferred consumers are
+     * served first when a good is scarce.
+     *
+     * @param state  the game state (for the per-player priority table)
+     * @param demand the demand to rank
+     * @param type   the contested good
+     * @return the zero-based rank, or {@link Integer#MAX_VALUE} if unranked
+     */
+    static int distributionRank(GameState state, Demand demand, ResourceType type) {
+        Building b = demand.building;
+        if (b == null) return Integer.MAX_VALUE;
+        Map<ResourceType, List<BuildingName>> table = state.getDistributionFor(b.getPlayerId());
+        return rankOf(table.get(type), b.getName());
+    }
+
+    /**
+     * Index of {@code name} in a priority order, or {@link Integer#MAX_VALUE}
+     * when the order is {@code null} or omits the building (lowest priority).
+     *
+     * @param order the ordered consumer list, highest priority first (may be null)
+     * @param name  the consumer building type to rank (may be null)
+     * @return the zero-based rank, or {@link Integer#MAX_VALUE} if unranked
+     */
+    static int rankOf(List<BuildingName> order, BuildingName name) {
+        if (order == null || name == null) return Integer.MAX_VALUE;
+        int idx = order.indexOf(name);
+        return idx < 0 ? Integer.MAX_VALUE : idx;
+    }
+
+    /**
      * Gathers all unsatisfied demands for a specific resource type.
      *
      * @param state the current game state
@@ -121,7 +159,8 @@ public class EconomySystem implements ISystem {
                     demands.add(new Demand(site, flag, type, netDemand));
                 }
             } else if (b instanceof ProductionBuilding pb) {
-                if (pb.getInputSlots() != null) {
+                // A paused building stops pulling new input goods.
+                if (!pb.isProductionPaused() && pb.getInputSlots() != null) {
                     for (ResourceSlot slot : pb.getInputSlots()) {
                         if (slot.getType() == type) {
                             int current = slot.getQuantity();
@@ -134,8 +173,9 @@ public class EconomySystem implements ISystem {
                     }
                 }
             } else if (b instanceof MilitaryBuilding mb && type == ResourceType.COIN) {
-                // Occupied military buildings request gold coins for promotions
-                if (mb.isTerritoryClaimed()) {
+                // Occupied military buildings request gold coins for promotions,
+                // unless the player switched coin delivery off for this building.
+                if (mb.isTerritoryClaimed() && mb.isCoinsAllowed()) {
                     int capacity = GameConfig.coinCapacity(mb.getBuildingName());
                     int inTransit = countInTransit(state, flag.getId(), type);
                     int netDemand = capacity - mb.getStoredCoins() - inTransit;
