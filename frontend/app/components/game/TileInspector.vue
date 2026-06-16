@@ -1,19 +1,20 @@
 <script setup lang="ts">
 /**
- * Tile inspector: a Settlers-style panel describing the tile the player clicked
- * — its terrain, elevation, owner and any live natural resource (trees, stone,
- * ore, fish, water) with the quantity still remaining. When the tile can be
- * built on it also offers the build menu and a flag placement.
+ * Tile context panel: opens when the player clicks a tile (inspect tool). It
+ * describes the tile — terrain, elevation, owner and any live natural resource —
+ * and, when the tile is buildable, shows the construction menu directly (a
+ * category tab strip and a grid of buildings) plus a flag placement.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   BUILDING_CATEGORIES,
+  BUILDINGS,
   placeableBuildings,
   type BuildingCategory,
 } from "~/lib/buildings";
 import { RESOURCE_ICONS, RESOURCE_NODE_NOUN, playerColor } from "~/lib/palette";
 import { hexKey } from "~/lib/hex";
-import { BUILDINGS } from "~/lib/buildings";
+import type { BuildingName } from "~/types/game";
 
 const { selectedTile, tool } = useGameUi();
 const { map, state, session, actions } = useGameSession();
@@ -31,7 +32,6 @@ const TERRAIN: Record<string, { label: string; glyph: string }> = {
   FIELD: { label: "Wheat field", glyph: "🌾" },
 };
 
-/** The static tile under the selection (terrain, elevation). */
 const tile = computed(() => {
   const c = selectedTile.value;
   return c ? map.value?.tiles.get(hexKey(c.x, c.y)) : undefined;
@@ -41,7 +41,6 @@ const terrain = computed(() =>
   tile.value ? (TERRAIN[tile.value.tileType] ?? { label: tile.value.tileType, glyph: "▦" }) : null,
 );
 
-/** Live resource node on the tile, if any, with its remaining quantity. */
 const resource = computed(() => {
   const c = selectedTile.value;
   if (!c) return null;
@@ -52,7 +51,6 @@ const resourceNoun = computed(() =>
   resource.value ? (RESOURCE_NODE_NOUN[resource.value.resource] ?? resource.value.resource) : null,
 );
 
-/** Territory owner of the tile (-1 / null when unclaimed). */
 const owner = computed(() => {
   const c = selectedTile.value;
   if (!c) return null;
@@ -66,30 +64,28 @@ const buildingHere = computed(() => {
 });
 
 /**
- * Whether this tile can host a building at all (buildable terrain, unoccupied).
- * Territory ownership is *not* required here so the build menu is always
- * reachable; the server still validates placement and refuses tiles outside the
- * player's land.
+ * Whether this tile can host a building (buildable terrain, unoccupied).
+ * Territory ownership is not required here so the menu is always reachable; the
+ * server still validates placement and refuses tiles outside the player's land.
  */
 const canBuild = computed(
   () => !!tile.value && tile.value.tileType === "GRASS" && !buildingHere.value,
 );
 
-/** Whether the tile sits inside the local player's own territory. */
 const ownedByMe = computed(() => owner.value === session.playerId);
 
 const openCategory = ref<BuildingCategory>("extraction");
-const showBuildMenu = ref(false);
+/** Keep the build grid scrolled to the chosen category whenever a tile changes. */
+watch(selectedTile, () => (openCategory.value = "extraction"));
 
 function close(): void {
   selectedTile.value = null;
-  showBuildMenu.value = false;
 }
 
-function build(buildingName: string): void {
+function build(buildingName: BuildingName): void {
   if (selectedTile.value) {
-    actions.build(buildingName as any, selectedTile.value);
-    log(`Ordered ${BUILDINGS[buildingName as keyof typeof BUILDINGS]?.label ?? "building"}.`, "good");
+    actions.build(buildingName, selectedTile.value);
+    log(`Ordered ${BUILDINGS[buildingName]?.label ?? "building"}.`, "good");
   }
   close();
 }
@@ -106,11 +102,11 @@ function placeFlag(): void {
 <template>
   <div
     v-if="selectedTile && tile && terrain && tool.kind === 'inspect'"
-    class="wood-panel absolute bottom-28 left-6 w-72 p-3"
+    class="wood-panel absolute bottom-28 left-6 w-80 p-3.5"
   >
     <!-- Header: terrain + coordinates -->
-    <div class="mb-2 flex items-center justify-between border-b border-amber-900/30 pb-2">
-      <div class="flex items-center gap-2">
+    <div class="mb-2.5 flex items-center justify-between border-b border-amber-900/30 pb-2">
+      <div class="flex items-center gap-2.5">
         <span class="text-2xl drop-shadow">{{ terrain.glyph }}</span>
         <div class="leading-tight">
           <p class="cinzel-title text-base font-bold text-amber-950">{{ terrain.label }}</p>
@@ -119,76 +115,83 @@ function placeFlag(): void {
           </p>
         </div>
       </div>
-      <button class="wood-btn flex h-6 w-6 items-center justify-center rounded-full text-xs" @click="close">✕</button>
+      <button
+        class="flex h-6 w-6 items-center justify-center rounded-full border border-amber-900/40 bg-amber-950/10 text-xs font-bold text-amber-900 transition hover:bg-amber-900/20"
+        @click="close"
+      >✕</button>
     </div>
 
     <!-- Resource / ownership readout -->
-    <div class="space-y-1.5 text-sm font-bold text-amber-950">
-      <div v-if="resource" class="flex items-center justify-between rounded bg-amber-950/10 px-2 py-1.5 shadow-inner">
+    <div class="mb-2.5 flex items-center gap-2 text-sm font-bold text-amber-950">
+      <span
+        v-if="resource"
+        class="flex flex-1 items-center justify-between rounded border border-amber-900/20 bg-amber-950/10 px-2 py-1 shadow-inner"
+      >
         <span class="flex items-center gap-1.5 text-amber-900">
           <component :is="RESOURCE_ICONS[resource.resource]" class="h-4 w-4" />
           {{ resourceNoun }}
         </span>
-        <span class="tabular-nums text-base">{{ resource.quantity }}</span>
-      </div>
-      <p v-else class="text-[12px] italic text-amber-900/70">No harvestable resource here.</p>
+        <span class="tabular-nums">{{ resource.quantity }}</span>
+      </span>
+      <span v-else class="flex-1 text-[12px] italic text-amber-900/60">No resource here.</span>
 
-      <p class="flex items-center justify-between">
-        <span class="text-amber-900">Owner</span>
-        <span v-if="owner != null && owner >= 0" class="flex items-center gap-1.5">
-          <span
-            class="inline-block size-2.5 rounded-full border border-black/40 shadow-inner"
-            :style="{ backgroundColor: playerColor(owner) }"
-          />
-          {{ owner === session.playerId ? "You" : `Player ${owner + 1}` }}
+      <span class="flex items-center gap-1.5 whitespace-nowrap">
+        <span
+          v-if="owner != null && owner >= 0"
+          class="inline-block size-2.5 rounded-full border border-black/40"
+          :style="{ backgroundColor: playerColor(owner) }"
+        />
+        <span class="text-[12px] text-amber-900">
+          {{ owner == null || owner < 0 ? "Unclaimed" : owner === session.playerId ? "Yours" : `Player ${owner + 1}` }}
         </span>
-        <span v-else class="text-amber-900/70">Unclaimed</span>
-      </p>
+      </span>
     </div>
 
-    <!-- Build affordances -->
-    <div v-if="canBuild" class="mt-3">
-      <p v-if="!ownedByMe" class="mb-2 text-[11px] italic text-amber-900/80">
-        Outside your territory — placement may be refused. Expand with a military building.
-      </p>
-      <div class="flex gap-2">
-        <button class="wood-btn flex-1 py-1.5 text-sm" @click="showBuildMenu = !showBuildMenu">
-          {{ showBuildMenu ? "Hide buildings" : "Build…" }}
-        </button>
-        <button class="wood-btn flex-1 py-1.5 text-sm" @click="placeFlag">
-          Place Flag
-        </button>
+    <!-- Construction menu (shown directly for a buildable tile) -->
+    <template v-if="canBuild">
+      <div class="mb-2 flex items-center justify-between">
+        <p class="cinzel-title text-sm font-bold text-amber-900">Build here</p>
+        <button
+          class="rounded border border-amber-900/40 bg-amber-100/40 px-2.5 py-1 text-xs font-bold text-amber-950 transition hover:bg-amber-100/70"
+          @click="placeFlag"
+        >⚑ Flag</button>
       </div>
 
-      <div v-if="showBuildMenu" class="mt-3">
-        <div class="mb-2 flex flex-wrap gap-1 border-b border-amber-900/20 pb-2">
-          <button
-            v-for="cat in BUILDING_CATEGORIES"
-            :key="cat.id"
-            class="wood-btn px-2 py-1 text-[10px] font-bold"
-            :class="{ active: openCategory === cat.id }"
-            @click="openCategory = cat.id"
-          >
-            {{ cat.label }}
-          </button>
-        </div>
-        <div class="grid grid-cols-5 gap-1.5">
-          <button
-            v-for="b in placeableBuildings(openCategory)"
-            :key="b.name"
-            :title="`${b.label} — ${b.description}`"
-            class="wood-btn flex aspect-square items-center justify-center rounded p-1 transition-transform hover:scale-110"
-            @click="build(b.name)"
-          >
-            <component :is="b.icon" class="h-6 w-6 drop-shadow" />
-          </button>
-        </div>
+      <p v-if="!ownedByMe" class="mb-2 text-[11px] italic text-amber-900/70">
+        Outside your land — placement may be refused. Expand with a military building.
+      </p>
+
+      <!-- Category tabs -->
+      <div class="mb-2 flex flex-wrap gap-1">
+        <button
+          v-for="cat in BUILDING_CATEGORIES"
+          :key="cat.id"
+          class="rounded border px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition"
+          :class="openCategory === cat.id
+            ? 'border-amber-700 bg-amber-700 text-amber-50 shadow'
+            : 'border-amber-900/30 bg-amber-100/30 text-amber-900 hover:bg-amber-100/60'"
+          @click="openCategory = cat.id"
+        >{{ cat.label }}</button>
       </div>
-    </div>
-    <p v-else-if="buildingHere" class="mt-2 text-[11px] italic text-amber-900/70">
+
+      <!-- Building grid -->
+      <div class="grid grid-cols-5 gap-1.5">
+        <button
+          v-for="b in placeableBuildings(openCategory)"
+          :key="b.name"
+          :title="`${b.label} — ${b.description}`"
+          class="flex aspect-square items-center justify-center rounded border border-amber-900/30 bg-amber-100/40 p-1 text-amber-900 shadow-sm transition hover:scale-110 hover:border-amber-700 hover:bg-amber-100/80"
+          @click="build(b.name)"
+        >
+          <component :is="b.icon" class="h-6 w-6 drop-shadow" />
+        </button>
+      </div>
+    </template>
+
+    <p v-else-if="buildingHere" class="text-[12px] italic text-amber-900/70">
       A building already stands here.
     </p>
-    <p v-else class="mt-2 text-[11px] italic text-amber-900/70">
+    <p v-else class="text-[12px] italic text-amber-900/70">
       This terrain cannot be built on.
     </p>
   </div>

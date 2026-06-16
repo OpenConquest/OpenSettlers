@@ -97,45 +97,30 @@ onBeforeUnmount(disconnect);
 <style>
 @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@600;800&display=swap');
 
-/* Shared wooden panel styles for the in-game UI */
+/*
+ * Shared parchment panel for the in-game UI. The wood frame and brass ring are
+ * drawn with a border and box-shadow (not negative-z pseudo-elements), so the
+ * cream writing surface always stays on top and the panel keeps whatever
+ * position utility it is given (`absolute`, `fixed`, …) instead of being forced
+ * to `relative`.
+ */
 .wood-panel {
   pointer-events: auto;
-  position: relative;
-  /* A light cream wash over the parchment photo keeps dark text readable
-     everywhere, instead of fighting the texture's mid-tones. */
+  /* A light cream wash over the mid-toned parchment photo keeps text readable. */
+  background-color: #e9d8b1;
   background-image:
-    linear-gradient(rgba(247, 235, 208, 0.82), rgba(236, 219, 184, 0.86)),
+    linear-gradient(rgba(247, 235, 208, 0.9), rgba(233, 215, 179, 0.93)),
     url('/images/parchment.jpg');
   background-size: cover;
-  border-radius: 6px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 0 20px rgba(139, 69, 19, 0.25);
+  border-radius: 8px;
+  border: 3px solid #3a2410;
+  box-shadow:
+    0 0 0 2px #b8860b,
+    0 16px 32px rgba(0, 0, 0, 0.65),
+    inset 0 0 22px rgba(139, 69, 19, 0.2);
   color: #2a1c0c;
   font-family: 'MedievalSharp', serif;
   text-shadow: 0 1px 0 rgba(255, 248, 230, 0.4);
-  z-index: 10;
-}
-
-.wood-panel::before {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  background-image: url('/images/wood.jpg');
-  background-size: 200px;
-  border-radius: 12px;
-  z-index: -1;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.9), 0 5px 15px rgba(0,0,0,0.6);
-  border: 2px solid #2a1608;
-}
-
-.wood-panel::after {
-  content: '';
-  position: absolute;
-  inset: -18px;
-  border: 3px solid #b8860b;
-  border-radius: 16px;
-  z-index: -2;
-  box-shadow: 0 0 10px #daa520;
-  opacity: 0.7;
 }
 
 .cinzel-title {
