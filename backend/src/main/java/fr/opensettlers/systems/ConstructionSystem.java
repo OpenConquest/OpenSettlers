@@ -6,6 +6,7 @@ import fr.opensettlers.state.RoadNetwork;
 import fr.opensettlers.entities.*;
 import fr.opensettlers.utils.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class ConstructionSystem implements ISystem {
     @Override
     public void process(GameState gameState) {
         // Copy: completeConstruction swaps entries in the live building list
-        List<Building> buildings = new java.util.ArrayList<>(gameState.getBuildings());
+        List<Building> buildings = new ArrayList<>(gameState.getBuildings());
         for (Building b : buildings) {
             if (b instanceof ConstructionSite site) {
                 processSite(gameState, site);

@@ -27,10 +27,19 @@ public final class GameConfig {
 
     // --- Worker max distances ---
 
+    /** Maximum hex distance a woodcutter walks from its hut to fell a tree. */
     public static final int WOODCUTTER_MAX_DISTANCE = 4;
+
+    /** Maximum hex distance a forester walks from its hut to plant a sapling. */
     public static final int FORESTER_MAX_DISTANCE = 4;
+
+    /** Maximum hex distance a quarryman walks from its quarry to cut stone. */
     public static final int QUARRYMAN_MAX_DISTANCE = 4;
+
+    /** Maximum number of grain fields a farmer maintains around its farm. */
     public static final int FARMER_MAX_FIELDS = 3;
+
+    /** Maximum hex distance a fisherman walks from its hut to fish a water tile. */
     public static final int FISHERMAN_MAX_DISTANCE = 3;
 
     /** Hex distance around a mine in which the miner digs out ore deposits. */
@@ -41,29 +50,59 @@ public final class GameConfig {
 
     // --- Military: garrison capacity ---
 
+    /** Soldier garrison capacity of a barracks. */
     public static final int BARRACKS_CAPACITY = 2;
+
+    /** Soldier garrison capacity of a guard house. */
     public static final int GUARDHOUSE_CAPACITY = 3;
+
+    /** Soldier garrison capacity of a watch tower. */
     public static final int WATCHTOWER_CAPACITY = 6;
+
+    /** Soldier garrison capacity of a castle. */
     public static final int CASTLE_CAPACITY = 9;
+
+    /** Soldier garrison capacity of a fortress. */
     public static final int FORTRESS_CAPACITY = 12;
+
+    /** Soldier garrison capacity of the headquarters. */
     public static final int HEADQUARTERS_CAPACITY = 1;
 
     // --- Military: territory radius (hex distance) ---
 
+    /** Hex radius of territory claimed by a barracks. */
     public static final int BARRACKS_TERRITORY_RADIUS = 4;
+
+    /** Hex radius of territory claimed by a guard house. */
     public static final int GUARDHOUSE_TERRITORY_RADIUS = 5;
+
+    /** Hex radius of territory claimed by a watch tower. */
     public static final int WATCHTOWER_TERRITORY_RADIUS = 8;
+
+    /** Hex radius of territory claimed by a castle. */
     public static final int CASTLE_TERRITORY_RADIUS = 11;
+
+    /** Hex radius of territory claimed by a fortress. */
     public static final int FORTRESS_TERRITORY_RADIUS = 13;
+
+    /** Hex radius of territory claimed by the headquarters. */
     public static final int HEADQUARTERS_TERRITORY_RADIUS = 20;
 
     // --- Military: gold coins & promotion ---
 
-    /** Maximum gold coins each military building type can hold for promotions. */
+    /** Maximum gold coins a barracks can hold for promotions. */
     public static final int BARRACKS_COIN_CAPACITY = 2;
+
+    /** Maximum gold coins a guard house can hold for promotions. */
     public static final int GUARDHOUSE_COIN_CAPACITY = 2;
+
+    /** Maximum gold coins a watch tower can hold for promotions. */
     public static final int WATCHTOWER_COIN_CAPACITY = 4;
+
+    /** Maximum gold coins a castle can hold for promotions. */
     public static final int CASTLE_COIN_CAPACITY = 6;
+
+    /** Maximum gold coins a fortress can hold for promotions. */
     public static final int FORTRESS_COIN_CAPACITY = 8;
 
     /** Ticks between two soldier promotions inside the same building. */

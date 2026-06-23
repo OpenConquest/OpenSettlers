@@ -7,6 +7,8 @@ import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.ResourceType;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -90,7 +92,7 @@ class BuildingFactoryTest {
     void everyConstructibleBuildingHasACost() {
         for (BuildingName name : BuildingName.values()) {
             if (name == BuildingName.HEADQUARTERS) continue; // placed at game start, never built
-            assertFalse(Building.buildingCosts.getOrDefault(name, java.util.Map.of()).isEmpty(),
+            assertFalse(Building.buildingCosts.getOrDefault(name, Map.of()).isEmpty(),
                     "Missing construction cost for " + name);
         }
     }

@@ -10,6 +10,8 @@ import io.quarkus.websockets.next.WebSocketConnection;
 import lombok.Data;
 import org.jboss.logging.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -51,13 +53,13 @@ public class GameEngine implements Runnable {
     private final TransportSystem transportSystem = new TransportSystem();
 
     /** System managing physical worker movements and state transitions. */
-    private final WorkerSystem workerSystem = new fr.opensettlers.systems.WorkerSystem();
+    private final WorkerSystem workerSystem = new WorkerSystem();
 
     /** System managing global resource allocation. */
-    private final EconomySystem economySystem = new fr.opensettlers.systems.EconomySystem();
+    private final EconomySystem economySystem = new EconomySystem();
 
     /** System managing construction site progress and worker assignments. */
-    private final ConstructionSystem constructionSystem = new fr.opensettlers.systems.ConstructionSystem();
+    private final ConstructionSystem constructionSystem = new ConstructionSystem();
 
     /** System managing road upgrades and donkey assistance. */
     private final DonkeySystem donkeySystem = new DonkeySystem();
@@ -167,7 +169,7 @@ public class GameEngine implements Runnable {
     private void broadcastState() {
         if (session.getConnections().isEmpty()) return;
 
-        java.util.Map<Integer, String> payloadCache = new java.util.HashMap<>();
+        Map<Integer, String> payloadCache = new HashMap<>();
         String spectatorPayload = null;
 
         for (WebSocketConnection conn : session.getConnections()) {

@@ -3,6 +3,7 @@ package fr.opensettlers.service.mapgen;
 import fr.opensettlers.entities.MapTile;
 import fr.opensettlers.entities.NaturalResourceNode;
 import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.utils.Direction;
 import fr.opensettlers.utils.ResourceType;
 import fr.opensettlers.utils.TileType;
 import java.util.ArrayList;
@@ -23,6 +24,15 @@ import java.util.Set;
  */
 public class MapGenerator {
 
+    /**
+     * Generates a complete island map: lays out terrain from layered elevation
+     * and moisture noise under a radial island mask, cleans up the resulting
+     * lakes, then scatters harvestable resource nodes.
+     *
+     * @param gridSizeX the map width in tiles
+     * @param gridSizeY the map height in tiles
+     * @return the generated grid of {@link MapTile}s
+     */
     public MapTile[][] generateContinentalGrid(int gridSizeX, int gridSizeY) {
         MapTile[][] gridMap = new MapTile[gridSizeX][gridSizeY];
         Random rand = new Random();
@@ -134,6 +144,16 @@ public class MapGenerator {
         return gridMap;
     }
 
+    /**
+     * Merges water bodies that lie close together into a single lake, by
+     * flood-filling water clusters and turning the narrow land strips between
+     * nearby clusters into water. Smooths the coastline into more natural shapes.
+     *
+     * @param gridMap   the map being generated, mutated in place
+     * @param gridSizeX the map width in tiles
+     * @param gridSizeY the map height in tiles
+     * @param rand      the random source for fusion decisions
+     */
     private void fuseCloseLakes(MapTile[][] gridMap, int gridSizeX, int gridSizeY, Random rand) {
         int[][] labels = new int[gridSizeX][gridSizeY];
         int currentLabel = 1;
@@ -240,6 +260,15 @@ public class MapGenerator {
         }
     }
 
+    /**
+     * Fills in puddles by converting any water body smaller than a threshold
+     * back to grass. Each connected water region is found by hex flood fill;
+     * regions under 20 tiles are raised to dry land.
+     *
+     * @param gridMap   the map being generated, mutated in place
+     * @param gridSizeX the map width in tiles
+     * @param gridSizeY the map height in tiles
+     */
     private void removeSmallLakes(MapTile[][] gridMap, int gridSizeX, int gridSizeY) {
         boolean[][] visited = new boolean[gridSizeX][gridSizeY];
 
@@ -279,6 +308,17 @@ public class MapGenerator {
         }
     }
 
+    /**
+     * Returns the in-bounds neighbors of a tile. The array indices are converted
+     * to doubled-height hex coordinates, walked through every {@link Direction},
+     * then mapped back to array indices.
+     *
+     * @param x         the tile column
+     * @param y         the tile row
+     * @param gridSizeX the map width in tiles
+     * @param gridSizeY the map height in tiles
+     * @return the {@code {x, y}} coordinates of each existing neighbor
+     */
     private List<int[]> getHexNeighbors(int x, int y, int gridSizeX, int gridSizeY) {
         List<int[]> neighbors = new ArrayList<>();
         
@@ -288,7 +328,7 @@ public class MapGenerator {
         Coordinates current = new Coordinates(cx, cy);
 
         // Use the unit vectors defined in Direction
-        for (fr.opensettlers.utils.Direction dir : fr.opensettlers.utils.Direction.values()) {
+        for (Direction dir : Direction.values()) {
             Coordinates neighborCoord = current.neighbor(dir);
             
             // Reverse mapping back to array indices

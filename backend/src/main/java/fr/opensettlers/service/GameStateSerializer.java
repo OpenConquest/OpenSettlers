@@ -2,7 +2,9 @@ package fr.opensettlers.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.GameConfig;
+import fr.opensettlers.utils.ResourceType;
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.entities.*;
 import fr.opensettlers.utils.Coordinates;
@@ -28,8 +30,10 @@ import java.util.Set;
  */
 public final class GameStateSerializer {
 
+    /** Shared JSON mapper used to serialize every outgoing snapshot. */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    /** Private constructor to prevent instantiation of this utility class. */
     private GameStateSerializer() {}
 
     /**
@@ -178,10 +182,10 @@ public final class GameStateSerializer {
         Map<String, List<String>> distribution = null;
         if (viewerId != null) {
             distribution = new HashMap<>();
-            for (Map.Entry<fr.opensettlers.utils.ResourceType, List<fr.opensettlers.utils.BuildingName>> e
+            for (Map.Entry<ResourceType, List<BuildingName>> e
                     : state.getDistributionFor(viewerId).entrySet()) {
                 List<String> order = new ArrayList<>(e.getValue().size());
-                for (fr.opensettlers.utils.BuildingName bn : e.getValue()) {
+                for (BuildingName bn : e.getValue()) {
                     order.add(bn.name());
                 }
                 distribution.put(e.getKey().name(), order);
@@ -251,6 +255,14 @@ public final class GameStateSerializer {
         return write(new MapDto("MAP", GameConfig.MAP_SIZE, tiles));
     }
 
+    /**
+     * Converts a building to its wire DTO, flattening the type-specific state
+     * (construction progress, production output, stored resources, garrison and
+     * coins) into the nullable fields of {@link GameStateDto.BuildingDto}.
+     *
+     * @param b the building to serialize
+     * @return the building DTO carrying only the fields relevant to its subtype
+     */
     private static GameStateDto.BuildingDto toBuildingDto(Building b) {
         Integer groundwork = null;
         Integer progress = null;
@@ -274,7 +286,7 @@ public final class GameStateSerializer {
             productionPaused = pb.isProductionPaused();
         } else if (b instanceof StorageBuilding sb) {
             stored = new HashMap<>();
-            for (Map.Entry<fr.opensettlers.utils.ResourceType, Integer> e : sb.getStoredResources().entrySet()) {
+            for (Map.Entry<ResourceType, Integer> e : sb.getStoredResources().entrySet()) {
                 stored.put(e.getKey().name(), e.getValue());
             }
         } else if (b instanceof MilitaryBuilding mb) {
@@ -294,6 +306,13 @@ public final class GameStateSerializer {
                 productionPaused, coinsAllowed);
     }
 
+    /**
+     * Serializes a DTO to its JSON string representation.
+     *
+     * @param dto the object to serialize
+     * @return the JSON string
+     * @throws IllegalStateException if serialization fails
+     */
     private static String write(Object dto) {
         try {
             return MAPPER.writeValueAsString(dto);

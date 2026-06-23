@@ -3,6 +3,7 @@ package fr.opensettlers.service;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.state.GameSession;
 import fr.opensettlers.state.GameState;
+import fr.opensettlers.service.commands.GameCommand;
 import fr.opensettlers.service.mapgen.MapGenerator;
 import fr.opensettlers.entities.Building;
 import fr.opensettlers.entities.BuildingFactory;
@@ -14,6 +15,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -26,6 +28,7 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 public class GameEngineService {
 
+    /** The logger. */
     private static final Logger LOG = Logger.getLogger(GameEngineService.class);
 
     /** Map of active game sessions, indexed by game ID. */
@@ -142,7 +145,7 @@ public class GameEngineService {
      *
      * @return the set of active game IDs
      */
-    public java.util.Set<UUID> getActiveGameIds() {
+    public Set<UUID> getActiveGameIds() {
         return sessions.keySet();
     }
 
@@ -161,7 +164,7 @@ public class GameEngineService {
             return;
         }
 
-        session.queueCommand(new fr.opensettlers.service.commands.GameCommand() {
+        session.queueCommand(new GameCommand() {
             @Override
             public int getPlayerId() {
                 return message.getPlayerId();
@@ -289,7 +292,7 @@ public class GameEngineService {
 
             Coordinates position = new Coordinates(
                     spot.getCoordinates().getX(), spot.getCoordinates().getY());
-            Building hq = fr.opensettlers.entities.BuildingFactory.createBuilding(
+            Building hq = BuildingFactory.createBuilding(
                     BuildingName.HEADQUARTERS, playerId, position, state);
             state.getBuildings().add(hq);
             state.getFlags().add(hq.getAttachedFlag());

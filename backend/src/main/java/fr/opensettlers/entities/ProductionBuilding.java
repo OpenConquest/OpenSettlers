@@ -4,6 +4,7 @@ import fr.opensettlers.utils.Coordinates;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +33,7 @@ public abstract class ProductionBuilding extends Building implements IProducer {
      * Target destinations assigned to resources currently stored in the output slot.
      * When an item is produced, it goes to outputSlot and a target is eventually assigned here.
      */
-    protected List<UUID> outputDestinations = new java.util.ArrayList<>();
+    protected List<UUID> outputDestinations = new ArrayList<>();
 
     /** Specialist worker occupying this building. */
     @Setter

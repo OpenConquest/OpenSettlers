@@ -138,6 +138,13 @@ public class BuildingFactory {
         return bestOre;
     }
 
+    /**
+     * Builds the production recipe yielding the given output resource, pairing
+     * its input requirements (from {@link Recipe#RECIPES}) with the output type.
+     *
+     * @param outputType the resource the processing building produces
+     * @return the recipe for that output
+     */
     private static Recipe getRecipe(ResourceType outputType) {
         return new Recipe(Recipe.RECIPES.get(outputType), outputType);
     }

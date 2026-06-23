@@ -5,6 +5,7 @@ import fr.opensettlers.entities.BuildingFactory;
 import fr.opensettlers.entities.Flag;
 import fr.opensettlers.entities.MapTile;
 import fr.opensettlers.entities.MilitaryBuilding;
+import fr.opensettlers.entities.NaturalResourceNode;
 import fr.opensettlers.entities.Soldier;
 import fr.opensettlers.entities.StorageBuilding;
 import fr.opensettlers.state.GameState;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,7 +38,7 @@ class GameSnapshotMapperTest {
 
         Map<Coordinates, MapTile> tiles = new HashMap<>();
         MapTile forest = new MapTile(new Coordinates(2, 0), TileType.FOREST, 1);
-        forest.setNaturalResource(new fr.opensettlers.entities.NaturalResourceNode(ResourceType.LOG, 7));
+        forest.setNaturalResource(new NaturalResourceNode(ResourceType.LOG, 7));
         tiles.put(forest.getCoordinates(), forest);
         tiles.put(new Coordinates(0, 0), new MapTile(new Coordinates(0, 0), TileType.GRASS, 0));
         state.setMapTiles(tiles);
@@ -58,7 +60,7 @@ class GameSnapshotMapperTest {
         state.getFlags().add(flag);
         state.getRoadNetwork().addFlag(flag);
         state.getRoadNetwork().addRoad(hq.getAttachedFlag(), flag,
-                new ArrayList<>(java.util.List.of(new Coordinates(1, 0))));
+                new ArrayList<>(List.of(new Coordinates(1, 0))));
 
         return state;
     }

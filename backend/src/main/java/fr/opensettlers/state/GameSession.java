@@ -19,9 +19,16 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 @Getter
 public class GameSession {
+    /** Unique session identifier, shared with the hosted {@link GameState}. */
     private final UUID id;
+
+    /** The authoritative game state advanced by the engine each tick. */
     private final GameState state;
+
+    /** Player commands enqueued by WebSocket handlers, drained at the start of each tick. */
     private final Queue<GameCommand> commandQueue = new ConcurrentLinkedQueue<>();
+
+    /** Open WebSocket connections (players and spectators) receiving state broadcasts. */
     private final Set<WebSocketConnection> connections = ConcurrentHashMap.newKeySet();
 
     /**
@@ -30,6 +37,11 @@ public class GameSession {
      */
     private final Map<WebSocketConnection, Integer> connectionPlayers = new ConcurrentHashMap<>();
 
+    /**
+     * Creates a session hosting a fresh, empty game state.
+     *
+     * @param id the session identifier
+     */
     public GameSession(UUID id) {
         this.id = id;
         this.state = new GameState(id, new ArrayList<>());
@@ -47,6 +59,11 @@ public class GameSession {
         this.state = state;
     }
 
+    /**
+     * Enqueues a player command to be applied at the start of the next tick.
+     *
+     * @param command the command to queue
+     */
     public void queueCommand(GameCommand command) {
         commandQueue.add(command);
     }
@@ -65,10 +82,20 @@ public class GameSession {
         }
     }
 
+    /**
+     * Registers a spectator connection not bound to any player.
+     *
+     * @param connection the WebSocket connection
+     */
     public void addConnection(WebSocketConnection connection) {
         addConnection(connection, null);
     }
 
+    /**
+     * Removes a connection and any player binding it held.
+     *
+     * @param connection the WebSocket connection to drop
+     */
     public void removeConnection(WebSocketConnection connection) {
         connections.remove(connection);
         connectionPlayers.remove(connection);

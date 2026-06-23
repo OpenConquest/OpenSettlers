@@ -21,6 +21,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class GamePersistenceService {
 
+    /** JSON mapper used to (de)serialize the snapshot payload stored on each row. */
     private final ObjectMapper mapper = new ObjectMapper();
 
     /**

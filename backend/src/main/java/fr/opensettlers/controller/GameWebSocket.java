@@ -21,6 +21,7 @@ import org.jboss.logging.Logger;
 @WebSocket(path = "/game/{gameId}")
 public class GameWebSocket {
 
+    /** The logger. */
     private static final Logger LOG = Logger.getLogger(GameWebSocket.class);
 
     @Inject

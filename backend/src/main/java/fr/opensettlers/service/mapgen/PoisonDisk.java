@@ -14,18 +14,40 @@ import fr.opensettlers.utils.Coordinates;
  */
 public class PoisonDisk{
 
+    /** Width of the sampling area. */
     private final double width;
+
+    /** Height of the sampling area. */
     private final double height;
+
+    /** Minimum allowed distance between any two sampled points. */
     private final double radius;
+
+    /** Number of candidate points tried around an active point before giving up. */
     private final int k;
+
+    /** Size of a background-grid cell, sized so each cell holds at most one point. */
     private final double cellSize;
 
+    /** All accepted sample points. */
     private final List<Coordinates> points;
+
+    /** Points still able to spawn new neighbors, used as the algorithm's frontier. */
     private final List<Coordinates> activeList;
+
+    /** Spatial acceleration grid mapping a cell to the point it contains. */
     private final Coordinates[][] grid;
+
+    /** Random source driving point placement. */
     private final Random seed;
 
-    
+    /**
+     * Creates a sampler for a {@code width} × {@code height} area.
+     *
+     * @param width  width of the sampling area
+     * @param height height of the sampling area
+     * @param radius minimum distance separating any two generated points
+     */
     public PoisonDisk(double width, double height, double radius) {
         this.width = width;
         this.height = height;
@@ -43,6 +65,14 @@ public class PoisonDisk{
         this.seed = new Random();
     }
 
+    /**
+     * Tests whether a candidate point lies inside the area and is at least
+     * {@code radius} away from every already-accepted point, using the
+     * background grid to check only nearby cells.
+     *
+     * @param coord the candidate point
+     * @return {@code true} if the point can be accepted
+     */
     public boolean isValid(Coordinates coord){
         double x = coord.getX();
         double y = coord.getY();
@@ -74,12 +104,24 @@ public class PoisonDisk{
         return true;
     }
 
+    /**
+     * Records a point in the background grid cell covering its position.
+     *
+     * @param coord the point to index
+     */
     private void insertIntoGrid(Coordinates coord) {
         int cellX = (int) (coord.getX() / cellSize);
         int cellY = (int) (coord.getY() / cellSize);
         grid[cellX][cellY] = coord;
     }
 
+    /**
+     * Runs Bridson's algorithm and returns the full set of evenly spread points.
+     * Starts from a random seed point and repeatedly spawns candidates around
+     * active points until no more can be placed.
+     *
+     * @return the generated points, each at least {@code radius} apart
+     */
     public List<Coordinates> generate() {
         Coordinates startPoint = new Coordinates(seed.nextDouble() * width, seed.nextDouble() * height);
         points.add(startPoint);

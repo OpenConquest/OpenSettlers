@@ -15,6 +15,14 @@ import javax.imageio.ImageIO;
  */
 public class MapVisualizer {
     
+    /**
+     * Renders the map as a hexagonal PNG image and writes it to disk, drawing
+     * each tile colored by terrain type with its resource nodes overlaid.
+     *
+     * @param gridMap  the map to render
+     * @param filePath the destination path of the PNG file
+     * @throws Exception if the image cannot be written
+     */
     public static void saveHexagonalMap(MapTile[][] gridMap, String filePath) throws Exception {
         int gridSizeX = gridMap.length;
         int gridSizeY = gridMap[0].length;
@@ -90,6 +98,14 @@ public class MapVisualizer {
         ImageIO.write(img, "png", new File(filePath));
     }
 
+    /**
+     * Renders the map as an ASCII grid for quick debugging in the console, using
+     * one glyph per tile (e.g. {@code ~} water, {@code .} grass, {@code ▲}
+     * mountain, {@code i}/{@code c}/{@code s} for iron/coal/stone deposits).
+     *
+     * @param gridMap the map to render
+     * @return the multi-line ASCII representation
+     */
     public static String toAsciiString(MapTile[][] gridMap) {
         StringBuilder sb = new StringBuilder();
         for (MapTile[] row : gridMap) {

@@ -3,6 +3,7 @@ package fr.opensettlers.entities;
 import fr.opensettlers.utils.ResourceType;
 import lombok.Value;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,7 +44,7 @@ public class Recipe {
      * @param availableSlots the slots to check
      * @return {@code true} if all required inputs are available. 
      */
-    public boolean canProcess(java.util.List<ResourceSlot> availableSlots) {
+    public boolean canProcess(List<ResourceSlot> availableSlots) {
         if (input == null) return true; // No inputs required
         for (Map.Entry<ResourceType, Integer> requirement : input.entrySet()) {
             ResourceType requiredType = requirement.getKey();
@@ -66,7 +67,7 @@ public class Recipe {
      *
      * @param availableSlots the slots to consume from 
      */
-    public void consume(java.util.List<ResourceSlot> availableSlots) {
+    public void consume(List<ResourceSlot> availableSlots) {
         if (input == null) return;
         for (Map.Entry<ResourceType, Integer> requirement : input.entrySet()) {
             ResourceType requiredType = requirement.getKey();

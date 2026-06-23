@@ -1,5 +1,6 @@
 package fr.opensettlers.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.ResourceType;
@@ -21,7 +22,9 @@ public class GameMessage {
     private int playerId;
     
     // --- Attributes for BUILD_BUILDING ---
+    /** The type of building to construct. */
     private BuildingName buildingName;
+    /** The map coordinates where the building is placed. */
     private Coordinates position;
     
     // --- Attributes for DESTROY_BUILDING / ATTACK_BUILDING ---
@@ -29,9 +32,11 @@ public class GameMessage {
     private UUID targetId;
     
     // --- Attributes for LINK_FLAGS ---
-    @com.fasterxml.jackson.annotation.JsonProperty("flagIdA")
+    /** ID of the first flag endpoint of the road to build. */
+    @JsonProperty("flagIdA")
     private UUID flagIdA;
-    @com.fasterxml.jackson.annotation.JsonProperty("flagIdB")
+    /** ID of the second flag endpoint of the road to build. */
+    @JsonProperty("flagIdB")
     private UUID flagIdB;
     /** Intermediate path coordinates (excluding the two endpoint flags). */
     private List<Coordinates> path;

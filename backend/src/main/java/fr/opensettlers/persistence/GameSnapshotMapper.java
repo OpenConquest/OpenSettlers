@@ -39,6 +39,7 @@ import java.util.UUID;
  */
 public final class GameSnapshotMapper {
 
+    /** Private constructor to prevent instantiation of this utility class. */
     private GameSnapshotMapper() {}
 
     /**
