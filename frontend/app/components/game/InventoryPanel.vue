@@ -4,7 +4,8 @@
  * Aggregates every good held across the player's storage buildings and a short
  * tally of buildings and military strength. Read-only, computed from live state.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { useDraggable } from '@vueuse/core';
 import { RESOURCE_ICONS, resourceLabel } from "~/lib/palette";
 import type { ResourceType } from "~/types/game";
 
@@ -43,16 +44,20 @@ const soldiers = computed(() => {
   for (const s of state.value?.soldiers ?? []) if (s.playerId === session.playerId) n += 1;
   return n;
 });
+
+const el = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+const { style } = useDraggable(el, { initialValue: { x: 100, y: 100 }, handle });
 </script>
 
 <template>
   <div
     v-if="visible"
-    class="pointer-events-auto fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
-    @click.self="togglePanel('inventory')"
+    ref="el"
+    class="wood-panel pointer-events-auto fixed z-[60] max-h-[80vh] w-[32rem] overflow-y-auto p-5"
+    :style="style"
   >
-    <div class="wood-panel max-h-[80vh] w-[32rem] overflow-y-auto p-5">
-      <div class="mb-4 flex items-center justify-between border-b border-amber-900/30 pb-2">
+    <div ref="handle" class="mb-4 flex items-center justify-between border-b border-amber-900/30 pb-2 cursor-move">
         <h2 class="cinzel-title text-xl font-bold text-amber-950">Inventory</h2>
         <button class="wood-btn flex h-6 w-6 items-center justify-center rounded-full text-xs" @click="togglePanel('inventory')">✕</button>
       </div>
@@ -84,6 +89,5 @@ const soldiers = computed(() => {
           <p class="text-[11px] font-bold uppercase tracking-wide text-amber-900/70">Soldiers</p>
         </div>
       </div>
-    </div>
   </div>
 </template>

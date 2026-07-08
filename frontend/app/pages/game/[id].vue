@@ -57,20 +57,15 @@ onBeforeUnmount(disconnect);
     <!-- UI Overlay container, passes clicks through unless hitting a UI element -->
     <div class="pointer-events-none absolute inset-0">
       
-      <!-- Top Bar HUD -->
-      <GameHud class="absolute top-0 left-0 right-0" @save="save" @leave="leave" />
-      
-      <!-- Floating Minimap Window (Top Right) -->
-      <div v-if="isMinimapOpen" class="absolute top-16 right-4 z-[60] pointer-events-auto shadow-[0_4px_24px_rgba(0,0,0,0.8)] rounded-md border-2 border-[#b8860b] bg-black/80 backdrop-blur-sm overflow-hidden">
-        <Minimap />
-      </div>
+      <!-- Floating Minimap Window -->
+      <Minimap v-if="isMinimapOpen" />
 
       <!-- Message log (Top Left) -->
-      <MessageLog class="absolute left-4 top-16" />
+      <MessageLog class="absolute left-4 top-4" />
 
       <!-- Bottom control bar (full width) -->
       <div class="absolute bottom-0 left-0 right-0">
-        <BuildPalette />
+        <BuildPalette @save="save" @leave="leave" />
       </div>
 
       <!-- Selection Panel (Bottom Left) -->

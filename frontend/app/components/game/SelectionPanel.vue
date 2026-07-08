@@ -6,7 +6,8 @@
  * contextual controls: pause/resume production, toggle gold-coin delivery,
  * demolish an own building, or attack an enemy one.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { useDraggable } from '@vueuse/core';
 import { BUILDINGS, isMilitary } from "~/lib/buildings";
 import { RESOURCE_ICONS, playerColor, resourceLabel } from "~/lib/palette";
 import type { BuildingName, ResourceType } from "~/types/game";
@@ -57,11 +58,15 @@ function togglePause(): void {
 function toggleCoins(): void {
   if (building.value) actions.setCoinDelivery(building.value.id, building.value.coinsAllowed === false);
 }
+
+const el = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+const { style } = useDraggable(el, { initialValue: { x: 300, y: 400 }, handle });
 </script>
 
 <template>
-  <div v-if="building && meta" class="wood-panel absolute bottom-4 left-80 w-72 p-4">
-    <div class="mb-3 flex items-start justify-between border-b border-amber-900/30 pb-2">
+  <div v-if="building && meta" ref="el" class="wood-panel fixed w-72 p-4" :style="style">
+    <div ref="handle" class="mb-3 flex items-start justify-between border-b border-amber-900/30 pb-2 cursor-move">
       <div class="flex items-center gap-3">
         <div class="flex h-12 w-12 items-center justify-center rounded border border-amber-900/40 bg-amber-950/10 shadow-inner">
           <component :is="meta.icon" class="h-8 w-8 text-amber-900 drop-shadow-md" />
@@ -80,7 +85,7 @@ function toggleCoins(): void {
       <button class="wood-btn flex h-6 w-6 items-center justify-center rounded-full text-xs" @click="close">✕</button>
     </div>
 
-    <div class="space-y-2 text-sm font-bold text-amber-950">
+    <div v-if="isOwn" class="space-y-2 text-sm font-bold text-amber-950">
       <p v-if="building.underConstruction" class="text-amber-900/80">
         Under construction — groundwork {{ building.groundworkProgress ?? 0 }}%, walls
         {{ building.buildingProgress ?? 0 }}%

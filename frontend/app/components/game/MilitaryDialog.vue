@@ -6,6 +6,7 @@
  * authoritative value is read back from the server state.
  */
 import { computed, ref, watch } from "vue";
+import { useDraggable } from '@vueuse/core';
 import { Swords } from "@lucide/vue";
 
 const { state, session, actions } = useGameSession();
@@ -33,16 +34,20 @@ const soldiers = computed(() => {
   for (const s of state.value?.soldiers ?? []) if (s.playerId === session.playerId) n += 1;
   return n;
 });
+
+const el = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+const { style } = useDraggable(el, { initialValue: { x: 200, y: 200 }, handle });
 </script>
 
 <template>
   <div
     v-if="visible"
-    class="pointer-events-auto fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
-    @click.self="togglePanel('military')"
+    ref="el"
+    class="wood-panel pointer-events-auto fixed z-[60] w-[28rem] p-5"
+    :style="style"
   >
-    <div class="wood-panel w-[28rem] p-5">
-      <div class="mb-4 flex items-center justify-between border-b border-amber-900/30 pb-2">
+    <div ref="handle" class="mb-4 flex items-center justify-between border-b border-amber-900/30 pb-2 cursor-move">
         <h2 class="cinzel-title flex items-center gap-2 text-xl font-bold text-amber-950">
           <Swords class="h-5 w-5" /> Military
         </h2>
@@ -76,6 +81,5 @@ const soldiers = computed(() => {
       <p class="mt-4 border-t border-amber-900/30 pt-3 text-center text-sm font-bold text-amber-950">
         Soldiers in service: <span class="tabular-nums">{{ soldiers }}</span>
       </p>
-    </div>
   </div>
 </template>

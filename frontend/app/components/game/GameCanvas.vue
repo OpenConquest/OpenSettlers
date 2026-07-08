@@ -12,6 +12,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
+  HEX_DIRECTIONS,
   hexCorners,
   hexKey,
   hexToPixel,
@@ -231,6 +232,89 @@ function drawTerrain(tl: Point, br: Point, margin: number): void {
       c.fill();
     }
   }
+
+  // Second pass: Territory borders (drawn after all terrain fills so they aren't clipped)
+  c.lineWidth = 2.5;
+  const edgeIndices = [4, 5, 0, 1, 2, 3]; // Maps HEX_DIRECTIONS to hexCorners indices
+  const stakesToDraw = new Map<string, {x: number, y: number, color: string, alpha: number}>();
+  
+  c.setLineDash([4, 4]);
+
+  for (const tile of map.value!.tiles.values()) {
+    const center = hexToPixel(tile.x, tile.y, HEX_SIZE);
+    if (!inView(center, tl, br, margin)) continue;
+
+    const key = hexKey(tile.x, tile.y);
+    const owner = territoryByKey.value.get(key);
+    if (owner != null && owner >= 0) {
+      const isExplored = !explored || explored.has(key);
+      const alpha = isExplored ? 1.0 : 0.3;
+      c.strokeStyle = playerColor(owner);
+      c.globalAlpha = alpha;
+
+      const corners = hexCorners(center, HEX_SIZE);
+      for (let i = 0; i < 6; i++) {
+        const d = HEX_DIRECTIONS[i];
+        const neighborKey = hexKey(tile.x + d.x, tile.y + d.y);
+        // Only draw edge if neighbour is a different owner (or unowned)
+        if (territoryByKey.value.get(neighborKey) !== owner) {
+          const edgeIdx = edgeIndices[i];
+          const p1 = corners[edgeIdx];
+          const p2 = corners[(edgeIdx + 1) % 6];
+          c.beginPath();
+          c.moveTo(p1.x, p1.y);
+          c.lineTo(p2.x, p2.y);
+          c.stroke();
+          
+          const k1 = `${Math.round(p1.x)},${Math.round(p1.y)}`;
+          const k2 = `${Math.round(p2.x)},${Math.round(p2.y)}`;
+          
+          const s1 = stakesToDraw.get(k1);
+          if (!s1 || s1.alpha < alpha) stakesToDraw.set(k1, { x: p1.x, y: p1.y, color: playerColor(owner), alpha });
+          
+          const s2 = stakesToDraw.get(k2);
+          if (!s2 || s2.alpha < alpha) stakesToDraw.set(k2, { x: p2.x, y: p2.y, color: playerColor(owner), alpha });
+        }
+      }
+    }
+  }
+  c.setLineDash([]);
+  
+  c.save();
+  // Draw the border stakes
+  for (const stake of stakesToDraw.values()) {
+    const { x, y, color, alpha } = stake;
+    c.globalAlpha = alpha;
+    
+    // Shadow
+    c.fillStyle = "rgba(0,0,0,0.4)";
+    c.beginPath();
+    c.ellipse(x, y, 2.5, 1.2, 0, 0, Math.PI * 2);
+    c.fill();
+    
+    // Pole
+    c.strokeStyle = "#4a351c"; // dark wood
+    c.lineWidth = 1.8;
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(x, y);
+    c.lineTo(x, y - 5);
+    c.stroke();
+    
+    // Colored tip
+    c.fillStyle = color;
+    c.beginPath();
+    c.arc(x, y - 5, 1.5, 0, Math.PI * 2);
+    c.fill();
+    
+    // White highlight on the tip
+    c.fillStyle = "rgba(255,255,255,0.7)";
+    c.beginPath();
+    c.arc(x - 0.5, y - 5.5, 0.5, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.restore();
+  c.globalAlpha = 1;
 }
 
 /**
