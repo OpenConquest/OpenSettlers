@@ -5,7 +5,8 @@
  * the authoritative order from the server state and sending {@link setDistribution}
  * on every reorder keeps the dialog in sync with the engine.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { useDraggable } from '@vueuse/core';
 import { BUILDINGS } from "~/lib/buildings";
 import { RESOURCE_ICONS, resourceLabel } from "~/lib/palette";
 import type { BuildingName, ResourceType } from "~/types/game";
@@ -31,16 +32,20 @@ function move(good: ResourceType, index: number, dir: -1 | 1): void {
   [order[index], order[j]] = [order[j]!, order[index]!] as [BuildingName, BuildingName];
   actions.setDistribution(good, order);
 }
+
+const el = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+const { style } = useDraggable(el, { initialValue: { x: 150, y: 150 }, handle });
 </script>
 
 <template>
   <div
     v-if="visible"
-    class="pointer-events-auto fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
-    @click.self="togglePanel('distribution')"
+    ref="el"
+    class="wood-panel pointer-events-auto fixed z-[60] max-h-[80vh] w-[34rem] overflow-y-auto p-5"
+    :style="style"
   >
-    <div class="wood-panel max-h-[80vh] w-[34rem] overflow-y-auto p-5">
-      <div class="mb-4 flex items-center justify-between border-b border-amber-900/30 pb-2">
+    <div ref="handle" class="mb-4 flex items-center justify-between border-b border-amber-900/30 pb-2 cursor-move">
         <h2 class="cinzel-title text-xl font-bold text-amber-950">Distribution</h2>
         <button class="wood-btn flex h-6 w-6 items-center justify-center rounded-full text-xs" @click="togglePanel('distribution')">✕</button>
       </div>
@@ -80,6 +85,5 @@ function move(good: ResourceType, index: number, dir: -1 | 1): void {
           </ul>
         </div>
       </div>
-    </div>
   </div>
 </template>

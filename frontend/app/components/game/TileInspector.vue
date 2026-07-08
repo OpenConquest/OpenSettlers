@@ -6,6 +6,7 @@
  * category tab strip and a grid of buildings) plus a flag placement.
  */
 import { computed, ref, watch } from "vue";
+import { useDraggable } from '@vueuse/core';
 import {
   BUILDING_CATEGORIES,
   BUILDINGS,
@@ -63,13 +64,18 @@ const buildingHere = computed(() => {
   return c ? state.value?.buildings.find((b) => b.x === c.x && b.y === c.y) : undefined;
 });
 
+const flagHere = computed(() => {
+  const c = selectedTile.value;
+  return c ? state.value?.flags.find((f) => f.x === c.x && f.y === c.y) : undefined;
+});
+
 /**
  * Whether this tile can host a building (buildable terrain, unoccupied).
  * Territory ownership is not required here so the menu is always reachable; the
  * server still validates placement and refuses tiles outside the player's land.
  */
 const canBuild = computed(() => {
-  if (!tile.value || buildingHere.value) return false;
+  if (!tile.value || buildingHere.value || flagHere.value) return false;
   const t = tile.value.tileType;
   return (t === "GRASS" || t === "HILLS" || t === "MOUNTAIN") && tile.value.elevation <= 4;
 });
@@ -99,15 +105,29 @@ function placeFlag(): void {
   }
   close();
 }
+
+function sendGeologist(): void {
+  if (flagHere.value) {
+    actions.sendGeologist(flagHere.value.id);
+    log("Geologist dispatched.", "info");
+  }
+  close();
+}
+
+const el = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+const { style } = useDraggable(el, { initialValue: { x: 24, y: 400 }, handle });
 </script>
 
 <template>
   <div
     v-if="selectedTile && tile && terrain && tool.kind === 'inspect'"
-    class="wood-panel absolute bottom-28 left-6 w-80 p-3.5"
+    ref="el"
+    class="wood-panel fixed w-80 p-3.5"
+    :style="style"
   >
     <!-- Header: terrain + coordinates -->
-    <div class="mb-2.5 flex items-center justify-between border-b border-amber-900/30 pb-2">
+    <div ref="handle" class="mb-2.5 flex items-center justify-between border-b border-amber-900/30 pb-2 cursor-move">
       <div class="flex items-center gap-2.5">
         <span class="text-2xl drop-shadow">{{ terrain.glyph }}</span>
         <div class="leading-tight">
@@ -188,6 +208,23 @@ function placeFlag(): void {
           <component :is="b.icon" class="h-6 w-6 drop-shadow" />
         </button>
       </div>
+    </template>
+
+    <template v-else-if="flagHere">
+      <div class="mb-2 flex items-center justify-between">
+        <p class="cinzel-title text-sm font-bold text-amber-900">Flag</p>
+      </div>
+      <div v-if="flagHere.playerId === session.playerId" class="flex gap-2">
+        <button
+          class="wood-btn flex-1 py-1.5 text-sm"
+          @click="sendGeologist"
+        >
+          Send Geologist
+        </button>
+      </div>
+      <p v-else class="text-[12px] italic text-amber-900/70">
+        Enemy flag.
+      </p>
     </template>
 
     <p v-else-if="buildingHere" class="text-[12px] italic text-amber-900/70">

@@ -5,6 +5,7 @@
  * territory, and a click recentres the main camera on the matching world point.
  */
 import { onMounted, ref, watch } from "vue";
+import { useDraggable } from '@vueuse/core';
 import { hexToPixel } from "~/lib/hex";
 import { TILE_COLORS, playerColor } from "~/lib/palette";
 
@@ -112,11 +113,20 @@ watch(map, () => {
 watch(() => state.value?.territory, draw);
 // Keep the viewport rectangle in sync as the player pans or zooms.
 watch(() => [camera.x, camera.y, camera.zoom, camera.viewW, camera.viewH], draw);
+
+const el = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+const initialX = typeof window !== 'undefined' ? window.innerWidth - 220 : 800;
+const { style } = useDraggable(el, { initialValue: { x: initialX, y: 64 }, handle });
 </script>
 
 <template>
-  <div class="dark-wood z-50 rounded-sm p-2">
-    <div class="mb-1.5 flex items-center justify-between px-0.5">
+  <div
+    ref="el"
+    class="dark-wood fixed z-[60] rounded-sm p-2 shadow-[0_4px_24px_rgba(0,0,0,0.8)] pointer-events-auto"
+    :style="style"
+  >
+    <div ref="handle" class="mb-1.5 flex items-center justify-between px-0.5 cursor-move">
       <span class="cinzel-title text-[11px] font-bold tracking-widest text-[#f4e8c1]">MAP</span>
       <span class="text-[9px] font-bold text-[#f4e8c1]/60">click to recenter</span>
     </div>
