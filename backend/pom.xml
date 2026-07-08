@@ -27,19 +27,18 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-        
+        </dependencies>
+    </dependencyManagement>
 
-        <!-- REST API (Jakarta REST) -->
+    <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
         </dependency>
-        <!-- JSON serialization for REST -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-jackson</artifactId>
         </dependency>
-        <!-- CDI (Contexts and Dependency Injection) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
@@ -52,25 +51,14 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-scheduler</artifactId>
         </dependency>
-        <!-- Hibernate ORM with Panache (Active Record pattern) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
-        <!-- PostgreSQL JDBC driver (+ Dev Services auto-container) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
-        <!-- Lombok -->
-	    <dependency>
-		    <groupId>org.projectlombok</groupId>
-		    <artifactId>lombok</artifactId>
-		    <version>1.18.46</version>
-		    <scope>provided</scope>
-	    </dependency>
-
-        <!-- Test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
@@ -81,14 +69,14 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
-        </dependencies>
-    </dependencyManagement>
-    <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.46</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
+
 
     <build>
         <plugins>
@@ -99,10 +87,18 @@
                 <extensions>true</extensions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
                 <configuration>
                     <parameters>true</parameters>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.46</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -136,19 +132,7 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-compiler-plugin</artifactId>
-			    <configuration>
-			        <annotationProcessorPaths>
-				        <path>
-					        <groupId>org.projectlombok</groupId>
-					        <artifactId>lombok</artifactId>
-					        <version>1.18.46</version>
-				        </path>
-			        </annotationProcessorPaths>
-		        </configuration>
-		    </plugin>
+
         </plugins>
     </build>
 
