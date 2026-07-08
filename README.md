@@ -6,8 +6,8 @@
   <p align="center">
     <a href="#getting-started"><img alt="Get Started" src="https://img.shields.io/badge/Get_Started-blue?style=for-the-badge" /></a>
     <a href="LICENSE"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/License-GPLv3-green?style=for-the-badge" /></a>
-    <a href="#tech-stack"><img alt="Java 21" src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk" /></a>
-    <a href="#tech-stack"><img alt="Quarkus" src="https://img.shields.io/badge/Quarkus-3.36-4695EB?style=for-the-badge&logo=quarkus" /></a>
+    <a href="#tech-stack"><img alt="Java 21" src="https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk" /></a>
+    <a href="#tech-stack"><img alt="Quarkus" src="https://img.shields.io/badge/Quarkus-3.37-4695EB?style=for-the-badge&logo=quarkus" /></a>
     <a href="#tech-stack"><img alt="Nuxt 3" src="https://img.shields.io/badge/Nuxt-4-00DC82?style=for-the-badge&logo=nuxtdotjs" /></a>
   </p>
 </p>
