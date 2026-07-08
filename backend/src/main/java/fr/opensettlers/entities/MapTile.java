@@ -1,6 +1,7 @@
 package fr.opensettlers.entities;
 
 import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.ResourceType;
 import fr.opensettlers.utils.TileType;
 import lombok.Getter;
@@ -138,10 +139,11 @@ public class MapTile {
     /**
      * Checks if the tile supports building construction.
      *
-     * @return {@code true} if the tile supports building construction (grass or field)
+     * @return {@code true} if the tile supports building construction (grass, hills, mountain) and is within max elevation
      */
     public boolean isBuildable() {
-        return this.type == TileType.GRASS;
+        boolean validTerrain = this.type == TileType.GRASS || this.type == TileType.HILLS || this.type == TileType.MOUNTAIN;
+        return validTerrain && this.elevation <= GameConfig.SITE_MAX_ELEVATION;
     }
 
     /**
