@@ -69,6 +69,12 @@ function resetTool(): void {
   setTool({ kind: "inspect" });
 }
 
+const isMinimapOpen = ref(false);
+
+function toggleMinimap(): void {
+  isMinimapOpen.value = !isMinimapOpen.value;
+}
+
 export function useGameUi() {
-  return { tool, selectedBuildingId, selectedTile, roadDraft, openPanel, attackerCount, togglePanel, setTool, resetTool };
+  return { tool, selectedBuildingId, selectedTile, roadDraft, openPanel, attackerCount, isMinimapOpen, togglePanel, toggleMinimap, setTool, resetTool };
 }
