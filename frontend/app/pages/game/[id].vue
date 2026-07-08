@@ -11,7 +11,7 @@ const route = useRoute();
 const router = useRouter();
 const api = useGameApi();
 const { connect, disconnect } = useGameSession();
-const { resetTool } = useGameUi();
+const { resetTool, isMinimapOpen } = useGameUi();
 const { clearLog, log } = useGameLog();
 
 // Settlers-style keyboard control (number keys arm tools, Escape backs out).
@@ -60,11 +60,13 @@ onBeforeUnmount(disconnect);
       <!-- Top Bar HUD -->
       <GameHud class="absolute top-0 left-0 right-0" @save="save" @leave="leave" />
       
-      <!-- Minimap (Top Left) -->
-      <Minimap class="absolute top-12 left-12" />
+      <!-- Floating Minimap Window (Top Right) -->
+      <div v-if="isMinimapOpen" class="absolute top-16 right-4 z-[60] pointer-events-auto shadow-[0_4px_24px_rgba(0,0,0,0.8)] rounded-md border-2 border-[#b8860b] bg-black/80 backdrop-blur-sm overflow-hidden">
+        <Minimap />
+      </div>
 
-      <!-- Message log (Top Right) -->
-      <MessageLog class="absolute right-12 top-14" />
+      <!-- Message log (Top Left) -->
+      <MessageLog class="absolute left-4 top-16" />
 
       <!-- Bottom control bar (full width) -->
       <div class="absolute bottom-0 left-0 right-0">
@@ -77,13 +79,7 @@ onBeforeUnmount(disconnect);
       <TileInspector />
     </div>
 
-    <!-- Full screen ornamental wooden borders (pointer-events-none so we can click through) -->
-    <div class="pointer-events-none absolute inset-0 z-50">
-      <!-- Left pillar -->
-      <div class="absolute top-0 bottom-0 left-0 w-8 bg-[url('/images/wood.jpg')] bg-cover border-r-2 border-black shadow-[inset_-4px_0_10px_rgba(0,0,0,0.9)]"></div>
-      <!-- Right pillar -->
-      <div class="absolute top-0 bottom-0 right-0 w-8 bg-[url('/images/wood.jpg')] bg-cover border-l-2 border-black shadow-[inset_4px_0_10px_rgba(0,0,0,0.9)]"></div>
-    </div>
+      <!-- Borders removed per user request for a more realistic full-screen view -->
 
     <!-- Global overlay dialogs (self-gated by the active panel). -->
     <DistributionDialog />

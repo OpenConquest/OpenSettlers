@@ -175,6 +175,9 @@ public final class GameConfig {
     /** Minimum hex distance between a castle-size building and any other building. */
     public static final int SITE_MIN_BUILDING_DISTANCE_CASTLE = 3;
 
+    /** Maximum elevation allowed for building construction. */
+    public static final int SITE_MAX_ELEVATION = 4;
+
     // --- Fog of war ---
 
     /** Vision radius of non-military buildings. */

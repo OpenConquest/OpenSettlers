@@ -162,7 +162,8 @@ public final class GameStateSerializer {
                         tile.getGeologistSign() != null ? tile.getGeologistSign().name() : null));
             }
             NaturalResourceNode node = tile.getNaturalResource();
-            if (node != null && node.getQuantity() > 0) {
+            boolean showNode = node != null && (!node.getType().isOre() || tile.isSurveyed());
+            if (showNode && node.getQuantity() > 0) {
                 resources.add(new GameStateDto.ResourceTileDto(
                         (int) tile.getCoordinates().getX(),
                         (int) tile.getCoordinates().getY(),
@@ -245,12 +246,13 @@ public final class GameStateSerializer {
         List<MapDto.TileDto> tiles = new ArrayList<>();
         for (MapTile tile : state.getMapTiles().values()) {
             NaturalResourceNode node = tile.getNaturalResource();
+            boolean showNode = node != null && (!node.getType().isOre() || tile.isSurveyed());
             tiles.add(new MapDto.TileDto(
                     (int) tile.getCoordinates().getX(),
                     (int) tile.getCoordinates().getY(),
                     tile.getType().name(), tile.getElevation(),
-                    node != null ? node.getType().name() : null,
-                    node != null ? node.getQuantity() : null));
+                    showNode ? node.getType().name() : null,
+                    showNode ? node.getQuantity() : null));
         }
         return write(new MapDto("MAP", GameConfig.MAP_SIZE, tiles));
     }

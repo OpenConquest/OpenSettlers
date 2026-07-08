@@ -68,9 +68,11 @@ const buildingHere = computed(() => {
  * Territory ownership is not required here so the menu is always reachable; the
  * server still validates placement and refuses tiles outside the player's land.
  */
-const canBuild = computed(
-  () => !!tile.value && tile.value.tileType === "GRASS" && !buildingHere.value,
-);
+const canBuild = computed(() => {
+  if (!tile.value || buildingHere.value) return false;
+  const t = tile.value.tileType;
+  return (t === "GRASS" || t === "HILLS" || t === "MOUNTAIN") && tile.value.elevation <= 4;
+});
 
 const ownedByMe = computed(() => owner.value === session.playerId);
 
