@@ -254,13 +254,13 @@ function drawTerrain(tl: Point, br: Point, margin: number): void {
 
       const corners = hexCorners(center, HEX_SIZE);
       for (let i = 0; i < 6; i++) {
-        const d = HEX_DIRECTIONS[i];
+        const d = HEX_DIRECTIONS[i]!;
         const neighborKey = hexKey(tile.x + d.x, tile.y + d.y);
         // Only draw edge if neighbour is a different owner (or unowned)
         if (territoryByKey.value.get(neighborKey) !== owner) {
-          const edgeIdx = edgeIndices[i];
-          const p1 = corners[edgeIdx];
-          const p2 = corners[(edgeIdx + 1) % 6];
+          const edgeIdx = edgeIndices[i]!;
+          const p1 = corners[edgeIdx]!;
+          const p2 = corners[(edgeIdx + 1) % 6]!;
           c.beginPath();
           c.moveTo(p1.x, p1.y);
           c.lineTo(p2.x, p2.y);

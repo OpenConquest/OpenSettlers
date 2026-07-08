@@ -137,12 +137,16 @@ public class MapTile {
     }
 
     /**
-     * Checks if the tile supports building construction.
+     * Checks if the tile supports ordinary building construction.
      *
-     * @return {@code true} if the tile supports building construction (grass, hills, mountain) and is within max elevation
+     * <p>Only flat land (grass or hills) within the elevation limit qualifies.
+     * Mountains are excluded here: they host <em>mines</em> only, which are
+     * validated separately against {@link TileType#MOUNTAIN} and their ore.</p>
+     *
+     * @return {@code true} if the tile supports building construction (grass or hills) and is within max elevation
      */
     public boolean isBuildable() {
-        boolean validTerrain = this.type == TileType.GRASS || this.type == TileType.HILLS || this.type == TileType.MOUNTAIN;
+        boolean validTerrain = this.type == TileType.GRASS || this.type == TileType.HILLS;
         return validTerrain && this.elevation <= GameConfig.SITE_MAX_ELEVATION;
     }
 
@@ -153,5 +157,20 @@ public class MapTile {
      */
     public boolean isWalkable() {
         return this.type != TileType.WATER && this.type != TileType.MOUNTAIN;
+    }
+
+    /**
+     * Checks whether a road may run over this tile.
+     *
+     * <p>Roads follow land, but unlike free-roaming units they cannot cross a
+     * forest (the trees block the way) in addition to the impassable water and
+     * mountain terrain. This is stricter than {@link #isWalkable()}.</p>
+     *
+     * @return {@code true} if a road segment may be laid on this tile
+     */
+    public boolean isRoadable() {
+        return this.type != TileType.WATER
+                && this.type != TileType.MOUNTAIN
+                && this.type != TileType.FOREST;
     }
 }

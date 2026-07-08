@@ -203,7 +203,7 @@ public class AiSystem implements ISystem {
     }
 
     /**
-     * Greedily walks the hex grid from one tile to another, staying on walkable,
+     * Greedily walks the hex grid from one tile to another, staying on roadable,
      * owned tiles, and returns the intermediate coordinates (endpoints excluded).
      *
      * @param state    the current game state
@@ -228,7 +228,7 @@ public class AiSystem implements ISystem {
                     continue;
                 }
                 MapTile tile = state.getTile(next);
-                if (tile == null || !tile.isWalkable()) {
+                if (tile == null || !tile.isRoadable()) {
                     continue;
                 }
                 if (state.getTerritoryManager().getOwnerAt(next) != playerId) {
