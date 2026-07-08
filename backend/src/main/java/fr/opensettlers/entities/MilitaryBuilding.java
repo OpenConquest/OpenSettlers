@@ -11,12 +11,12 @@ import java.util.List;
 /**
  * Building that garrisons {@link Soldier}s and projects territorial control.
  * <p>
- * Examples: Barracks (2 slots), Guard House (3), Watch Tower (6), Castle (9).
+ * Examples: Barracks (2 slots), Guard House (3), Watch Tower (6), Fortress (9).
  * The territory radius and max capacity are set from {@link fr.opensettlers.utils.GameConfig}.
  */
 @Getter
 @Setter
-public class MilitaryBuilding extends Building {
+public class MilitaryBuilding extends Building implements Garrisoned {
     /** Soldiers currently garrisoned in this building. */
     private final List<Soldier> soldiers = new ArrayList<>();
 

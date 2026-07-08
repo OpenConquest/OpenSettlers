@@ -243,8 +243,8 @@ public class GameState {
     }
 
     /**
-     * Finds all tiles within range that have a NaturalResourceNode of the given type and are not depleted.
-     * Results are in BFS order (closest first).
+     * Finds all tiles within range that have a harvestable (mature, not depleted)
+     * NaturalResourceNode of the given type. Results are in BFS order (closest first).
      */
     public List<MapTile> findResourceTilesInRange(Coordinates center, int maxDistance, ResourceType resourceType) {
         List<MapTile> result = new ArrayList<>();
@@ -263,7 +263,7 @@ public class GameState {
             MapTile tile = mapTiles.get(coord);
             if (tile != null && dist > 0 && tile.getNaturalResource() != null
                     && tile.getNaturalResource().getType() == resourceType
-                    && !tile.getNaturalResource().isDepleted()) {
+                    && tile.getNaturalResource().isHarvestable()) {
                 result.add(tile);
             }
 

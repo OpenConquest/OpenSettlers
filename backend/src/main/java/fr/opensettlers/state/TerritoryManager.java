@@ -49,10 +49,13 @@ public class TerritoryManager {
 
             if (b instanceof MilitaryBuilding mb) {
                 sources.add(new TerritorySource(mb.getPlayerId(), mb.getPosition(), mb.getTerritoryRadius()));
-            } else if (b instanceof StorageBuilding sb) {
-                // Headquarters projects territory too
-                sources.add(new TerritorySource(sb.getPlayerId(), sb.getPosition(),
+            } else if (b.getName() == BuildingName.HEADQUARTERS) {
+                sources.add(new TerritorySource(b.getPlayerId(), b.getPosition(),
                         GameConfig.HEADQUARTERS_TERRITORY_RADIUS));
+            } else if (b.getName() == BuildingName.HARBOR) {
+                // A harbor claims the shore it was founded on (sea colonies)
+                sources.add(new TerritorySource(b.getPlayerId(), b.getPosition(),
+                        GameConfig.HARBOR_TERRITORY_RADIUS));
             }
         }
 
@@ -149,13 +152,16 @@ public class TerritoryManager {
     }
 
     /**
-     * Finds the closest military building distance from a coordinate for a given player.
+     * Finds the closest territory-projecting building distance from a coordinate
+     * for a given player (military buildings, headquarters and harbors).
      */
     private int closestMilitaryDistance(GameState state, Coordinates coord, int playerId) {
         int minDist = Integer.MAX_VALUE;
         for (Building b : state.getBuildings()) {
             if (b.isDestroyed() || b.getPlayerId() != playerId) continue;
-            if (b instanceof MilitaryBuilding || b instanceof StorageBuilding) {
+            if (b instanceof MilitaryBuilding
+                    || b.getName() == BuildingName.HEADQUARTERS
+                    || b.getName() == BuildingName.HARBOR) {
                 int dist = b.getPosition().distanceTo(coord);
                 if (dist < minDist) minDist = dist;
             }

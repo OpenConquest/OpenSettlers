@@ -164,8 +164,11 @@ const actions = {
   placeFlag: (position: Coordinates) => send({ type: "PLACE_FLAG", position }),
   linkFlags: (flagIdA: string, flagIdB: string, path: Coordinates[]) =>
     send({ type: "LINK_FLAGS", flagIdA, flagIdB, path }),
-  attack: (targetId: string) => send({ type: "ATTACK_BUILDING", targetId }),
+  /** Attack a building; `attackerCount` 0 (default) sends every available soldier. */
+  attack: (targetId: string, attackerCount = 0) =>
+    send({ type: "ATTACK_BUILDING", targetId, attackerCount }),
   sendGeologist: (flagId: string) => send({ type: "SEND_GEOLOGIST", targetId: flagId }),
+  sendScout: (flagId: string) => send({ type: "SEND_SCOUT", targetId: flagId }),
   /** Pause (`enabled: false`) or resume a production building. */
   setProduction: (targetId: string, enabled: boolean) =>
     send({ type: "SET_PRODUCTION", targetId, enabled }),

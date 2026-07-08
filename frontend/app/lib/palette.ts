@@ -126,7 +126,10 @@ export const BUILDING_STYLE: Record<BuildingName, BuildingStyle> = {
   WOODCUTTER: { archetype: "hut", wall: "#caa276", roof: "#8a5a34" },
   FORESTER: { archetype: "hut", wall: "#bfa06f", roof: "#5f7d3a" },
   QUARRY: { archetype: "hut", wall: "#cfc7b6", roof: "#7c6f5b" },
-  MINE: { archetype: "mine", wall: "#8a7d6b", roof: "#544a40" },
+  GRANITE_MINE: { archetype: "mine", wall: "#9aa0a6", roof: "#544a40" },
+  COAL_MINE: { archetype: "mine", wall: "#6f6a63", roof: "#332f2a" },
+  IRON_MINE: { archetype: "mine", wall: "#8a7d6b", roof: "#544a40" },
+  GOLD_MINE: { archetype: "mine", wall: "#c9a94a", roof: "#6b5320" },
   WATER_WELL: { archetype: "well", wall: "#cfc9bd", roof: "#8a5a34" },
 
   FARM: { archetype: "farm", wall: "#e7d6a8", roof: "#b5432f" },
@@ -145,10 +148,10 @@ export const BUILDING_STYLE: Record<BuildingName, BuildingStyle> = {
   BREWERY: { archetype: "industry", wall: "#e0cb9a", roof: "#8a5a34", accent: "#e8e0c8" },
   DONKEY_BREEDER: { archetype: "farm", wall: "#d8c194", roof: "#8a5a34" },
 
+  LOOKOUT_TOWER: { archetype: "tower", wall: "#b9c4cf", roof: "#3f5d7a", tier: 2 },
   BARRACKS: { archetype: "tower", wall: "#ccc6b8", roof: "#7c4636", tier: 0 },
   GUARD_HOUSE: { archetype: "tower", wall: "#cac4b4", roof: "#7c4636", tier: 1 },
   WATCH_TOWER: { archetype: "tower", wall: "#c4beb0", roof: "#6f4030", tier: 2 },
-  CASTLE: { archetype: "tower", wall: "#c0baac", roof: "#6a3c2c", tier: 3 },
   FORTRESS: { archetype: "tower", wall: "#bcb6a8", roof: "#653a2a", tier: 4 },
   CATAPULT: { archetype: "catapult", wall: "#9c6b3f", roof: "#6b4a2c" },
 

@@ -12,13 +12,16 @@ import fr.opensettlers.entities.Worker;
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.utils.Direction;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.SiteSize;
 import fr.opensettlers.utils.SoldierState;
 import fr.opensettlers.utils.TileType;
 import fr.opensettlers.utils.WorkerType;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -60,11 +63,15 @@ public final class GameActions {
     }
 
     /**
-     * Checks terrain and ownership rules for a building placement.
+     * Checks terrain, ownership and site-grading rules for a building placement,
+     * mirroring the Settlers II construction sites:
      * <ul>
-     *   <li>Mines must stand on owned mountain tiles.</li>
+     *   <li>Mines must stand on owned mountain tiles bearing their ore (within
+     *       miner reach).</li>
      *   <li>Harbors and shipyards must stand on owned coastal grass (adjacent to water).</li>
-     *   <li>Every other building needs owned, empty grass.</li>
+     *   <li>Every other building needs owned, empty grass whose slope allows its
+     *       site grade (hut &lt; house &lt; castle) and enough spacing from the
+     *       neighboring buildings and flags.</li>
      * </ul>
      *
      * @param state    the game state
@@ -78,16 +85,94 @@ public final class GameActions {
         if (tile == null || !state.getTerritoryManager().canBuild(playerId, position)) {
             return false;
         }
-        if (isOccupied(state, position)) {
+        if (isOccupied(state, position) || hasFlagAt(state, position)) {
             return false;
         }
-        if (name == BuildingName.MINE) {
-            return tile.getType() == TileType.MOUNTAIN;
+
+        SiteSize size = name.siteSize();
+        if (size == SiteSize.MINE) {
+            return tile.getType() == TileType.MOUNTAIN
+                    && hasOreForMine(state, name, position)
+                    && hasBuildingSpacing(state, position, GameConfig.SITE_MIN_BUILDING_DISTANCE);
         }
-        if (name == BuildingName.HARBOR || name == BuildingName.SHIPYARD) {
-            return tile.isBuildable() && state.hasWaterInRange(position, 1);
+        if (!tile.isBuildable()) {
+            return false;
         }
-        return tile.isBuildable();
+        if ((name == BuildingName.HARBOR || name == BuildingName.SHIPYARD)
+                && !state.hasWaterInRange(position, 1)) {
+            return false;
+        }
+
+        int maxSlope = switch (size) {
+            case HUT -> GameConfig.SITE_MAX_SLOPE_HUT;
+            case HOUSE -> GameConfig.SITE_MAX_SLOPE_HOUSE;
+            default -> GameConfig.SITE_MAX_SLOPE_CASTLE;
+        };
+        for (Direction dir : Direction.values()) {
+            MapTile neighbor = state.getTile(position.neighbor(dir));
+            if (neighbor != null
+                    && Math.abs(neighbor.getElevation() - tile.getElevation()) > maxSlope) {
+                return false;
+            }
+        }
+
+        int minDistance = size == SiteSize.CASTLE
+                ? GameConfig.SITE_MIN_BUILDING_DISTANCE_CASTLE
+                : GameConfig.SITE_MIN_BUILDING_DISTANCE;
+        return hasBuildingSpacing(state, position, minDistance);
+    }
+
+    /**
+     * Checks that no other building stands closer than the given distance.
+     *
+     * @param state       the game state
+     * @param position    the candidate position
+     * @param minDistance the minimum allowed hex distance to any building
+     * @return {@code true} if the spacing is respected
+     */
+    private static boolean hasBuildingSpacing(GameState state, Coordinates position, int minDistance) {
+        for (Building b : state.getBuildings()) {
+            if (!b.isDestroyed() && b.getPosition().distanceTo(position) < minDistance) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks whether a mine would have its ore in digging reach: the mountain
+     * tile it stands on or a deposit within {@link GameConfig#MINER_MAX_DISTANCE}.
+     *
+     * @param state    the game state
+     * @param name     the mine type (granite, coal, iron or gold)
+     * @param position the candidate position
+     * @return {@code true} if the matching ore is present
+     */
+    private static boolean hasOreForMine(GameState state, BuildingName name, Coordinates position) {
+        ResourceType ore = name.minedResource();
+        MapTile own = state.getTile(position);
+        if (own != null && own.getNaturalResource() != null
+                && own.getNaturalResource().getType() == ore
+                && own.getNaturalResource().isHarvestable()) {
+            return true;
+        }
+        return !state.findResourceTilesInRange(position, GameConfig.MINER_MAX_DISTANCE, ore).isEmpty();
+    }
+
+    /**
+     * Indicates whether a flag already stands on a tile.
+     *
+     * @param state    the game state
+     * @param position the tile to test
+     * @return {@code true} if a live flag occupies the tile
+     */
+    public static boolean hasFlagAt(GameState state, Coordinates position) {
+        for (Flag f : state.getRoadNetwork().getAllFlags()) {
+            if (!f.isDestroyed() && f.getCoordinates().equals(position)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -107,7 +192,8 @@ public final class GameActions {
     }
 
     /**
-     * Places a standalone flag inside the player's territory.
+     * Places a standalone flag inside the player's territory, on a free,
+     * walkable tile (no other flag or building).
      *
      * @param state    the game state to mutate
      * @param playerId the player placing the flag
@@ -115,7 +201,10 @@ public final class GameActions {
      * @return the new flag, or {@code null} if the placement was rejected
      */
     public static Flag placeFlag(GameState state, int playerId, Coordinates position) {
-        if (!state.getTerritoryManager().canBuild(playerId, position)) {
+        MapTile tile = state.getTile(position);
+        if (tile == null || !tile.isWalkable()
+                || !state.getTerritoryManager().canBuild(playerId, position)
+                || isOccupied(state, position) || hasFlagAt(state, position)) {
             return null;
         }
         Flag flag = new Flag(UUID.randomUUID(), playerId, position);
@@ -165,8 +254,7 @@ public final class GameActions {
     }
 
     /**
-     * Sends soldiers from the player's nearby military buildings toward an enemy
-     * military building or warehouse. Each garrison keeps one defender behind.
+     * Sends every available soldier at an enemy building (no attacker limit).
      *
      * @param state    the game state to mutate
      * @param playerId the attacking player
@@ -174,6 +262,22 @@ public final class GameActions {
      * @return the number of soldiers dispatched, or {@code -1} for an invalid order
      */
     public static int attack(GameState state, int playerId, UUID targetId) {
+        return attack(state, playerId, targetId, 0);
+    }
+
+    /**
+     * Sends up to {@code attackerCount} soldiers from the player's military
+     * buildings within {@link GameConfig#ATTACK_RADIUS} toward an enemy military
+     * building or warehouse, drawing from the closest garrisons first. Each
+     * garrison keeps one defender behind, as in Settlers II.
+     *
+     * @param state         the game state to mutate
+     * @param playerId      the attacking player
+     * @param targetId      the target building
+     * @param attackerCount maximum soldiers to send ({@code <= 0} for no limit)
+     * @return the number of soldiers dispatched, or {@code -1} for an invalid order
+     */
+    public static int attack(GameState state, int playerId, UUID targetId, int attackerCount) {
         Building target = findBuilding(state, targetId);
         if (target == null || target.isDestroyed() || target.getPlayerId() == playerId) {
             return -1;
@@ -182,15 +286,19 @@ public final class GameActions {
             return -1;
         }
 
-        int dispatched = 0;
+        List<MilitaryBuilding> sources = new ArrayList<>();
         for (Building b : state.getBuildings()) {
-            if (!(b instanceof MilitaryBuilding mb) || mb.isDestroyed() || mb.getPlayerId() != playerId) {
-                continue;
+            if (b instanceof MilitaryBuilding mb && !mb.isDestroyed() && mb.getPlayerId() == playerId
+                    && mb.getPosition().distanceTo(target.getPosition()) <= GameConfig.ATTACK_RADIUS) {
+                sources.add(mb);
             }
-            if (mb.getPosition().distanceTo(target.getPosition()) > GameConfig.ATTACK_RADIUS) {
-                continue;
-            }
-            while (mb.getSoldiers().size() > 1) {
+        }
+        sources.sort(Comparator.comparingInt(mb -> mb.getPosition().distanceTo(target.getPosition())));
+
+        int remaining = attackerCount <= 0 ? Integer.MAX_VALUE : attackerCount;
+        int dispatched = 0;
+        for (MilitaryBuilding mb : sources) {
+            while (mb.getSoldiers().size() > 1 && remaining > 0) {
                 Soldier soldier = mb.removeFirstSoldier();
                 soldier.setPosition(new Coordinates(mb.getPosition().getX(), mb.getPosition().getY()));
                 soldier.setState(SoldierState.MARCHING_TO_ATTACK);
@@ -198,6 +306,7 @@ public final class GameActions {
                 soldier.setGarrison(null);
                 state.getSoldiers().add(soldier);
                 dispatched++;
+                remaining--;
             }
         }
         return dispatched;
@@ -238,6 +347,44 @@ public final class GameActions {
         geologist.setTargetFlagId(target.getId());
         geologist.setSurveysLeft(GameConfig.GEOLOGIST_SURVEYS);
         state.getWorkers().add(geologist);
+        return true;
+    }
+
+    /**
+     * Trains a scout at the nearest able warehouse and sends them to explore
+     * the fog of war around one of the player's flags.
+     *
+     * @param state    the game state to mutate
+     * @param playerId the player ordering the exploration
+     * @param flagId   the destination flag to explore around
+     * @return {@code true} if a scout was dispatched
+     */
+    public static boolean sendScout(GameState state, int playerId, UUID flagId) {
+        Flag target = state.getRoadNetwork().getFlagById(flagId);
+        if (target == null || target.isDestroyed() || target.getPlayerId() != playerId) {
+            return false;
+        }
+
+        StorageBuilding source = null;
+        double minDist = Double.MAX_VALUE;
+        for (Building b : state.getBuildings()) {
+            if (b instanceof StorageBuilding sb && !sb.isDestroyed()
+                    && sb.getPlayerId() == playerId && sb.canSpawnWorker()) {
+                double dist = sb.getPosition().distanceTo(target.getCoordinates());
+                if (dist < minDist) {
+                    minDist = dist;
+                    source = sb;
+                }
+            }
+        }
+        if (source == null) {
+            return false;
+        }
+
+        Worker scout = source.spawnWorker(WorkerType.SCOUT, source.getPosition());
+        scout.setTargetFlagId(target.getId());
+        scout.setSurveysLeft(GameConfig.SCOUT_STEPS);
+        state.getWorkers().add(scout);
         return true;
     }
 

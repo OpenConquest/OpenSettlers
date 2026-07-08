@@ -58,7 +58,10 @@ export type BuildingName =
   | "WOODCUTTER"
   | "FORESTER"
   | "QUARRY"
-  | "MINE"
+  | "GRANITE_MINE"
+  | "COAL_MINE"
+  | "IRON_MINE"
+  | "GOLD_MINE"
   | "FARM"
   | "FISHING_HUT"
   | "HUNTERS_HUT"
@@ -74,9 +77,9 @@ export type BuildingName =
   | "MINT"
   | "METALWORKS"
   | "BREWERY"
+  | "LOOKOUT_TOWER"
   | "GUARD_HOUSE"
   | "WATCH_TOWER"
-  | "CASTLE"
   | "FORTRESS"
   | "BARRACKS"
   | "CATAPULT"
@@ -246,6 +249,7 @@ export type MessageType =
   | "LINK_FLAGS"
   | "ATTACK_BUILDING"
   | "SEND_GEOLOGIST"
+  | "SEND_SCOUT"
   | "SET_PRODUCTION"
   | "SET_COIN_DELIVERY"
   | "SET_DISTRIBUTION"
@@ -258,6 +262,8 @@ export interface ClientMessage {
   buildingName?: BuildingName;
   position?: Coordinates;
   targetId?: string;
+  /** Maximum soldiers to send for ATTACK_BUILDING (0 or omitted = no limit). */
+  attackerCount?: number;
   flagIdA?: string;
   flagIdB?: string;
   path?: Coordinates[];

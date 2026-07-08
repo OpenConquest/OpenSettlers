@@ -30,6 +30,8 @@ public class GameMessage {
     // --- Attributes for DESTROY_BUILDING / ATTACK_BUILDING ---
     /** The target building ID to destroy or attack. */
     private UUID targetId;
+    /** Maximum soldiers to send for ATTACK_BUILDING (0 or less = no limit). */
+    private int attackerCount;
     
     // --- Attributes for LINK_FLAGS ---
     /** ID of the first flag endpoint of the road to build. */

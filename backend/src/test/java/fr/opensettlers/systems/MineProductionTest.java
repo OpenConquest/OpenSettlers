@@ -37,7 +37,7 @@ class MineProductionTest {
         mountain.setNaturalResource(new NaturalResourceNode(ResourceType.IRON, depositQuantity));
         state.getMapTiles().put(pos, mountain);
 
-        RawExtractor mine = (RawExtractor) BuildingFactory.createBuilding(BuildingName.MINE, 0, pos, state);
+        RawExtractor mine = (RawExtractor) BuildingFactory.createBuilding(BuildingName.IRON_MINE, 0, pos, state);
         Worker miner = new Worker(0);
         miner.setState(WorkerState.WORKING);
         mine.setOccupant(miner);

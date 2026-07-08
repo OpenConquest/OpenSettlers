@@ -143,7 +143,7 @@ public class AiSystem implements ISystem {
             }
             Coordinates origin = b.getPosition();
 
-            if (name == BuildingName.MINE) {
+            if (name.isMine()) {
                 for (MapTile tile : state.findTilesInRange(origin, GameConfig.AI_BUILD_SEARCH_RADIUS, TileType.MOUNTAIN)) {
                     Coordinates c = tile.getCoordinates();
                     if (GameActions.isPlacementValid(state, name, c, playerId)) {

@@ -615,6 +615,15 @@ function onClick(c: Coordinates): void {
       ui.resetTool();
       break;
     }
+    case "scout": {
+      const f = findFlagAt(c);
+      if (f) {
+        a.sendScout(f.id);
+        log("Scout dispatched.", "info");
+      }
+      ui.resetTool();
+      break;
+    }
     case "destroy": {
       const b = findBuildingAt(c);
       if (b && b.playerId === session.playerId) {
@@ -627,8 +636,9 @@ function onClick(c: Coordinates): void {
     case "attack": {
       const b = findBuildingAt(c);
       if (b && b.playerId !== session.playerId) {
-        a.attack(b.id);
-        log("Attack launched!", "bad");
+        a.attack(b.id, ui.attackerCount.value);
+        const n = ui.attackerCount.value;
+        log(n > 0 ? `Attack launched with up to ${n} soldiers!` : "Attack launched!", "bad");
       }
       ui.resetTool();
       break;

@@ -18,8 +18,10 @@ public class MilitarySystem implements ISystem {
 
     /**
      * Recruits soldiers toward under-staffed military buildings, triggers the
-     * territory claim of newly occupied ones, ingests delivered gold coins,
-     * and promotes garrisoned soldiers.
+     * territory claim of newly occupied ones, ingests delivered gold coins, and
+     * promotes garrisoned soldiers. The headquarters is not actively staffed:
+     * it keeps its starting garrison (and shelters returning soldiers), so the
+     * recruit kits go to the frontier buildings first.
      *
      * @param gameState the active game session state
      */
@@ -34,7 +36,6 @@ public class MilitarySystem implements ISystem {
                 mb.setTerritoryClaimed(true);
                 gameState.getTerritoryManager().recalculate(gameState);
             }
-
             ingestCoins(mb);
             promoteSoldiers(mb);
 
@@ -104,15 +105,15 @@ public class MilitarySystem implements ISystem {
      * Counts soldiers whose garrison slot must stay reserved: recruits walking
      * toward the building and defenders out on a sortie (fighting in front of it).
      *
-     * @param state the current game state
-     * @param mb    the military building
+     * @param state    the current game state
+     * @param garrison the garrisoned building being staffed
      * @return the number of reserved slots
      */
-    private int countReservedSlots(GameState state, MilitaryBuilding mb) {
+    private int countReservedSlots(GameState state, Building garrison) {
         int count = 0;
         for (Soldier s : state.getSoldiers()) {
-            if (s.getPlayerId() == mb.getPlayerId()
-                    && mb.equals(s.getTargetBuilding())
+            if (s.getPlayerId() == garrison.getPlayerId()
+                    && garrison.equals(s.getTargetBuilding())
                     && (s.getState() == SoldierState.WALKING_TO_GARRISON
                         || s.getState() == SoldierState.FIGHTING
                         || s.getState() == SoldierState.WALKING_TO_DEFEND)) {
@@ -125,14 +126,14 @@ public class MilitarySystem implements ISystem {
     /**
      * Recruits one soldier from the nearest storage building holding a neutral
      * settler plus the full Settlers II kit: sword, shield and beer. The
-     * soldier spawns at the storage and walks to the military building.
+     * soldier spawns at the storage and walks to the garrisoned building.
      *
-     * @param state the current game state
-     * @param mb    the military building to staff
+     * @param state    the current game state
+     * @param garrison the garrisoned building to staff
      * @return {@code true} if a soldier was recruited
      */
-    private boolean recruitSoldier(GameState state, MilitaryBuilding mb) {
-        StorageBuilding source = findNearestRecruitingStorage(state, mb);
+    private boolean recruitSoldier(GameState state, Building garrison) {
+        StorageBuilding source = findNearestRecruitingStorage(state, garrison);
         if (source == null) {
             return false;
         }
@@ -142,10 +143,10 @@ public class MilitarySystem implements ISystem {
         source.retrieveResource(ResourceType.SHIELD);
         source.retrieveResource(ResourceType.BEER);
 
-        Soldier soldier = new Soldier(mb.getPlayerId(),
+        Soldier soldier = new Soldier(garrison.getPlayerId(),
                 new Coordinates(source.getPosition().getX(), source.getPosition().getY()));
         soldier.setState(SoldierState.WALKING_TO_GARRISON);
-        soldier.setTargetBuilding(mb);
+        soldier.setTargetBuilding(garrison);
         state.getSoldiers().add(soldier);
         return true;
     }
@@ -154,23 +155,23 @@ public class MilitarySystem implements ISystem {
      * Finds the nearest storage building of the same player able to recruit
      * (at least one settler, one sword, one shield and one beer in stock).
      *
-     * @param state the current game state
-     * @param mb    the military building to staff
+     * @param state    the current game state
+     * @param garrison the garrisoned building to staff
      * @return the nearest eligible storage, or {@code null} if none
      */
-    private StorageBuilding findNearestRecruitingStorage(GameState state, MilitaryBuilding mb) {
+    private StorageBuilding findNearestRecruitingStorage(GameState state, Building garrison) {
         StorageBuilding nearest = null;
         int minDist = Integer.MAX_VALUE;
         for (Building b : state.getBuildings()) {
             if (!(b instanceof StorageBuilding sb) || sb.isDestroyed()
-                    || sb.getPlayerId() != mb.getPlayerId()
+                    || sb.getPlayerId() != garrison.getPlayerId()
                     || sb.getStoredNeutralSettlers() < 1
                     || sb.getStoredResources().getOrDefault(ResourceType.SWORD, 0) < 1
                     || sb.getStoredResources().getOrDefault(ResourceType.SHIELD, 0) < 1
                     || sb.getStoredResources().getOrDefault(ResourceType.BEER, 0) < 1) {
                 continue;
             }
-            int dist = sb.getPosition().distanceTo(mb.getPosition());
+            int dist = sb.getPosition().distanceTo(garrison.getPosition());
             if (dist < minDist) {
                 minDist = dist;
                 nearest = sb;

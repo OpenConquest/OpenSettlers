@@ -11,6 +11,7 @@ import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.Direction;
+import fr.opensettlers.utils.WorkerType;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,7 +52,10 @@ public class FogOfWarManager {
         }
         for (Worker w : state.getWorkers()) {
             if (w.getPosition() == null) continue;
-            reveal(state, w.getPlayerId(), w.getPosition(), GameConfig.VISION_UNIT_RADIUS);
+            int radius = w.getType() == WorkerType.SCOUT
+                    ? GameConfig.SCOUT_VISION
+                    : GameConfig.VISION_UNIT_RADIUS;
+            reveal(state, w.getPlayerId(), w.getPosition(), radius);
         }
         for (Donkey d : state.getDonkeys()) {
             if (d.getPosition() == null) continue;
@@ -93,6 +97,9 @@ public class FogOfWarManager {
         }
         if (building instanceof StorageBuilding && building.getName() == BuildingName.HEADQUARTERS) {
             return GameConfig.HEADQUARTERS_TERRITORY_RADIUS + GameConfig.VISION_TERRITORY_MARGIN;
+        }
+        if (building.getName() == BuildingName.LOOKOUT_TOWER) {
+            return GameConfig.LOOKOUT_TOWER_VISION;
         }
         return GameConfig.VISION_BUILDING_RADIUS;
     }

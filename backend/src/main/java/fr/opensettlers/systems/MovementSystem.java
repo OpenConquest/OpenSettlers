@@ -3,7 +3,7 @@ package fr.opensettlers.systems;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.MilitaryBuilding;
+import fr.opensettlers.entities.Garrisoned;
 import fr.opensettlers.entities.Soldier;
 import fr.opensettlers.utils.SoldierState;
 
@@ -58,10 +58,10 @@ public class MovementSystem implements ISystem {
             if (soldier.isAt(target.getPosition())
                     && (soldier.getState() == SoldierState.WALKING_TO_GARRISON
                         || soldier.getState() == SoldierState.WALKING_TO_DEFEND)
-                    && target instanceof MilitaryBuilding mb) {
-                if (mb.addSoldier(soldier)) {
+                    && target instanceof Garrisoned garrison) {
+                if (garrison.addSoldier(soldier)) {
                     soldier.setState(SoldierState.GARRISONED);
-                    soldier.setGarrison(mb);
+                    soldier.setGarrison(target);
                     soldier.setTargetBuilding(null);
                     arrived.add(soldier);
                 } else {
@@ -76,24 +76,25 @@ public class MovementSystem implements ISystem {
     }
 
     /**
-     * Re-routes a soldier to the nearest friendly military building with a free slot.
-     * If none exists, the soldier keeps standing where they are.
+     * Re-routes a soldier to the nearest friendly garrisoned building (military
+     * or headquarters) with a free slot. If none exists, the soldier keeps
+     * standing where they are.
      *
      * @param state   the current game state
      * @param soldier the soldier to re-route
      */
     private void retargetNearestGarrison(GameState state, Soldier soldier) {
-        MilitaryBuilding nearest = null;
+        Building nearest = null;
         int minDist = Integer.MAX_VALUE;
         for (Building b : state.getBuildings()) {
-            if (!(b instanceof MilitaryBuilding mb) || mb.isDestroyed()
-                    || mb.getPlayerId() != soldier.getPlayerId() || !mb.hasRoom()) {
+            if (!(b instanceof Garrisoned g) || b.isDestroyed()
+                    || b.getPlayerId() != soldier.getPlayerId() || !g.hasRoom()) {
                 continue;
             }
-            int dist = mb.getPosition().distanceTo(soldier.getPosition());
+            int dist = b.getPosition().distanceTo(soldier.getPosition());
             if (dist < minDist) {
                 minDist = dist;
-                nearest = mb;
+                nearest = b;
             }
         }
 

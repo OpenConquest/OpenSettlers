@@ -14,6 +14,7 @@ export type ToolKind =
   | "build"
   | "road"
   | "geologist"
+  | "scout"
   | "destroy"
   | "attack";
 
@@ -42,6 +43,13 @@ const selectedTile = ref<Coordinates | null>(null);
 const roadDraft = shallowRef<RoadDraft | null>(null);
 const openPanel = ref<GamePanel | null>(null);
 
+/**
+ * How many soldiers the attack tool sends. `0` means "all available" (the
+ * Settlers II default); a positive value caps the raid, drawing from the
+ * closest garrisons first.
+ */
+const attackerCount = ref(0);
+
 /** Opens a global panel, or closes it if it is already the open one. */
 function togglePanel(panel: GamePanel): void {
   openPanel.value = openPanel.value === panel ? null : panel;
@@ -62,5 +70,5 @@ function resetTool(): void {
 }
 
 export function useGameUi() {
-  return { tool, selectedBuildingId, selectedTile, roadDraft, openPanel, togglePanel, setTool, resetTool };
+  return { tool, selectedBuildingId, selectedTile, roadDraft, openPanel, attackerCount, togglePanel, setTool, resetTool };
 }

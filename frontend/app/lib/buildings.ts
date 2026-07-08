@@ -4,7 +4,7 @@
  * single source of truth the UI uses to group and label buildings.
  */
 import type { BuildingName } from "~/types/game";
-import { Castle, Warehouse, Axe, Trees, Pickaxe, Mountain, Droplets, Wheat, Fish, Crosshair, Fan, Croissant, PiggyBank, Beef, Hammer, Flame, Swords, Coins, Anvil, Beer, Carrot, Shield, TowerControl, ShieldHalf, Target, Anchor, Ship } from '@lucide/vue';
+import { Castle, Warehouse, Axe, Trees, Pickaxe, Mountain, Droplets, Wheat, Fish, Crosshair, Fan, Croissant, PiggyBank, Beef, Hammer, Flame, Swords, Coins, Anvil, Beer, Carrot, Shield, TowerControl, ShieldHalf, Target, Anchor, Ship, Gem, Telescope } from '@lucide/vue';
 import type { FunctionalComponent, SVGAttributes } from 'vue';
 
 /** High-level groups, mirroring the in-game build menu tabs. */
@@ -32,7 +32,10 @@ export const BUILDINGS: Record<BuildingName, BuildingMeta> = {
   WOODCUTTER: { name: "WOODCUTTER", label: "Woodcutter", category: "extraction", icon: Axe, description: "Fells nearby trees for logs." },
   FORESTER: { name: "FORESTER", label: "Forester", category: "extraction", icon: Trees, description: "Plants new trees." },
   QUARRY: { name: "QUARRY", label: "Quarry", category: "extraction", icon: Pickaxe, description: "Cuts surface stone." },
-  MINE: { name: "MINE", label: "Mine", category: "extraction", icon: Mountain, description: "Digs ore from the mountains; needs food." },
+  GRANITE_MINE: { name: "GRANITE_MINE", label: "Granite Mine", category: "extraction", icon: Mountain, description: "Digs granite from the mountains; needs food." },
+  COAL_MINE: { name: "COAL_MINE", label: "Coal Mine", category: "extraction", icon: Mountain, description: "Digs coal from the mountains; needs food." },
+  IRON_MINE: { name: "IRON_MINE", label: "Iron Mine", category: "extraction", icon: Mountain, description: "Digs iron ore from the mountains; needs food." },
+  GOLD_MINE: { name: "GOLD_MINE", label: "Gold Mine", category: "extraction", icon: Gem, description: "Digs gold from the mountains; needs food." },
   WATER_WELL: { name: "WATER_WELL", label: "Water Well", category: "extraction", icon: Droplets, description: "Draws water." },
 
   FARM: { name: "FARM", label: "Farm", category: "food", icon: Wheat, description: "Grows wheat on nearby fields." },
@@ -51,11 +54,11 @@ export const BUILDINGS: Record<BuildingName, BuildingMeta> = {
   BREWERY: { name: "BREWERY", label: "Brewery", category: "industry", icon: Beer, description: "Brews beer for recruiting soldiers." },
   DONKEY_BREEDER: { name: "DONKEY_BREEDER", label: "Donkey Breeder", category: "industry", icon: Carrot, description: "Breeds donkeys to speed up roads." },
 
-  BARRACKS: { name: "BARRACKS", label: "Barracks", category: "military", icon: Shield, description: "Small garrison; extends territory." },
-  GUARD_HOUSE: { name: "GUARD_HOUSE", label: "Guard House", category: "military", icon: TowerControl, description: "Medium garrison; extends territory." },
-  WATCH_TOWER: { name: "WATCH_TOWER", label: "Watch Tower", category: "military", icon: Castle, description: "Large garrison; wide territory." },
-  CASTLE: { name: "CASTLE", label: "Castle", category: "military", icon: Castle, description: "Big garrison; broad territory." },
-  FORTRESS: { name: "FORTRESS", label: "Fortress", category: "military", icon: ShieldHalf, description: "Largest garrison; widest territory." },
+  LOOKOUT_TOWER: { name: "LOOKOUT_TOWER", label: "Lookout Tower", category: "military", icon: Telescope, description: "Reveals a wide area; no territory." },
+  BARRACKS: { name: "BARRACKS", label: "Barracks", category: "military", icon: Shield, description: "Small garrison (2); extends territory." },
+  GUARD_HOUSE: { name: "GUARD_HOUSE", label: "Guard House", category: "military", icon: TowerControl, description: "Medium garrison (3); extends territory." },
+  WATCH_TOWER: { name: "WATCH_TOWER", label: "Watch Tower", category: "military", icon: Castle, description: "Large garrison (6); wide territory." },
+  FORTRESS: { name: "FORTRESS", label: "Fortress", category: "military", icon: ShieldHalf, description: "Largest garrison (9); widest territory." },
   CATAPULT: { name: "CATAPULT", label: "Catapult", category: "military", icon: Target, description: "Hurls stones at enemy buildings." },
 
   HARBOR: { name: "HARBOR", label: "Harbor", category: "naval", icon: Anchor, description: "Coastal store; launches expeditions." },
@@ -79,7 +82,12 @@ export function placeableBuildings(category: BuildingCategory): BuildingMeta[] {
   );
 }
 
-/** Whether a building is military (drives the territory/attack affordances). */
+/**
+ * Whether a building projects territory and can be attacked (drives the
+ * territory/attack affordances). The catapult and lookout tower sit in the
+ * military tab but hold no garrison and claim no ground.
+ */
 export function isMilitary(name: BuildingName): boolean {
-  return BUILDINGS[name].category === "military" && name !== "CATAPULT";
+  return BUILDINGS[name].category === "military"
+    && name !== "CATAPULT" && name !== "LOOKOUT_TOWER";
 }

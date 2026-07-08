@@ -67,6 +67,12 @@ public class GameEngine implements Runnable {
     /** System managing geologists surveying the mountains. */
     private final GeologistSystem geologistSystem = new GeologistSystem();
 
+    /** System managing scouts exploring the fog of war. */
+    private final ScoutSystem scoutSystem = new ScoutSystem();
+
+    /** System growing planted trees and wheat fields. */
+    private final GrowthSystem growthSystem = new GrowthSystem();
+
     /** System managing sea expeditions launched from harbors. */
     private final NavalSystem navalSystem = new NavalSystem();
 
@@ -130,7 +136,9 @@ public class GameEngine implements Runnable {
         catapultSystem.process(state);
         movementSystem.process(state);
         geologistSystem.process(state);
+        scoutSystem.process(state);
         workerSystem.process(state);
+        growthSystem.process(state);
         economySystem.process(state);
         constructionSystem.process(state);
         productionSystem.process(state);

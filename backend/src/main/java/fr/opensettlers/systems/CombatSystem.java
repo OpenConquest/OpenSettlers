@@ -2,6 +2,7 @@ package fr.opensettlers.systems;
 
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.entities.Building;
+import fr.opensettlers.entities.Garrisoned;
 import fr.opensettlers.entities.MilitaryBuilding;
 import fr.opensettlers.entities.Soldier;
 import fr.opensettlers.entities.StorageBuilding;
@@ -48,32 +49,48 @@ public class CombatSystem implements ISystem {
     }
 
     /**
-     * Makes every pair of enemy soldiers sharing a tile exchange blows.
-     * Dead soldiers are swept by the game state at the next tick.
+     * Resolves duels strictly one-on-one, as in Settlers II: each soldier is
+     * bound to a single opponent; other soldiers sharing the tile wait for
+     * their turn. Dead soldiers are swept by the game state at the next tick.
      *
      * @param state the current game state
      */
     private void resolveDuels(GameState state) {
         List<Soldier> soldiers = state.getSoldiers();
-        for (int i = 0; i < soldiers.size(); i++) {
-            for (int j = i + 1; j < soldiers.size(); j++) {
-                Soldier a = soldiers.get(i);
-                Soldier b = soldiers.get(j);
-                if (a.getPlayerId() == b.getPlayerId() || a.isDead() || b.isDead()
-                        || !a.isSamePosition(b)) {
+
+        // Bind free soldiers into new one-on-one duels
+        for (Soldier a : soldiers) {
+            if (a.isDead() || a.getOpponent() != null) {
+                continue;
+            }
+            for (Soldier b : soldiers) {
+                if (a == b || b.isDead() || b.getOpponent() != null
+                        || a.getPlayerId() == b.getPlayerId() || !a.isSamePosition(b)) {
                     continue;
                 }
-                a.setState(SoldierState.FIGHTING);
-                b.setState(SoldierState.FIGHTING);
                 a.setOpponent(b);
                 b.setOpponent(a);
-                a.attack(b);
-                if (!b.isDead()) {
-                    b.attack(a);
-                }
-                if (a.isDead()) b.setOpponent(null);
-                if (b.isDead()) a.setOpponent(null);
+                a.setState(SoldierState.FIGHTING);
+                b.setState(SoldierState.FIGHTING);
+                break;
             }
+        }
+
+        // Exchange blows once per bound pair
+        for (Soldier a : soldiers) {
+            Soldier b = a.getOpponent();
+            if (b == null || a.isDead() || b.isDead()) {
+                continue;
+            }
+            if (a.getId().compareTo(b.getId()) > 0) {
+                continue; // The pair is processed from its lower-id member
+            }
+            a.attack(b);
+            if (!b.isDead()) {
+                b.attack(a);
+            }
+            if (a.isDead()) b.setOpponent(null);
+            if (b.isDead()) a.setOpponent(null);
         }
     }
 
@@ -94,17 +111,19 @@ public class CombatSystem implements ISystem {
             List<Soldier> defenders = livingSoldiersAt(state, building, false);
             if (!defenders.isEmpty()) continue; // A duel is already in progress
 
-            if (building instanceof MilitaryBuilding mb && !mb.isGarrisonEmpty()) {
-                Soldier defender = mb.removeFirstSoldier();
+            if (building instanceof Garrisoned garrison && !garrison.isGarrisonEmpty()) {
+                // Military buildings and the headquarters send out a defender
+                Soldier defender = garrison.removeFirstSoldier();
                 defender.setPosition(new Coordinates(
-                        mb.getPosition().getX(), mb.getPosition().getY()));
+                        building.getPosition().getX(), building.getPosition().getY()));
                 defender.setState(SoldierState.FIGHTING);
-                defender.setTargetBuilding(mb);
+                defender.setTargetBuilding(building);
                 defender.setGarrison(null);
                 state.getSoldiers().add(defender);
             } else if (building instanceof MilitaryBuilding mb) {
                 captureBuilding(state, mb, attackers.get(0));
             } else if (building instanceof StorageBuilding) {
+                // An exhausted headquarters or warehouse burns down (never captured)
                 building.destroy();
                 if (building.getAttachedFlag() != null) {
                     building.getAttachedFlag().destroy();

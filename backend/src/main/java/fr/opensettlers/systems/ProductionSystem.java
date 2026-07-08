@@ -87,7 +87,7 @@ public class ProductionSystem implements ISystem {
                 if (cooldown <= 0) {
                     pb.produce();
                     pb.setProductivity(Math.min(100, pb.getProductivity() + 10));
-                    pb.setProductionCooldown(GameConfig.PRODUCTION_TIME);
+                    pb.setProductionCooldown(GameConfig.productionTicks(pb.getName()));
                 } else {
                     pb.setProductionCooldown(cooldown - 1);
                 }
@@ -120,7 +120,7 @@ public class ProductionSystem implements ISystem {
             case FARM         -> handleFarmer(extractor, state);
             case FISHING_HUT  -> handleFisherman(extractor, state, occupant);
             case HUNTERS_HUT  -> handleHunter(extractor, state);
-            case MINE         -> handleMiner(extractor, state);
+            case GRANITE_MINE, COAL_MINE, IRON_MINE, GOLD_MINE -> handleMiner(extractor, state);
             default -> {} // WATER_WELL — basic behavior, no special handling
         }
     }
@@ -234,9 +234,11 @@ public class ProductionSystem implements ISystem {
 
         if (!emptyGrass.isEmpty()) {
             MapTile target = emptyGrass.getFirst();
-            boolean planted = target.replantTree(new NaturalResourceNode(ResourceType.LOG, 5));
+            // One tree yields one log, and the sapling must grow before being felled
+            boolean planted = target.replantTree(
+                    new NaturalResourceNode(ResourceType.LOG, 1, GameConfig.TREE_GROWTH_TICKS));
             if (planted) {
-                extractor.setProductionCooldown(GameConfig.PRODUCTION_TIME);
+                extractor.setProductionCooldown(GameConfig.productionTicks(BuildingName.FORESTER));
                 extractor.setProductivity(Math.min(100, extractor.getProductivity() + 10));
                 extractor.setWaitingTicks(0);
                 occupant.setState(WorkerState.WORKING);
@@ -279,10 +281,12 @@ public class ProductionSystem implements ISystem {
     /**
      * Handles farmer behavior:
      * <ol>
-     *   <li>On first ticks: plants up to {@link GameConfig#FARMER_MAX_FIELDS} wheat fields
-     *       on nearby empty GRASS tiles (within distance 3 of the farm).</li>
-     *   <li>Searches managed fields for a harvestable one and assigns it as targetWorkTile.</li>
-     *   <li>After a field is fully harvested (depleted), replants it with fresh wheat.</li>
+     *   <li>On first ticks: sows up to {@link GameConfig#FARMER_MAX_FIELDS} wheat fields
+     *       on nearby empty GRASS tiles (within distance 3 of the farm). A sown field
+     *       needs {@link GameConfig#WHEAT_GROWTH_TICKS} to ripen before harvest.</li>
+     *   <li>Searches managed fields for a ripe one and assigns it as targetWorkTile.</li>
+     *   <li>After a field is fully harvested (depleted), sows it again with wheat
+     *       that must grow anew.</li>
      * </ol>
      *
      * @param extractor the farm building
@@ -297,29 +301,30 @@ public class ProductionSystem implements ISystem {
             );
             for (MapTile tile : emptyGrass) {
                 if (extractor.getManagedFields().size() >= GameConfig.FARMER_MAX_FIELDS) break;
-                if (tile.plantField(new NaturalResourceNode(ResourceType.WHEAT, 3))) {
+                if (tile.plantField(new NaturalResourceNode(
+                        ResourceType.WHEAT, 1, GameConfig.WHEAT_GROWTH_TICKS))) {
                     extractor.getManagedFields().add(tile);
                 }
             }
         }
 
-        // Phase 2: Find a harvestable field if no target assigned
+        // Phase 2: Find a ripe field if no target assigned
         if (extractor.getTargetWorkTile() == null) {
             for (MapTile field : extractor.getManagedFields()) {
                 if (field.getNaturalResource() != null
-                        && field.getNaturalResource().getQuantity() > 0) {
+                        && field.getNaturalResource().isHarvestable()) {
                     extractor.setTargetWorkTile(field);
                     break;
                 }
             }
         }
 
-        // Phase 3: After harvest completion, replant the field
+        // Phase 3: After harvest completion, sow the field again
         if (extractor.getTargetWorkTile() != null) {
             MapTile target = extractor.getTargetWorkTile();
             if (target.getNaturalResource() == null || target.getNaturalResource().isDepleted()) {
-                // Replant the field with fresh wheat
-                target.setNaturalResource(new NaturalResourceNode(ResourceType.WHEAT, 3));
+                target.setNaturalResource(new NaturalResourceNode(
+                        ResourceType.WHEAT, 1, GameConfig.WHEAT_GROWTH_TICKS));
                 extractor.setTargetWorkTile(null); // Will pick a new field next tick
             }
         }

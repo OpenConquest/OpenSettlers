@@ -57,6 +57,9 @@ public enum WorkerType {
     /** Geologist surveying mountains for ore deposits. */
     GEOLOGIST,
 
+    /** Scout exploring the fog of war around a flag. */
+    SCOUT,
+
     /** Brewer brewing beer. */
     BREWER,
 

@@ -56,13 +56,24 @@ Le backend est un moteur de jeu complet (`fr.opensettlers.*`) :
   (`state.RoadNetwork`), porteurs, ânes et **routes principales de niveau 2**.
 * **Construction** — chantiers, livraison des matériaux, terrassement puis
   maçonnerie, mise en service et affectation des ouvriers spécialisés.
-* **Chaînes de production complètes** — 27 types de bâtiments, ~20 ressources :
+* **Chaînes de production complètes** — 32 types de bâtiments, ~20 ressources :
   bois → planches, minerais → acier → armes/outils/pièces d'or, blé → farine →
-  pain, élevage, brasserie, etc.
-* **Géologues** — prospection des montagnes et pose de panneaux de minerai.
-* **Militaire** — recrutement (épée + bouclier + bière), garnisons, projection de
-  **territoire**, promotions par pièces d'or, attaques, duels et **capture** de
-  bâtiments ; **catapultes** de siège.
+  pain, élevage, brasserie, etc. Chaque bâtiment a son **temps de production**
+  propre (rythme S2), et les ressources **poussent** (arbre planté = 1 bûche
+  après maturation, champs de blé semés puis récoltés).
+* **Quatre mines distinctes** — granit, charbon, fer et or, chacune posée sur un
+  filon de son minerai (comme dans Settlers II) ; elles consomment de la
+  nourriture.
+* **Placement gradué** — sites cabane / maison / château selon la pente du
+  terrain et l'espacement avec les bâtiments voisins ; drapeaux posés sur des
+  cases libres uniquement.
+* **Géologues & éclaireurs** — prospection des montagnes (panneaux de minerai) et
+  exploration du brouillard de guerre autour d'un drapeau.
+* **Militaire** — recrutement (épée + bouclier + bière), garnisons **2 / 3 / 6 / 9**
+  (caserne / corps de garde / tour de guet / forteresse), **QG défendable** avec
+  sa propre garnison, tour de vigie sans territoire, projection de **territoire**,
+  promotions par pièces d'or, attaques au **nombre d'assaillants réglable**,
+  duels **1 contre 1** et **capture** de bâtiments ; **catapultes** de siège.
 * **Brouillard de guerre** — exploration et diffusion d'état filtrée par joueur.
 * **Conditions de victoire** — élimination d'un joueur quand il perd tous ses
   entrepôts, désignation du vainqueur et message `GAME_OVER`.
@@ -151,8 +162,8 @@ spectateur).
   ressources), puis un message `STATE` à chaque tick (bâtiments, drapeaux, routes,
   porteurs, ouvriers, soldats, navires, territoire), et enfin `GAME_OVER`.
 * Le client envoie des `GameMessage` de type `BUILD_BUILDING`,
-  `DESTROY_BUILDING`, `PLACE_FLAG`, `LINK_FLAGS`, `ATTACK_BUILDING` ou
-  `SEND_GEOLOGIST`.
+  `DESTROY_BUILDING`, `PLACE_FLAG`, `LINK_FLAGS`, `ATTACK_BUILDING`
+  (avec `attackerCount` optionnel), `SEND_GEOLOGIST` ou `SEND_SCOUT`.
 
 ---
 
@@ -160,8 +171,9 @@ spectateur).
 
 À chaque tick, `GameEngine` applique les commandes en file puis exécute les
 systèmes dans l'ordre : IA → militaire → combat → catapultes → mouvement →
-géologues → ouvriers → économie → construction → production → transport → ânes →
-naval → vision → victoire, avant de diffuser l'état. Chaque système implémente
+géologues → éclaireurs → ouvriers → croissance → économie → construction →
+production → transport → ânes → naval → vision → victoire, avant de diffuser
+l'état. Chaque système implémente
 `ISystem` et n'agit que sur le `GameState`. Tout le **réglage** (tick, distances,
 garnisons, IA, naval…) vit dans `fr.opensettlers.utils.GameConfig`.
 

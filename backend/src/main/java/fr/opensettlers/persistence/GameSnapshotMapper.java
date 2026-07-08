@@ -4,6 +4,7 @@ import fr.opensettlers.entities.Building;
 import fr.opensettlers.entities.BuildingFactory;
 import fr.opensettlers.entities.ConstructionSite;
 import fr.opensettlers.entities.Flag;
+import fr.opensettlers.entities.Garrisoned;
 import fr.opensettlers.entities.MapTile;
 import fr.opensettlers.entities.MilitaryBuilding;
 import fr.opensettlers.entities.NaturalResourceNode;
@@ -130,11 +131,14 @@ public final class GameSnapshotMapper {
             s.storedResources = new HashMap<>();
             sb.getStoredResources().forEach((type, qty) -> s.storedResources.put(type.name(), qty));
         }
-        if (b instanceof MilitaryBuilding mb) {
+        if (b instanceof Garrisoned g) {
+            // Military buildings and the headquarters persist their garrison
             s.garrisonRanks = new ArrayList<>();
-            for (Soldier soldier : mb.getSoldiers()) {
+            for (Soldier soldier : g.getSoldiers()) {
                 s.garrisonRanks.add(soldier.getRank().name());
             }
+        }
+        if (b instanceof MilitaryBuilding mb) {
             s.storedCoins = mb.getStoredCoins();
             s.coinsAllowed = mb.isCoinsAllowed();
         }
@@ -243,16 +247,20 @@ public final class GameSnapshotMapper {
             bs.storedResources.forEach((name, qty) ->
                     sb.getStoredResources().put(ResourceType.valueOf(name), qty));
         }
-        if (building instanceof MilitaryBuilding mb && bs.garrisonRanks != null) {
+        if (building instanceof Garrisoned g && bs.garrisonRanks != null) {
+            // The factory pre-seeds the headquarters garrison: replace it with the saved one
+            g.getSoldiers().clear();
             for (String rank : bs.garrisonRanks) {
                 Soldier soldier = new Soldier(bs.playerId,
                         new Coordinates(pos.getX(), pos.getY()));
                 soldier.setRank(SoldierRank.valueOf(rank));
                 soldier.setHealth(soldier.getRank().getMaxHealth());
                 soldier.setState(SoldierState.GARRISONED);
-                soldier.setGarrison(mb);
-                mb.addSoldier(soldier);
+                soldier.setGarrison(building);
+                g.addSoldier(soldier);
             }
+        }
+        if (building instanceof MilitaryBuilding mb) {
             mb.setStoredCoins(bs.storedCoins);
             mb.setTerritoryClaimed(!mb.getSoldiers().isEmpty());
             if (bs.coinsAllowed != null) {

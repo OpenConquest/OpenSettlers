@@ -1,11 +1,12 @@
 package fr.opensettlers.entities;
 
-import fr.opensettlers.entities.*;
 import fr.opensettlers.state.GameState;
 import fr.opensettlers.utils.BuildingName;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.SoldierRank;
+import fr.opensettlers.utils.SoldierState;
 import fr.opensettlers.utils.WorkerType;
 
 import java.util.HashMap;
@@ -13,7 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Factory class to instantiate buildings without creating one subclass per type.
+ * Factory class to instantiate buildings without creating one subclass per
+ * type.
  */
 public class BuildingFactory {
 
@@ -36,7 +38,7 @@ public class BuildingFactory {
             Map.entry(ResourceType.BEER, 6));
 
     /**
-     * Creates a building without map context. Mines default to iron extraction.
+     * Creates a building without map context.
      *
      * @param type     the building type to create
      * @param playerId owning player ID
@@ -48,8 +50,8 @@ public class BuildingFactory {
     }
 
     /**
-     * Creates a building, using the game state to resolve context-dependent details
-     * (e.g. which ore a mine extracts based on the closest mountain deposit).
+     * Creates a building. The game state parameter is accepted for call sites
+     * that hold one (map-aware creation), but no current building type needs it.
      *
      * @param type     the building type to create
      * @param playerId owning player ID
@@ -59,7 +61,7 @@ public class BuildingFactory {
      */
     public static Building createBuilding(BuildingName type, int playerId, Coordinates position, GameState state) {
         Building building = switch (type) {
-            case HEADQUARTERS -> new StorageBuilding(playerId, position, new HashMap<>(HEADQUARTERS_STOCK));
+            case HEADQUARTERS -> createHeadquarters(playerId, position);
             case WAREHOUSE -> new StorageBuilding(playerId, position, new HashMap<>());
 
             // --- NAVAL ---
@@ -71,7 +73,9 @@ public class BuildingFactory {
             case WOODCUTTER -> new RawExtractor(playerId, position, ResourceType.LOG, BuildingName.WOODCUTTER);
             case FORESTER -> new RawExtractor(playerId, position, null, BuildingName.FORESTER);
             case QUARRY -> new RawExtractor(playerId, position, ResourceType.STONE, BuildingName.QUARRY);
-            case MINE -> new RawExtractor(playerId, position, resolveMineOre(position, state), BuildingName.MINE);
+            // The four Settlers II mines, each digging one specific ore
+            case GRANITE_MINE, COAL_MINE, IRON_MINE, GOLD_MINE ->
+                    new RawExtractor(playerId, position, type.minedResource(), type);
             case FISHING_HUT -> new RawExtractor(playerId, position, ResourceType.FISH, BuildingName.FISHING_HUT);
             case HUNTERS_HUT -> new RawExtractor(playerId, position, ResourceType.MEAT, BuildingName.HUNTERS_HUT);
             case FARM -> new RawExtractor(playerId, position, ResourceType.WHEAT, BuildingName.FARM);
@@ -93,9 +97,12 @@ public class BuildingFactory {
                     List.of(getRecipe(ResourceType.SWORD), getRecipe(ResourceType.SHIELD)));
 
             // --- MILITARY BUILDINGS ---
-            case BARRACKS, GUARD_HOUSE, WATCH_TOWER, CASTLE, FORTRESS -> new MilitaryBuilding(playerId, position, type,
+            case BARRACKS, GUARD_HOUSE, WATCH_TOWER, FORTRESS -> new MilitaryBuilding(playerId, position, type,
                     GameConfig.militaryCapacity(type),
                     GameConfig.militaryRadius(type));
+
+            // --- EXPLORATION ---
+            case LOOKOUT_TOWER -> new LookoutTowerBuilding(playerId, position);
 
             // --- SIEGE ---
             case CATAPULT -> new CatapultBuilding(playerId, position);
@@ -105,37 +112,23 @@ public class BuildingFactory {
     }
 
     /**
-     * Determines which ore a mine extracts from the closest non-depleted deposit
-     * around it. Defaults to iron if the map is unavailable or no deposit is found.
+     * Creates a headquarters with its starting stock and initial garrison of
+     * privates, so it defends itself from day one as in Settlers II.
      *
-     * @param position the mine position
-     * @param state    the game state, or {@code null}
-     * @return the ore resource type the mine will extract
+     * @param playerId owning player ID
+     * @param position map coordinates
+     * @return the created headquarters
      */
-    private static ResourceType resolveMineOre(Coordinates position, GameState state) {
-        if (state == null) {
-            return ResourceType.IRON;
+    private static HeadquartersBuilding createHeadquarters(int playerId, Coordinates position) {
+        HeadquartersBuilding hq = new HeadquartersBuilding(playerId, position, new HashMap<>(HEADQUARTERS_STOCK));
+        for (int i = 0; i < GameConfig.HEADQUARTERS_START_SOLDIERS; i++) {
+            Soldier soldier = new Soldier(playerId, new Coordinates(position.getX(), position.getY()));
+            soldier.setRank(SoldierRank.PRIVATE);
+            soldier.setState(SoldierState.GARRISONED);
+            soldier.setGarrison(hq);
+            hq.addSoldier(soldier);
         }
-        ResourceType bestOre = ResourceType.IRON;
-        int bestDist = Integer.MAX_VALUE;
-        for (ResourceType ore : List.of(ResourceType.IRON, ResourceType.COAL, ResourceType.GOLD, ResourceType.STONE)) {
-            // The mine may sit directly on the deposit
-            MapTile own = state.getTile(position);
-            if (own != null && own.getNaturalResource() != null
-                    && own.getNaturalResource().getType() == ore
-                    && !own.getNaturalResource().isDepleted()) {
-                return ore;
-            }
-            List<MapTile> deposits = state.findResourceTilesInRange(position, GameConfig.MINER_MAX_DISTANCE, ore);
-            if (!deposits.isEmpty()) {
-                int dist = position.distanceTo(deposits.getFirst().getCoordinates());
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    bestOre = ore;
-                }
-            }
-        }
-        return bestOre;
+        return hq;
     }
 
     /**
@@ -154,14 +147,14 @@ public class BuildingFactory {
      *
      * @param name the building type
      * @return the occupying worker role, or {@code null} for buildings without a
-     *         specialist occupant (storage, military, naval)
+     *         specialist occupant (storage, military, naval, lookout)
      */
     public static WorkerType occupantRoleFor(BuildingName name) {
         return switch (name) {
             case WOODCUTTER -> WorkerType.WOODCUTTER;
             case FORESTER -> WorkerType.FORESTER;
             case QUARRY -> WorkerType.QUARRYMAN;
-            case MINE -> WorkerType.MINER;
+            case GRANITE_MINE, COAL_MINE, IRON_MINE, GOLD_MINE -> WorkerType.MINER;
             case FISHING_HUT -> WorkerType.FISHERMAN;
             case HUNTERS_HUT -> WorkerType.HUNTER;
             case FARM -> WorkerType.FARMER;

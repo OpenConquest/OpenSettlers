@@ -54,7 +54,11 @@ public abstract class Building {
             Map.entry(BuildingName.WOODCUTTER, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.FORESTER, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.QUARRY, Map.of(ResourceType.PLANK, 2)),
-            Map.entry(BuildingName.MINE, Map.of(ResourceType.PLANK, 4)),
+            Map.entry(BuildingName.GRANITE_MINE, Map.of(ResourceType.PLANK, 4)),
+            Map.entry(BuildingName.COAL_MINE, Map.of(ResourceType.PLANK, 4)),
+            Map.entry(BuildingName.IRON_MINE, Map.of(ResourceType.PLANK, 4)),
+            Map.entry(BuildingName.GOLD_MINE, Map.of(ResourceType.PLANK, 4)),
+            Map.entry(BuildingName.LOOKOUT_TOWER, Map.of(ResourceType.PLANK, 4)),
             Map.entry(BuildingName.FISHING_HUT, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.WATER_WELL, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.BARRACKS, Map.of(ResourceType.PLANK, 2 )),
@@ -73,7 +77,6 @@ public abstract class Building {
             )),
 
             Map.entry(BuildingName.FARM, Map.of(ResourceType.PLANK, 3, ResourceType.STONE,3)),
-            Map.entry(BuildingName.CASTLE, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 7)),
 
             Map.entry(BuildingName.HUNTERS_HUT, Map.of(ResourceType.PLANK, 2)),
             Map.entry(BuildingName.PIG_FARM, Map.of(ResourceType.PLANK, 3, ResourceType.STONE, 3)),
@@ -82,8 +85,8 @@ public abstract class Building {
             Map.entry(BuildingName.MINT, Map.of(ResourceType.PLANK, 2, ResourceType.STONE, 2)),
             Map.entry(BuildingName.METALWORKS, Map.of(ResourceType.PLANK, 2, ResourceType.STONE, 2)),
             Map.entry(BuildingName.CATAPULT, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 2)),
-            Map.entry(BuildingName.FORTRESS, Map.of(ResourceType.PLANK, 5, ResourceType.STONE, 9)),
-            Map.entry(BuildingName.HARBOR, Map.of(ResourceType.PLANK, 6, ResourceType.STONE, 6)),
+            Map.entry(BuildingName.FORTRESS, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 7)),
+            Map.entry(BuildingName.HARBOR, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 6)),
             Map.entry(BuildingName.SHIPYARD, Map.of(ResourceType.PLANK, 4, ResourceType.STONE, 3))
     );
 

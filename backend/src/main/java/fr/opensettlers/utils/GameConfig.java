@@ -1,7 +1,5 @@
 package fr.opensettlers.utils;
 
-import fr.opensettlers.utils.BuildingName;
-
 /**
  * Central balance and timing configuration of the game engine.
  * All values are plain constants tuned to mirror The Settlers II (10th Anniversary).
@@ -13,8 +11,8 @@ public final class GameConfig {
     /** Time interval in milliseconds separating each tick. */
     public static final int TICK_PERIOD_MS = 100;
 
-    /** Default cooldown ticks required for a production building to produce a resource. */
-    public static final int PRODUCTION_TIME = 5;
+    /** Fallback cooldown ticks for production buildings without a specific time. */
+    public static final int PRODUCTION_TIME = 40;
 
     /** Width and height of the generated square map in tiles. */
     public static final int MAP_SIZE = 64;
@@ -23,7 +21,7 @@ public final class GameConfig {
     public static final int SOLDIER_MOVE_TICKS = 3;
 
     /** Maximum hex distance from which military buildings can send attackers. */
-    public static final int ATTACK_RADIUS = 50;
+    public static final int ATTACK_RADIUS = 15;
 
     // --- Worker max distances ---
 
@@ -48,7 +46,15 @@ public final class GameConfig {
     /** Hex distance in which a hunter tracks wild game. */
     public static final int HUNTER_MAX_DISTANCE = 5;
 
-    // --- Military: garrison capacity ---
+    // --- Resource growth (Settlers II pace: saplings and wheat take time) ---
+
+    /** Ticks a planted sapling needs before it can be felled (1 tree = 1 log). */
+    public static final int TREE_GROWTH_TICKS = 300;
+
+    /** Ticks a sown wheat field needs before it can be harvested. */
+    public static final int WHEAT_GROWTH_TICKS = 400;
+
+    // --- Military: garrison capacity (Settlers II: 2 / 3 / 6 / 9) ---
 
     /** Soldier garrison capacity of a barracks. */
     public static final int BARRACKS_CAPACITY = 2;
@@ -59,14 +65,14 @@ public final class GameConfig {
     /** Soldier garrison capacity of a watch tower. */
     public static final int WATCHTOWER_CAPACITY = 6;
 
-    /** Soldier garrison capacity of a castle. */
-    public static final int CASTLE_CAPACITY = 9;
-
     /** Soldier garrison capacity of a fortress. */
-    public static final int FORTRESS_CAPACITY = 12;
+    public static final int FORTRESS_CAPACITY = 9;
 
-    /** Soldier garrison capacity of the headquarters. */
-    public static final int HEADQUARTERS_CAPACITY = 1;
+    /** Soldier garrison capacity of the headquarters (it defends itself). */
+    public static final int HEADQUARTERS_CAPACITY = 12;
+
+    /** Soldiers garrisoned in the headquarters at the start of a game. */
+    public static final int HEADQUARTERS_START_SOLDIERS = 6;
 
     // --- Military: territory radius (hex distance) ---
 
@@ -79,19 +85,19 @@ public final class GameConfig {
     /** Hex radius of territory claimed by a watch tower. */
     public static final int WATCHTOWER_TERRITORY_RADIUS = 8;
 
-    /** Hex radius of territory claimed by a castle. */
-    public static final int CASTLE_TERRITORY_RADIUS = 11;
-
     /** Hex radius of territory claimed by a fortress. */
-    public static final int FORTRESS_TERRITORY_RADIUS = 13;
+    public static final int FORTRESS_TERRITORY_RADIUS = 11;
 
     /** Hex radius of territory claimed by the headquarters. */
     public static final int HEADQUARTERS_TERRITORY_RADIUS = 20;
 
+    /** Hex radius of territory claimed by a harbor (new-shore colonies). */
+    public static final int HARBOR_TERRITORY_RADIUS = 8;
+
     // --- Military: gold coins & promotion ---
 
     /** Maximum gold coins a barracks can hold for promotions. */
-    public static final int BARRACKS_COIN_CAPACITY = 2;
+    public static final int BARRACKS_COIN_CAPACITY = 1;
 
     /** Maximum gold coins a guard house can hold for promotions. */
     public static final int GUARDHOUSE_COIN_CAPACITY = 2;
@@ -99,11 +105,8 @@ public final class GameConfig {
     /** Maximum gold coins a watch tower can hold for promotions. */
     public static final int WATCHTOWER_COIN_CAPACITY = 4;
 
-    /** Maximum gold coins a castle can hold for promotions. */
-    public static final int CASTLE_COIN_CAPACITY = 6;
-
     /** Maximum gold coins a fortress can hold for promotions. */
-    public static final int FORTRESS_COIN_CAPACITY = 8;
+    public static final int FORTRESS_COIN_CAPACITY = 6;
 
     /** Ticks between two soldier promotions inside the same building. */
     public static final int PROMOTION_TICKS = 50;
@@ -137,6 +140,40 @@ public final class GameConfig {
 
     /** Ticks a geologist spends surveying each tile. */
     public static final int GEOLOGIST_SURVEY_TICKS = 10;
+
+    // --- Scout & lookout tower (exploration) ---
+
+    /** Hex distance around the target flag in which a scout wanders. */
+    public static final int SCOUT_RANGE = 6;
+
+    /** Number of exploration steps a scout takes before heading home. */
+    public static final int SCOUT_STEPS = 40;
+
+    /** Ticks between two exploration steps of a scout. */
+    public static final int SCOUT_STEP_TICKS = 3;
+
+    /** Vision radius of a wandering scout. */
+    public static final int SCOUT_VISION = 4;
+
+    /** Vision radius of a lookout tower (no territory projection). */
+    public static final int LOOKOUT_TOWER_VISION = 10;
+
+    // --- Building placement (graded construction sites) ---
+
+    /** Maximum elevation delta to a neighbor tile allowed for a hut site. */
+    public static final int SITE_MAX_SLOPE_HUT = 3;
+
+    /** Maximum elevation delta to a neighbor tile allowed for a house site. */
+    public static final int SITE_MAX_SLOPE_HOUSE = 2;
+
+    /** Maximum elevation delta to a neighbor tile allowed for a castle site. */
+    public static final int SITE_MAX_SLOPE_CASTLE = 1;
+
+    /** Minimum hex distance between a hut/house/mine and any other building. */
+    public static final int SITE_MIN_BUILDING_DISTANCE = 2;
+
+    /** Minimum hex distance between a castle-size building and any other building. */
+    public static final int SITE_MIN_BUILDING_DISTANCE_CASTLE = 3;
 
     // --- Fog of war ---
 
@@ -191,7 +228,6 @@ public final class GameConfig {
             case BARRACKS -> BARRACKS_CAPACITY;
             case GUARD_HOUSE -> GUARDHOUSE_CAPACITY;
             case WATCH_TOWER -> WATCHTOWER_CAPACITY;
-            case CASTLE -> CASTLE_CAPACITY;
             case FORTRESS -> FORTRESS_CAPACITY;
             case HEADQUARTERS -> HEADQUARTERS_CAPACITY;
             default -> 0;
@@ -206,7 +242,6 @@ public final class GameConfig {
             case BARRACKS -> BARRACKS_TERRITORY_RADIUS;
             case GUARD_HOUSE -> GUARDHOUSE_TERRITORY_RADIUS;
             case WATCH_TOWER -> WATCHTOWER_TERRITORY_RADIUS;
-            case CASTLE -> CASTLE_TERRITORY_RADIUS;
             case FORTRESS -> FORTRESS_TERRITORY_RADIUS;
             case HEADQUARTERS -> HEADQUARTERS_TERRITORY_RADIUS;
             default -> 0;
@@ -221,9 +256,28 @@ public final class GameConfig {
             case BARRACKS -> BARRACKS_COIN_CAPACITY;
             case GUARD_HOUSE -> GUARDHOUSE_COIN_CAPACITY;
             case WATCH_TOWER -> WATCHTOWER_COIN_CAPACITY;
-            case CASTLE -> CASTLE_COIN_CAPACITY;
             case FORTRESS -> FORTRESS_COIN_CAPACITY;
             default -> 0;
+        };
+    }
+
+    /**
+     * Returns the production cooldown in ticks of a building type, approximating
+     * the per-building work durations of The Settlers II (a few seconds each
+     * instead of one uniform pace).
+     *
+     * @param name the producing building type
+     * @return the cooldown in game ticks between two productions
+     */
+    public static int productionTicks(BuildingName name) {
+        return switch (name) {
+            case WATER_WELL -> 30;
+            case QUARRY, SAWMILL, MILL, SLAUGHTERHOUSE -> 40;
+            case GRANITE_MINE, COAL_MINE, IRON_MINE, GOLD_MINE, BAKERY -> 45;
+            case WOODCUTTER, FOUNDRY, ARMORY, MINT -> 50;
+            case FORESTER, FISHING_HUT, HUNTERS_HUT, FARM, METALWORKS, BREWERY -> 60;
+            case PIG_FARM, DONKEY_BREEDER -> 80;
+            default -> PRODUCTION_TIME;
         };
     }
 

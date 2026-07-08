@@ -220,7 +220,8 @@ public class GameEngineService {
             }
 
             case ATTACK_BUILDING -> {
-                int dispatched = GameActions.attack(state, playerId, message.getTargetId());
+                int dispatched = GameActions.attack(state, playerId, message.getTargetId(),
+                        message.getAttackerCount());
                 if (dispatched < 0) {
                     LOG.warn("Invalid attack target.");
                 } else {
@@ -234,6 +235,15 @@ public class GameEngineService {
                     LOG.infof("Geologist dispatched to flag %s", message.getTargetId());
                 } else {
                     LOG.warnf("Player %d cannot dispatch a geologist to flag %s",
+                            playerId, message.getTargetId());
+                }
+            }
+
+            case SEND_SCOUT -> {
+                if (GameActions.sendScout(state, playerId, message.getTargetId())) {
+                    LOG.infof("Scout dispatched to flag %s", message.getTargetId());
+                } else {
+                    LOG.warnf("Player %d cannot dispatch a scout to flag %s",
                             playerId, message.getTargetId());
                 }
             }

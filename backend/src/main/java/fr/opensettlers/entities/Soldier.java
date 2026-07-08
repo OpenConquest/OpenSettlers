@@ -39,8 +39,8 @@ public class Soldier {
     /** Current state in the soldier's lifecycle. */
     private SoldierState state = SoldierState.WALKING_TO_GARRISON;
 
-    /** The building this soldier is garrisoned in (null if moving). */
-    private MilitaryBuilding garrison;
+    /** The building this soldier is garrisoned in (military or headquarters, null if moving). */
+    private Building garrison;
 
     /** The building this soldier is heading to: enemy target or friendly garrison destination. */
     private Building targetBuilding;

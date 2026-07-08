@@ -42,6 +42,12 @@ public enum MessageType {
     SEND_GEOLOGIST,
 
     /**
+     * Action to send a scout explore the fog of war around a flag.
+     * Uses {@code targetId} as the destination flag ID.
+     */
+    SEND_SCOUT,
+
+    /**
      * Pauses or resumes production at one of the player's production buildings.
      * Uses {@code targetId} (the building) and {@code enabled} (true = produce).
      */

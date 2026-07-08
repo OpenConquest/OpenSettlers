@@ -23,7 +23,7 @@ class BuildingFactoryTest {
         MilitaryBuilding fortress = (MilitaryBuilding) BuildingFactory.createBuilding(BuildingName.FORTRESS, 0, POS);
         assertEquals(GameConfig.FORTRESS_CAPACITY, fortress.getMaxCapacity());
         assertEquals(GameConfig.FORTRESS_TERRITORY_RADIUS, fortress.getTerritoryRadius());
-        assertTrue(fortress.getMaxCapacity() > GameConfig.CASTLE_CAPACITY);
+        assertTrue(fortress.getMaxCapacity() > GameConfig.WATCHTOWER_CAPACITY);
     }
 
     @Test
@@ -64,10 +64,30 @@ class BuildingFactoryTest {
 
     @Test
     void mineHasOneInputSlotPerFoodType() {
-        RawExtractor mine = (RawExtractor) BuildingFactory.createBuilding(BuildingName.MINE, 0, POS);
+        RawExtractor mine = (RawExtractor) BuildingFactory.createBuilding(BuildingName.IRON_MINE, 0, POS);
         long foodSlots = mine.getInputSlots().stream().filter(s -> s.getType().isFood()).count();
         assertEquals(3, foodSlots); // fish, bread, meat
         assertFalse(mine.hasFood());
+    }
+
+    @Test
+    void eachMineTypeExtractsItsOre() {
+        assertEquals(ResourceType.STONE, ((RawExtractor) BuildingFactory
+                .createBuilding(BuildingName.GRANITE_MINE, 0, POS)).getExtractedResource());
+        assertEquals(ResourceType.COAL, ((RawExtractor) BuildingFactory
+                .createBuilding(BuildingName.COAL_MINE, 0, POS)).getExtractedResource());
+        assertEquals(ResourceType.IRON, ((RawExtractor) BuildingFactory
+                .createBuilding(BuildingName.IRON_MINE, 0, POS)).getExtractedResource());
+        assertEquals(ResourceType.GOLD, ((RawExtractor) BuildingFactory
+                .createBuilding(BuildingName.GOLD_MINE, 0, POS)).getExtractedResource());
+    }
+
+    @Test
+    void headquartersStartsWithADefendingGarrison() {
+        HeadquartersBuilding hq = (HeadquartersBuilding) BuildingFactory
+                .createBuilding(BuildingName.HEADQUARTERS, 0, POS);
+        assertEquals(GameConfig.HEADQUARTERS_START_SOLDIERS, hq.getSoldiers().size());
+        assertEquals(GameConfig.HEADQUARTERS_CAPACITY, hq.getMaxCapacity());
     }
 
     @Test

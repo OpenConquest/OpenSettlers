@@ -16,8 +16,9 @@ const DIGIT_TOOLS: Record<string, ToolKind> = {
   "2": "flag",
   "3": "road",
   "4": "geologist",
-  "5": "destroy",
-  "6": "attack",
+  "5": "scout",
+  "6": "destroy",
+  "7": "attack",
 };
 
 export function useHotkeys(): void {

@@ -289,6 +289,11 @@ public final class GameStateSerializer {
             for (Map.Entry<ResourceType, Integer> e : sb.getStoredResources().entrySet()) {
                 stored.put(e.getKey().name(), e.getValue());
             }
+            if (b instanceof Garrisoned g) {
+                // The headquarters exposes its defending garrison too
+                garrison = g.getSoldiers().size();
+                maxGarrison = g.getMaxCapacity();
+            }
         } else if (b instanceof MilitaryBuilding mb) {
             garrison = mb.getSoldiers().size();
             maxGarrison = mb.getMaxCapacity();

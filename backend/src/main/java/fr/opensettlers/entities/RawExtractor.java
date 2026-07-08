@@ -53,7 +53,7 @@ public class RawExtractor extends ProductionBuilding {
         this.extractedResource = extractedResource;
         this.buildingName = buildingName;
         this.inputSlots = new ArrayList<>();
-        if (buildingName == BuildingName.MINE) {
+        if (buildingName.isMine()) {
             for (ResourceType type : ResourceType.values()) {
                 if (type.isFood()) {
                     this.inputSlots.add(new ResourceSlot(type));
@@ -76,7 +76,7 @@ public class RawExtractor extends ProductionBuilding {
         if (this.outputSlot == null) {
             return;
         }
-        if (this.buildingName == BuildingName.MINE && !consumeFood()) {
+        if (this.buildingName.isMine() && !consumeFood()) {
             return;
         }
         if (this.targetWorkTile != null) {
@@ -115,8 +115,8 @@ public class RawExtractor extends ProductionBuilding {
         if (this.buildingName == BuildingName.WATER_WELL) {
             return outputHasSpace;
         }
-        // MINE needs an assigned deposit and food to feed the miner
-        if (this.buildingName == BuildingName.MINE) {
+        // Mines need an assigned deposit and food to feed the miner
+        if (this.buildingName.isMine()) {
             return outputHasSpace && this.targetWorkTile != null && hasFood();
         }
         // All other extractors need a targetWorkTile
