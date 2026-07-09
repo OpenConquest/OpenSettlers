@@ -1,17 +1,17 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.MilitaryBuilding;
-import fr.opensettlers.entities.StorageBuilding;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.entities.building.StorageBuilding;
 import fr.opensettlers.service.GameActions;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.Direction;
+import fr.opensettlers.utils.enums.Direction;
 import fr.opensettlers.utils.GameConfig;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.utils.enums.TileType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

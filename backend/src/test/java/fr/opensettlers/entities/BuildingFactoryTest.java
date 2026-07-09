@@ -1,10 +1,13 @@
 package fr.opensettlers.entities;
 
-import fr.opensettlers.entities.*;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.entities.building.*;
+import fr.opensettlers.entities.unit.*;
+import fr.opensettlers.entities.world.*;
+import fr.opensettlers.entities.resource.*;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.enums.ResourceType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

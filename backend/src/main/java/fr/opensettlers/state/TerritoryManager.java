@@ -1,12 +1,11 @@
 package fr.opensettlers.state;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.MilitaryBuilding;
-import fr.opensettlers.entities.StorageBuilding;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.Direction;
+import fr.opensettlers.utils.enums.Direction;
 
 import java.util.*;
 

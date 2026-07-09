@@ -1,19 +1,18 @@
 package fr.opensettlers.persistence;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.BuildingFactory;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.MilitaryBuilding;
-import fr.opensettlers.entities.NaturalResourceNode;
-import fr.opensettlers.entities.Soldier;
-import fr.opensettlers.entities.StorageBuilding;
+import fr.opensettlers.entities.building.BuildingFactory;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.entities.world.NaturalResourceNode;
+import fr.opensettlers.entities.unit.Soldier;
+import fr.opensettlers.entities.building.StorageBuilding;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.SoldierRank;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.SoldierRank;
+import fr.opensettlers.utils.enums.TileType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

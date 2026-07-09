@@ -2,11 +2,14 @@ package fr.opensettlers.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.GameConfig;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.enums.ResourceType;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.entities.*;
+import fr.opensettlers.entities.building.*;
+import fr.opensettlers.entities.unit.*;
+import fr.opensettlers.entities.world.*;
+import fr.opensettlers.entities.resource.*;
 import fr.opensettlers.utils.Coordinates;
 import fr.opensettlers.controller.dto.GameStateDto;
 import fr.opensettlers.controller.dto.MapDto;

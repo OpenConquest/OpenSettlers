@@ -1,9 +1,9 @@
 package fr.opensettlers.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.enums.ResourceType;
 import lombok.Data;
 
 import java.util.List;

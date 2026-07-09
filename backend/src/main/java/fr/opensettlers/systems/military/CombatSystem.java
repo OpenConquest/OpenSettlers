@@ -1,0 +1,210 @@
+package fr.opensettlers.systems.military;
+
+import fr.opensettlers.state.GameState;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.building.Garrisoned;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.entities.unit.Soldier;
+import fr.opensettlers.entities.building.StorageBuilding;
+import fr.opensettlers.utils.Coordinates;
+import fr.opensettlers.utils.enums.SoldierState;
+
+import java.util.ArrayList;
+import java.util.List;
+import fr.opensettlers.systems.ISystem;
+
+/**
+ * System resolving combat: duels between soldiers sharing a tile, defender
+ * sorties from attacked garrisons, and capture or destruction of buildings
+ * once their defense is exhausted.
+ */
+public class CombatSystem implements ISystem {
+
+    /**
+     * Resolves all ongoing fights and sieges for the current tick.
+     *
+     * @param gameState Game state of the current session.
+     */
+    @Override
+    public void process(GameState gameState) {
+        engageArrivedAttackers(gameState);
+        resolveDuels(gameState);
+        resolveSieges(gameState);
+        releaseVictoriousFighters(gameState);
+    }
+
+    /**
+     * Switches attackers that reached their target building into waiting mode,
+     * ready to fight the defenders coming out.
+     *
+     * @param state the current game state
+     */
+    private void engageArrivedAttackers(GameState state) {
+        for (Soldier soldier : state.getSoldiers()) {
+            if (soldier.getState() != SoldierState.MARCHING_TO_ATTACK) continue;
+            Building target = soldier.getTargetBuilding();
+            if (target != null && !target.isDestroyed() && soldier.isAt(target.getPosition())) {
+                soldier.setState(SoldierState.WAITING_FOR_DEFENDER);
+            }
+        }
+    }
+
+    /**
+     * Resolves duels strictly one-on-one, as in Settlers II: each soldier is
+     * bound to a single opponent; other soldiers sharing the tile wait for
+     * their turn. Dead soldiers are swept by the game state at the next tick.
+     *
+     * @param state the current game state
+     */
+    private void resolveDuels(GameState state) {
+        List<Soldier> soldiers = state.getSoldiers();
+
+        // Bind free soldiers into new one-on-one duels
+        for (Soldier a : soldiers) {
+            if (a.isDead() || a.getOpponent() != null) {
+                continue;
+            }
+            for (Soldier b : soldiers) {
+                if (a == b || b.isDead() || b.getOpponent() != null
+                        || a.getPlayerId() == b.getPlayerId() || !a.isSamePosition(b)) {
+                    continue;
+                }
+                a.setOpponent(b);
+                b.setOpponent(a);
+                a.setState(SoldierState.FIGHTING);
+                b.setState(SoldierState.FIGHTING);
+                break;
+            }
+        }
+
+        // Exchange blows once per bound pair
+        for (Soldier a : soldiers) {
+            Soldier b = a.getOpponent();
+            if (b == null || a.isDead() || b.isDead()) {
+                continue;
+            }
+            if (a.getId().compareTo(b.getId()) > 0) {
+                continue; // The pair is processed from its lower-id member
+            }
+            a.attack(b);
+            if (!b.isDead()) {
+                b.attack(a);
+            }
+            if (a.isDead()) b.setOpponent(null);
+            if (b.isDead()) a.setOpponent(null);
+        }
+    }
+
+    /**
+     * For each building under siege: sends out a defender if the garrison still
+     * holds one, otherwise resolves the capture or destruction of the building.
+     *
+     * @param state the current game state
+     */
+    private void resolveSieges(GameState state) {
+        List<Building> buildings = new ArrayList<>(state.getBuildings());
+        for (Building building : buildings) {
+            if (building.isDestroyed()) continue;
+
+            List<Soldier> attackers = livingSoldiersAt(state, building, true);
+            if (attackers.isEmpty()) continue;
+
+            List<Soldier> defenders = livingSoldiersAt(state, building, false);
+            if (!defenders.isEmpty()) continue; // A duel is already in progress
+
+            if (building instanceof Garrisoned garrison && !garrison.isGarrisonEmpty()) {
+                // Military buildings and the headquarters send out a defender
+                Soldier defender = garrison.removeFirstSoldier();
+                defender.setPosition(new Coordinates(
+                        building.getPosition().getX(), building.getPosition().getY()));
+                defender.setState(SoldierState.FIGHTING);
+                defender.setTargetBuilding(building);
+                defender.setGarrison(null);
+                state.getSoldiers().add(defender);
+            } else if (building instanceof MilitaryBuilding mb) {
+                captureBuilding(state, mb, attackers.get(0));
+            } else if (building instanceof StorageBuilding) {
+                // An exhausted headquarters or warehouse burns down (never captured)
+                building.destroy();
+                if (building.getAttachedFlag() != null) {
+                    building.getAttachedFlag().destroy();
+                }
+                state.getTerritoryManager().recalculate(state);
+            }
+        }
+    }
+
+    /**
+     * Transfers a conquered military building (and its flag) to the attacker,
+     * garrisons the winning soldier inside, and recalculates the territories.
+     *
+     * @param state    the current game state
+     * @param building the conquered military building
+     * @param winner   the attacking soldier taking possession
+     */
+    private void captureBuilding(GameState state, MilitaryBuilding building, Soldier winner) {
+        building.setPlayerId(winner.getPlayerId());
+        if (building.getAttachedFlag() != null) {
+            building.getAttachedFlag().setPlayerId(winner.getPlayerId());
+        }
+
+        winner.setState(SoldierState.GARRISONED);
+        winner.setTargetBuilding(null);
+        winner.setGarrison(building);
+        building.addSoldier(winner);
+        state.getSoldiers().remove(winner);
+
+        state.getTerritoryManager().recalculate(state);
+    }
+
+    /**
+     * Sends fighting soldiers with no remaining enemy on their tile back to
+     * their garrison (defenders) or marching again (attackers whose duel ended).
+     *
+     * @param state the current game state
+     */
+    private void releaseVictoriousFighters(GameState state) {
+        for (Soldier soldier : state.getSoldiers()) {
+            if ((soldier.getState() != SoldierState.FIGHTING
+                    && soldier.getState() != SoldierState.WAITING_FOR_DEFENDER)
+                    || soldier.isDead()) {
+                continue;
+            }
+
+            boolean enemyPresent = state.getSoldiers().stream()
+                    .anyMatch(other -> !other.isDead()
+                            && other.getPlayerId() != soldier.getPlayerId()
+                            && other.isSamePosition(soldier));
+            if (enemyPresent) continue;
+
+            soldier.setOpponent(null);
+            Building target = soldier.getTargetBuilding();
+            if (target == null || target.isDestroyed()
+                    || target.getPlayerId() == soldier.getPlayerId()) {
+                soldier.setState(SoldierState.WALKING_TO_GARRISON);
+            } else if (soldier.getState() == SoldierState.FIGHTING) {
+                soldier.setState(SoldierState.MARCHING_TO_ATTACK);
+            }
+        }
+    }
+
+    /**
+     * Lists the living soldiers standing on a building's tile, filtered by side.
+     *
+     * @param state     the current game state
+     * @param building  the building whose tile is inspected
+     * @param attackers {@code true} to list enemies of the building, {@code false} for its owner's soldiers
+     * @return the matching soldiers
+     */
+    private List<Soldier> livingSoldiersAt(GameState state, Building building, boolean attackers) {
+        List<Soldier> result = new ArrayList<>();
+        for (Soldier s : state.getSoldiers()) {
+            if (s.isDead() || !s.isAt(building.getPosition())) continue;
+            boolean isEnemy = s.getPlayerId() != building.getPlayerId();
+            if (isEnemy == attackers) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
+}

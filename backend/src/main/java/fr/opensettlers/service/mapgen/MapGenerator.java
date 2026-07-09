@@ -1,11 +1,11 @@
 package fr.opensettlers.service.mapgen;
 
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.NaturalResourceNode;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.world.NaturalResourceNode;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.Direction;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.utils.enums.Direction;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.TileType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

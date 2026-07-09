@@ -1,11 +1,13 @@
 package fr.opensettlers.entities;
 
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.enums.ResourceType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.entities.resource.ResourceSlot;
+import fr.opensettlers.entities.resource.Recipe;
 
 /**
  * Tests the recipe book covering the full Settlers II production chains.

@@ -1,4 +1,5 @@
 package fr.opensettlers.utils;
+import fr.opensettlers.utils.enums.BuildingName;
 
 /**
  * Central balance and timing configuration of the game engine.
