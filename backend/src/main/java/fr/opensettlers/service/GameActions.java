@@ -1,29 +1,31 @@
 package fr.opensettlers.service;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.ConstructionSite;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.MilitaryBuilding;
-import fr.opensettlers.entities.ProductionBuilding;
-import fr.opensettlers.entities.Soldier;
-import fr.opensettlers.entities.StorageBuilding;
-import fr.opensettlers.entities.Worker;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.building.ConstructionSite;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.entities.building.ProductionBuilding;
+import fr.opensettlers.entities.unit.Soldier;
+import fr.opensettlers.entities.building.StorageBuilding;
+import fr.opensettlers.entities.unit.Worker;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.Direction;
+import fr.opensettlers.utils.enums.Direction;
 import fr.opensettlers.utils.GameConfig;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.SiteSize;
-import fr.opensettlers.utils.SoldierState;
-import fr.opensettlers.utils.TileType;
-import fr.opensettlers.utils.WorkerType;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.SiteSize;
+import fr.opensettlers.utils.enums.SoldierState;
+import fr.opensettlers.utils.enums.TileType;
+import fr.opensettlers.utils.enums.WorkerType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -225,10 +227,70 @@ public final class GameActions {
     public static boolean linkFlags(GameState state, UUID flagIdA, UUID flagIdB, List<Coordinates> path) {
         Flag flagA = state.getRoadNetwork().getFlagById(flagIdA);
         Flag flagB = state.getRoadNetwork().getFlagById(flagIdB);
-        if (flagA == null || flagB == null) {
+        if (flagA == null || flagB == null || flagA.getId().equals(flagB.getId())) {
+            return false;
+        }
+        if (!isRoadPathValid(state, flagA, flagB, path)) {
             return false;
         }
         state.getRoadNetwork().addRoad(flagA, flagB, path);
+        return true;
+    }
+
+    /**
+     * Validates a proposed road tracing between two flags before it is laid.
+     *
+     * <p>The endpoints plus the intermediate coordinates must form a chain of
+     * adjacent, distinct hexes. Every intermediate tile must be roadable land
+     * (not water, mountain or forest — see {@link MapTile#isRoadable()}), free
+     * of any building or flag, and each successive step must stay within the
+     * road's elevation limit ({@link MapTile#canConnectRoadTo(MapTile)}). The
+     * two endpoints are flags, so only their elevation is checked, never their
+     * terrain or occupancy.</p>
+     *
+     * @param state the game state
+     * @param flagA one endpoint flag
+     * @param flagB the other endpoint flag
+     * @param path  the intermediate tile coordinates (endpoints excluded)
+     * @return {@code true} if the road may be built along this path
+     */
+    private static boolean isRoadPathValid(GameState state, Flag flagA, Flag flagB, List<Coordinates> path) {
+        if (path == null) {
+            return false;
+        }
+
+        List<Coordinates> chain = new ArrayList<>();
+        chain.add(flagA.getCoordinates());
+        chain.addAll(path);
+        chain.add(flagB.getCoordinates());
+
+        Set<Coordinates> seen = new HashSet<>();
+        for (int i = 0; i < chain.size(); i++) {
+            Coordinates c = chain.get(i);
+            if (!seen.add(c)) {
+                return false; // no tile may be reused within a single road
+            }
+
+            MapTile tile = state.getTile(c);
+            if (tile == null) {
+                return false;
+            }
+
+            if (i > 0) {
+                MapTile prevTile = state.getTile(chain.get(i - 1));
+                if (chain.get(i - 1).distanceTo(c) != 1) {
+                    return false; // steps must be between adjacent hexes
+                }
+                if (prevTile == null || !prevTile.canConnectRoadTo(tile)) {
+                    return false; // elevation change too steep
+                }
+            }
+
+            boolean endpoint = (i == 0 || i == chain.size() - 1);
+            if (!endpoint && (!tile.isRoadable() || isOccupied(state, c) || hasFlagAt(state, c))) {
+                return false; // intermediate tiles must be free, roadable land
+            }
+        }
         return true;
     }
 

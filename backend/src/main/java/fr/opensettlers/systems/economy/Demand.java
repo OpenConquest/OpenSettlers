@@ -1,8 +1,8 @@
 package fr.opensettlers.systems.economy;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.utils.enums.ResourceType;
 
 /**
  * Represents a resource demand from a building or construction site in the economy.

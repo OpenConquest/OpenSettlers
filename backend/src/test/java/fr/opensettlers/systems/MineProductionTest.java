@@ -1,23 +1,24 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.BuildingFactory;
+import fr.opensettlers.entities.building.BuildingFactory;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.NaturalResourceNode;
-import fr.opensettlers.entities.RawExtractor;
-import fr.opensettlers.entities.ResourceSlot;
-import fr.opensettlers.entities.Worker;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.world.NaturalResourceNode;
+import fr.opensettlers.entities.building.RawExtractor;
+import fr.opensettlers.entities.resource.ResourceSlot;
+import fr.opensettlers.entities.unit.Worker;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
-import fr.opensettlers.utils.WorkerState;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.TileType;
+import fr.opensettlers.utils.enums.WorkerState;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.systems.economy.ProductionSystem;
 
 /**
  * Tests mine behavior: food consumption per extraction and deposit depletion.

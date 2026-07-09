@@ -1,14 +1,15 @@
 package fr.opensettlers.state;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.Donkey;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.Ship;
-import fr.opensettlers.entities.Soldier;
-import fr.opensettlers.entities.Worker;
-import fr.opensettlers.systems.TransportManager;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.unit.Donkey;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.unit.Ship;
+import fr.opensettlers.entities.unit.Soldier;
+import fr.opensettlers.entities.unit.Worker;
+import fr.opensettlers.systems.transport.TransportManager;
 import fr.opensettlers.utils.*;
+import fr.opensettlers.utils.enums.*;
 import lombok.Data;
 
 import java.util.*;

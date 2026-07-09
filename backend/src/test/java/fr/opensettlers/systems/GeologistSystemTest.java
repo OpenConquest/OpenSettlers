@@ -2,21 +2,21 @@ package fr.opensettlers.systems;
 
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.NaturalResourceNode;
-import fr.opensettlers.entities.Worker;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.world.NaturalResourceNode;
+import fr.opensettlers.entities.unit.Worker;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
-import fr.opensettlers.utils.WorkerState;
-import fr.opensettlers.utils.WorkerType;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.TileType;
+import fr.opensettlers.utils.enums.WorkerState;
+import fr.opensettlers.utils.enums.WorkerType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.systems.exploration.GeologistSystem;
 
 /**
  * Tests geologists surveying mountains and planting ore signs.

@@ -1,6 +1,6 @@
 package fr.opensettlers.service.mapgen;
 
-import fr.opensettlers.entities.MapTile;
+import fr.opensettlers.entities.world.MapTile;
 
 /**
  * Standalone {@code main} entry point that generates a sample map and writes an

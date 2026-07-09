@@ -1,15 +1,17 @@
 package fr.opensettlers.entities;
 
-import fr.opensettlers.entities.BuildingFactory;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.entities.building.BuildingFactory;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.enums.ResourceType;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.entities.resource.ResourceSlot;
+import fr.opensettlers.entities.building.ProcessingBuilding;
 
 /**
  * Tests recipe processing, including the armory alternating swords and shields.

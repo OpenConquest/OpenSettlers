@@ -1,7 +1,7 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.StorageBuilding;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.building.StorageBuilding;
 import fr.opensettlers.state.GameState;
 
 import java.util.HashSet;

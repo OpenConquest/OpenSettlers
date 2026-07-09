@@ -1,12 +1,12 @@
 package fr.opensettlers.state;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.BuildingFactory;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.Worker;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.building.BuildingFactory;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.unit.Worker;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.utils.enums.TileType;
 import fr.opensettlers.service.GameStateSerializer;
 import org.junit.jupiter.api.Test;
 

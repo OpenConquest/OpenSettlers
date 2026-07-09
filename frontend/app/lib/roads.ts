@@ -2,10 +2,10 @@
  * Road pathfinding over the hex terrain grid.
  *
  * Roads run flag-to-flag as a chain of adjacent tiles. A tile can carry a road
- * when it is walkable land (not water or mountain), the elevation change from
- * the previous tile stays within {@link MAX_ROAD_ELEVATION_DELTA}, and it is not
- * already occupied by a building or another flag. This mirrors the backend's
- * road rules (`MapTile.isWalkable` / `canConnectRoadTo`) so a previewed path is
+ * when it is roadable land (not water, mountain or forest), the elevation change
+ * from the previous tile stays within {@link MAX_ROAD_ELEVATION_DELTA}, and it is
+ * not already occupied by a building or another flag. This mirrors the backend's
+ * road rules (`MapTile.isRoadable` / `canConnectRoadTo`) so a previewed path is
  * one the server will accept.
  */
 import type { Coordinates, TileDto } from "~/types/game";
@@ -14,9 +14,14 @@ import { hexKey, hexNeighbors } from "./hex";
 /** Largest elevation difference a road may climb between two adjacent tiles. */
 export const MAX_ROAD_ELEVATION_DELTA = 2;
 
-/** Whether a tile's terrain can ever carry a road (walkable land). */
+/** Whether a tile's terrain can ever carry a road (not water, mountain or forest). */
 export function isRoadableTerrain(tile: TileDto | undefined | null): boolean {
-  return !!tile && tile.tileType !== "WATER" && tile.tileType !== "MOUNTAIN";
+  return (
+    !!tile &&
+    tile.tileType !== "WATER" &&
+    tile.tileType !== "MOUNTAIN" &&
+    tile.tileType !== "FOREST"
+  );
 }
 
 /** Terrain and occupancy lookup the road pathfinder reads from. */

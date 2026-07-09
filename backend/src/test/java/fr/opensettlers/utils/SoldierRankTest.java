@@ -1,9 +1,10 @@
 package fr.opensettlers.utils;
 
-import fr.opensettlers.entities.Soldier;
+import fr.opensettlers.entities.unit.Soldier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.utils.enums.SoldierRank;
 
 /**
  * Tests the rank ladder and its effect on soldier health.

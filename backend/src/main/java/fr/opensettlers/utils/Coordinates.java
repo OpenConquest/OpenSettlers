@@ -2,6 +2,7 @@ package fr.opensettlers.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import fr.opensettlers.utils.enums.Direction;
 
 /**
  * Double-heighted, double-widthed hexagonal grid coordinates.

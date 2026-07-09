@@ -1,8 +1,8 @@
 package fr.opensettlers.state;
 
-import fr.opensettlers.entities.Carrier;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.Road;
+import fr.opensettlers.entities.unit.Carrier;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.world.Road;
 import fr.opensettlers.utils.Coordinates;
 import lombok.Getter;
 

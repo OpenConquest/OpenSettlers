@@ -1,17 +1,17 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.BuildingFactory;
+import fr.opensettlers.entities.building.BuildingFactory;
 import fr.opensettlers.utils.GameConfig;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.systems.TransportManager;
-import fr.opensettlers.entities.Carrier;
-import fr.opensettlers.entities.Donkey;
-import fr.opensettlers.entities.Flag;
-import fr.opensettlers.entities.ProcessingBuilding;
-import fr.opensettlers.entities.Road;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.systems.transport.TransportManager;
+import fr.opensettlers.entities.unit.Carrier;
+import fr.opensettlers.entities.unit.Donkey;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.building.ProcessingBuilding;
+import fr.opensettlers.entities.world.Road;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.DonkeyState;
+import fr.opensettlers.utils.enums.DonkeyState;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.systems.transport.DonkeySystem;
 
 /**
  * Tests road upgrades to level 2 and the donkey lifecycle.

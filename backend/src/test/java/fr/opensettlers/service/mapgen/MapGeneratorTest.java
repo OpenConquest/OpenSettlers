@@ -1,8 +1,8 @@
 package fr.opensettlers.service.mapgen;
 
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.TileType;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;

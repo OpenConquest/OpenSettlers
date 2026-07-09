@@ -1,12 +1,12 @@
 package fr.opensettlers.service;
 
-import fr.opensettlers.entities.MilitaryBuilding;
-import fr.opensettlers.entities.ProcessingBuilding;
-import fr.opensettlers.entities.Recipe;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.entities.building.ProcessingBuilding;
+import fr.opensettlers.entities.resource.Recipe;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
+import fr.opensettlers.utils.enums.ResourceType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

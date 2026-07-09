@@ -1,18 +1,20 @@
 package fr.opensettlers.service;
 
-import fr.opensettlers.entities.BuildingFactory;
-import fr.opensettlers.entities.ConstructionSite;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.NaturalResourceNode;
+import fr.opensettlers.entities.building.BuildingFactory;
+import fr.opensettlers.entities.building.ConstructionSite;
+import fr.opensettlers.entities.world.Flag;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.world.NaturalResourceNode;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.TileType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -129,5 +131,48 @@ class GameActionsTest {
         boolean second = GameActions.placeBuilding(state, 0, BuildingName.QUARRY, new Coordinates(8, 20));
 
         assertFalse(second);
+    }
+
+    @Test
+    void linksTwoFlagsWithARoadOverGrass() {
+        GameState state = grassStateWithHq();
+        Flag a = GameActions.placeFlag(state, 0, new Coordinates(8, 20));
+        Flag b = GameActions.placeFlag(state, 0, new Coordinates(8, 24));
+        assertNotNull(a);
+        assertNotNull(b);
+
+        boolean linked = GameActions.linkFlags(state, a.getId(), b.getId(),
+                List.of(new Coordinates(8, 22)));
+
+        assertTrue(linked);
+        assertEquals(1, state.getRoadNetwork().getAllRoads().size());
+    }
+
+    @Test
+    void rejectsARoadCrossingAForestTile() {
+        GameState state = grassStateWithHq();
+        state.getTile(new Coordinates(8, 22)).setType(TileType.FOREST);
+        Flag a = GameActions.placeFlag(state, 0, new Coordinates(8, 20));
+        Flag b = GameActions.placeFlag(state, 0, new Coordinates(8, 24));
+
+        boolean linked = GameActions.linkFlags(state, a.getId(), b.getId(),
+                List.of(new Coordinates(8, 22)));
+
+        assertFalse(linked);
+        assertTrue(state.getRoadNetwork().getAllRoads().isEmpty());
+    }
+
+    @Test
+    void rejectsARoadWhosePathIsNotAContiguousChain() {
+        GameState state = grassStateWithHq();
+        Flag a = GameActions.placeFlag(state, 0, new Coordinates(8, 20));
+        Flag b = GameActions.placeFlag(state, 0, new Coordinates(8, 24));
+
+        // (8,28) is adjacent to neither endpoint: the chain has a gap.
+        boolean linked = GameActions.linkFlags(state, a.getId(), b.getId(),
+                List.of(new Coordinates(8, 28)));
+
+        assertFalse(linked);
+        assertTrue(state.getRoadNetwork().getAllRoads().isEmpty());
     }
 }

@@ -1,20 +1,21 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.BuildingFactory;
+import fr.opensettlers.entities.building.BuildingFactory;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.entities.MilitaryBuilding;
-import fr.opensettlers.entities.Soldier;
-import fr.opensettlers.entities.StorageBuilding;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.entities.building.MilitaryBuilding;
+import fr.opensettlers.entities.unit.Soldier;
+import fr.opensettlers.entities.building.StorageBuilding;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.SoldierRank;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.SoldierRank;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.systems.military.MilitarySystem;
 
 /**
  * Tests soldier recruitment (sword + shield + beer) and gold coin promotions.

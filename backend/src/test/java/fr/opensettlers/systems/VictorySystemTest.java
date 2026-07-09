@@ -1,9 +1,9 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.BuildingFactory;
-import fr.opensettlers.entities.StorageBuilding;
+import fr.opensettlers.entities.building.BuildingFactory;
+import fr.opensettlers.entities.building.StorageBuilding;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
 import org.junit.jupiter.api.Test;
 

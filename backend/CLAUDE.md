@@ -34,16 +34,31 @@ WebSocket handlers only enqueue commands.
 
 ## Package map (`fr.opensettlers.*`)
 
-- **`utils`** — enums and the central `GameConfig` (every balance/timing constant
-  lives here as a `public static final`, **not** in `application.properties`).
-- **`entities`** — the game model POJOs (buildings, units, flags, roads, tiles).
+- **`utils`** — the central `GameConfig` (every balance/timing constant lives here
+  as a `public static final`, **not** in `application.properties`) and the
+  `Coordinates` value object. All enums live in **`utils.enums`** (`BuildingName`,
+  `ResourceType`, `TileType`, the unit `*State` enums, etc.).
+- **`entities`** — the game model POJOs, split into subpackages:
+  **`entities.building`** (`Building`, `BuildingFactory`, the concrete building
+  types, `ConstructionSite`, plus the `Garrisoned`/`IProducer` contracts),
+  **`entities.unit`** (`Worker`, `Carrier`, `Donkey`, `Soldier`, `Ship`),
+  **`entities.world`** (`MapTile`, `Flag`, `Road`, `NaturalResourceNode`) and
+  **`entities.resource`** (`Recipe`, `ResourceSlot`, `ResourceStack`).
   `BuildingFactory` builds every `BuildingName`; `Building.buildingCosts` holds
   construction costs.
 - **`state`** — `GameState` (single source of truth), `GameSession` (state +
   connections + command queue), `RoadNetwork` (flag/road graph + Dijkstra
   pathfinding), `TerritoryManager`, `FogOfWarManager`.
 - **`systems`** — one class per simulation concern, each an `ISystem`. The tick
-  order is defined in `GameEngine.tick()`.
+  order is defined in `GameEngine.tick()`. The `ISystem` interface plus the
+  cross-cutting `AiSystem` and `VictorySystem` sit at the package root; the
+  concrete systems are grouped by domain: **`systems.military`** (`MilitarySystem`,
+  `CombatSystem`, `MovementSystem`, `CatapultSystem`), **`systems.transport`**
+  (`TransportSystem`, `TransportManager`, `DonkeySystem`), **`systems.economy`**
+  (`EconomySystem`, `ProductionSystem`, `ConstructionSystem`, `WorkerSystem` + the
+  `Supply`/`Demand`/`SupplySource` records), **`systems.exploration`**
+  (`GeologistSystem`, `ScoutSystem`, `NavalSystem`) and **`systems.world`**
+  (`GrowthSystem`, `VisionSystem`).
 - **`service`** — `GameEngineService` (session lifecycle + command dispatch),
   `GameEngine` (the loop), `GameActions` (validated operations shared by humans
   **and** the AI), `GameStateSerializer`, and `mapgen/` (procedural maps).

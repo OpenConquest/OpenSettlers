@@ -1,14 +1,14 @@
 package fr.opensettlers.systems;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.BuildingFactory;
-import fr.opensettlers.entities.MapTile;
-import fr.opensettlers.entities.StorageBuilding;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.building.BuildingFactory;
+import fr.opensettlers.entities.world.MapTile;
+import fr.opensettlers.entities.building.StorageBuilding;
 import fr.opensettlers.state.GameState;
-import fr.opensettlers.utils.BuildingName;
+import fr.opensettlers.utils.enums.BuildingName;
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.TileType;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.TileType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.systems.exploration.NavalSystem;
 
 /**
  * Tests sea expeditions: a harbor with materials and a shipyard launches a ship

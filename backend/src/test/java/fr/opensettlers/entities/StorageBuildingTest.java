@@ -1,14 +1,16 @@
 package fr.opensettlers.entities;
 
 import fr.opensettlers.utils.Coordinates;
-import fr.opensettlers.utils.ResourceType;
-import fr.opensettlers.utils.WorkerType;
+import fr.opensettlers.utils.enums.ResourceType;
+import fr.opensettlers.utils.enums.WorkerType;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import fr.opensettlers.entities.unit.Worker;
+import fr.opensettlers.entities.building.StorageBuilding;
 
 /**
  * Tests that training specialists consumes a tool from the warehouse stock.

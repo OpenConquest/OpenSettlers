@@ -1,7 +1,7 @@
 package fr.opensettlers.systems.economy;
 
-import fr.opensettlers.entities.Building;
-import fr.opensettlers.entities.Flag;
+import fr.opensettlers.entities.building.Building;
+import fr.opensettlers.entities.world.Flag;
 
 /**
  * Represents available supply of a specific resource in the economy.
