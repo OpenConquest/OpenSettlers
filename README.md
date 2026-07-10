@@ -6,7 +6,7 @@
   <p align="center">
     <a href="#getting-started"><img alt="Get Started" src="https://img.shields.io/badge/Get_Started-blue?style=for-the-badge" /></a>
     <a href="LICENSE"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/License-GPLv3-green?style=for-the-badge" /></a>
-    <a href="#tech-stack"><img alt="Java 21" src="https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk" /></a>
+    <a href="#tech-stack"><img alt="Java 25" src="https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk" /></a>
     <a href="#tech-stack"><img alt="Quarkus" src="https://img.shields.io/badge/Quarkus-3.37-4695EB?style=for-the-badge&logo=quarkus" /></a>
     <a href="#tech-stack"><img alt="Nuxt 3" src="https://img.shields.io/badge/Nuxt-4-00DC82?style=for-the-badge&logo=nuxtdotjs" /></a>
   </p>
@@ -71,7 +71,7 @@ OpenSettlers follows a strict **client-server model** where the server is the si
 └──────────────────────────────────┘
 ```
 
-- **Server (Quarkus / Java 21)** — The game engine runs a fixed-rate game loop at **10 TPS** (ticks per second). Each tick, it dequeues player commands, executes an ordered sequence of simulation **systems** against a single `GameState`, then broadcasts a fog-of-war-filtered JSON snapshot to each connected client. All state mutations happen on the loop thread — the simulation is **single-threaded and lock-free**. WebSocket handlers only enqueue commands.
+- **Server (Quarkus / Java 25)** — The game engine runs a fixed-rate game loop at **10 TPS** (ticks per second). Each tick, it dequeues player commands, executes an ordered sequence of simulation **systems** against a single `GameState`, then broadcasts a fog-of-war-filtered JSON snapshot to each connected client. All state mutations happen on the loop thread — the simulation is **single-threaded and lock-free**. WebSocket handlers only enqueue commands.
 
 - **Client (Nuxt 3 + WebGL)** — Manages the lobby, in-game HUD, and map rendering. It receives server snapshots, interpolates unit movement for smooth 60 FPS rendering, and transmits player intentions as commands.
 
@@ -81,7 +81,7 @@ OpenSettlers follows a strict **client-server model** where the server is the si
 
 | Layer | Technology | Role |
 |---|---|---|
-| **Backend** | Quarkus 3.36 (Java 21) | Game engine, dependency injection (ArC), scheduler |
+| **Backend** | Quarkus 3.37 (Java 25) | Game engine, dependency injection (ArC), scheduler |
 | **Persistence** | PostgreSQL + Hibernate Panache | Game save/load via Active Record pattern |
 | **Real-time** | Quarkus WebSockets Next | Non-blocking reactive WebSocket for state broadcasting |
 | **Serialization** | Jackson | JSON serialization for messages and snapshots |
@@ -169,30 +169,31 @@ The backend is a full-fledged game engine (`fr.opensettlers.*`) implementing the
 
 ```
 OpenSettlers/
-├── backend/                          # Quarkus server (Java 21)
+├── backend/                          # Quarkus server (Java 25)
 │   ├── src/main/java/fr/opensettlers/
-│   │   ├── utils/                    # Enums, GameConfig (all tuning constants)
-│   │   ├── entities/                 # Game model (buildings, units, flags, roads, tiles)
-│   │   │   ├── Building.java         #   Base building + specialized subtypes
-│   │   │   ├── Carrier.java          #   Road transport unit
-│   │   │   ├── Soldier.java          #   Military unit with rank & combat
-│   │   │   ├── Ship.java             #   Naval vessel
-│   │   │   ├── Flag.java             #   Logistics node on roads
-│   │   │   ├── Road.java             #   Connection between two flags
-│   │   │   └── MapTile.java          #   Hex tile with terrain & resources
+│   │   ├── utils/                    # Coordinates, GameConfig (all tuning constants)
+│   │   │   └── enums/                #   Terrain, resource, building & unit enums
+│   │   ├── entities/                 # Game model, grouped by domain
+│   │   │   ├── building/             #   Building hierarchy + BuildingFactory
+│   │   │   │                         #     (production, military, storage, shipyard, catapult…)
+│   │   │   ├── unit/                 #   Carrier, Donkey, Worker, Soldier, Ship
+│   │   │   ├── world/                #   MapTile, Flag, Road, NaturalResourceNode
+│   │   │   └── resource/             #   ResourceStack, ResourceSlot, Recipe
 │   │   ├── state/                    # GameState, GameSession, RoadNetwork,
-│   │   │                             #   TerritoryManager, FogOfWar
+│   │   │                             #   TerritoryManager, FogOfWarManager
 │   │   ├── systems/                  # Simulation systems (one per mechanic)
 │   │   │   ├── ISystem.java          #   Common system interface
 │   │   │   ├── AiSystem.java         #   AI decision-making
-│   │   │   ├── CombatSystem.java     #   1v1 duel resolution
-│   │   │   ├── ProductionSystem.java #   Building production cycles
-│   │   │   ├── TransportSystem.java  #   Carrier dispatching
-│   │   │   ├── NavalSystem.java      #   Ship & expedition logic
-│   │   │   └── ...                   #   14 more systems
-│   │   ├── service/                  # GameEngine (loop), GameActions, mapgen/
+│   │   │   ├── VictorySystem.java    #   Elimination & win detection
+│   │   │   ├── economy/              #   Production, Economy, Worker, Construction
+│   │   │   ├── transport/            #   Transport & Donkey (road logistics)
+│   │   │   ├── military/             #   Military, Combat, Catapult, Movement
+│   │   │   ├── exploration/          #   Geologist, Scout, Naval
+│   │   │   └── world/                #   Growth, Vision
+│   │   ├── service/                  # Game orchestration
 │   │   │   ├── GameEngine.java       #   Fixed-rate game loop
 │   │   │   ├── GameActions.java      #   Player command handlers
+│   │   │   ├── commands/             #   Command model
 │   │   │   └── mapgen/               #   Perlin noise, Poisson-disk, map gen
 │   │   ├── controller/               # REST endpoints + WebSocket + DTOs
 │   │   └── persistence/              # Panache entities, snapshots, save service
@@ -234,7 +235,7 @@ OpenSettlers/
 
 | Requirement | Version | Notes |
 |---|---|---|
-| **Java** | 21+ | GraalVM recommended for native builds |
+| **Java** | 25+ | GraalVM recommended for native builds |
 | **Node.js** | 20+ | With pnpm |
 | **Docker** | Latest | Required for PostgreSQL via Quarkus Dev Services |
 
